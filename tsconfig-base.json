@@ -1,0 +1,24 @@
+{
+    "compilerOptions": {
+        "allowJs": false,
+        "alwaysStrict": true,
+        "declaration": true,
+        "incremental": true,
+        "isolatedModules": true,
+        "lib": [
+            "ES2017"
+        ],
+        "module": "ES6",
+        "moduleResolution": "node",
+        "noEmitOnError": true,
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitAny": true,
+        "noImplicitReturns": true,
+        "noImplicitThis": true,
+        "noUnusedLocals": true,
+        "removeComments": true,
+        "sourceMap": true,
+        "strictFunctionTypes": true,
+        "target": "ES2017"
+    }
+}

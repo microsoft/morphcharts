@@ -1,33 +1,72 @@
-# Project
+# MorphCharts
+MorphCharts is a visualization library for creating rich, immersive, and engaging 2D and 3D data visualizations, written in [TypeScript](https://www.typescriptlang.org/).
 
-> This repo has been populated by an initial template to help get you started. Please
-> make sure to update the content to build a great experience for community-building.
+Charts can be created in a web browser, or via a server-side REST API.
 
-As the maintainer of this project, please make a few updates:
+## Table of Contents
+1. [Components](#components)
+1. [Usage](#usage)
+1. [Chart types](#chart-types)
+1. [Data](#data)
+1. [Geometry](#geometry)
+1. [Materials](#materials)
+1. [Textures](#textures)
+1. [Tiling](#tiling)
+1. [Installation](#installation)
 
-- Improving this README.MD file to provide a great experience
-- Updating SUPPORT.MD with content about this project's support experience
-- Understanding the security reporting process in SECURITY.MD
-- Remove this section from the README
+## Components
+The MorphCharts GitHub repo has the following components:
+* **Core** - A library of helper functions used by the other components.
+* **Client** - A website to demonstrate use of the visualization framework.
+* **Server** - A NodeJS application for generating server-side visualizations on a CPU with a REST API.
+* **Renderers** - Renderers for generating visualizations:
+    * WebGPU - Web browser rendering on the GPU using WebGPU.
+    * NodeJS - Server-side rendering on the CPU using NodeJS and [node-canvas](https://github.com/Automattic/node-canvas).
+* **Spec** - A visualization grammar parser, based on a subset of the [VEGA](https://github.com/vega/vega) specification format, with extensions to support 3D visualizations.
 
-## Contributing
+## Usage
+There are 2 principal ways to create charts using this library:
+1. **Provide a JSON specification** based on s subset of the [VEGA](https://github.com/vega/vega) specification format, with extensions to support 3D visualizations.
+1. **Use code** to create visualizations directly, with the **Core** library and a **Renderer**.
 
-This project welcomes contributions and suggestions.  Most contributions require you to agree to a
-Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
+Charts can be rendered client-side in a web browser on a GPU ([using WebGPU](https://caniuse.com/?search=webgpu)), or server-side on a CPU.
 
-When you submit a pull request, a CLA bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
+## Chart Types
+While the [VEGA](https://github.com/vega/vega) specification supports the definition of arbitrary charts, this visualization library is optimized for common 2D/3D chart types such as **bar** charts, **line** charts, **treemaps**, **scatter** plots, **pie/donut** charts, **area** charts, and **node link** graphs.
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+## Data
+When a chart is defined using a JSON specification, there are 2 principal ways to specify a tabular dataset.
+1. Using an inline JSON definition.
+1. Linking to an external file in a CSV format via a URL.
 
-## Trademarks
+## Geometry
+Charts are principally rendered using procedural geometry and path tracing. Supported geometric primitives include **rectangle**, **cuboid**, **sphere**, **cylinder**, **hex prism**, **ring** (segments), **torus** (segments).
 
-This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft 
-trademarks or logos is subject to and must follow 
-[Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
-Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
-Any use of third-party trademarks or logos are subject to those third-party's policies.
+Charts can be rendered using multiple pipelines, including:
+* **Raytrace** - A global-illumination ray tracer.
+* **Color** - A simple, normal-based shading with directional and ambient lighting.
+* **Normal** - Normal map.
+* **Depth** - Grayscale depth map.
+* **Segment** - A color map corresponding to a segment id, useful for picking and edge detection.
+* **Edge** - An edge outline.
+
+## Materials
+The ray tracer supports rendering different material types, which can be defined in the chart specification.
+* **Diffuse** - A simple diffuse material with Lambertian shading. This is the default material.
+* **Metal** - A metallic material with variable shininess.
+* **Glossy** - A glossy material combining diffuse and dielectric material properties.
+* **Glass** - A dielectric material.
+* **Light** - An emissive light source.
+
+## Textures
+Materials can be rendered in solid color, or textured.
+
+## Tiling
+Visualizations can be generated at arbitrary resolutions. Single images can be created, typically up to 4K (3840x2160px) resolution (depending on hardware). For larger resolutions, multiple image tiles can be created, which can be stitched into an arbitrarily large image.
+
+## Installation
+The project can be run locally using the following steps:
+1. Clone the repo.
+1. `npm install` to install any required dependencies.
+1. Build the project using one of the included scripts (see `package.json`), such as `npm run build_client`.
+1. `npm run start_client` to run the website using [Vite](https://vite.dev/).
