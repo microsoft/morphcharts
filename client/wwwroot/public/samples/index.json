@@ -51,7 +51,7 @@
     "plot": "bar9.json",
     "image": "bar9_raytrace_1280x720.png",
     "title": "3D Faceted Bar Chart",
-    "description": "Afaceted 3D bar chart"
+    "description": "A faceted 3D bar chart"
   },
   {
     "plot": "bar10.json",
@@ -183,7 +183,7 @@
     "plot": "histogram1.json",
     "image": "histogram1_raytrace_1280x720.png",
     "title": "2-Dice Roll Sum Histogram",
-    "description": "A unit historgram of the sum of rolling 2 dice, highlighting doubles"
+    "description": "A unit histogram of the sum of rolling 2 dice, highlighting doubles"
   },
   {
     "plot": "histogram2.json",
