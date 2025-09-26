@@ -28,7 +28,6 @@ export interface IHexBinResult {
     binsY: number;
 }
 
-// TODO: Switch from half-size to size
 export class Hex {
     //
     //       +---> .---------.
