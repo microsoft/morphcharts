@@ -534,12 +534,14 @@ export class UnitVertex {
 
     public static getFill(bufferView: DataView, index: number, value: Vector3) {
         const offset = UnitVertex.SIZE_BYTES * index + this.FILL_OFFSET_BYTES;
+        // Use Uint16 since color can be greater than 1.0 for HDR rendering
         value[0] = bufferView.getUint16(offset) / 0xff;
         value[1] = bufferView.getUint16(offset + 2) / 0xff;
         value[2] = bufferView.getUint16(offset + 4) / 0xff;
     }
     public static setFill(bufferView: DataView, index: number, value: Vector3) {
         const offset = UnitVertex.SIZE_BYTES * index + this.FILL_OFFSET_BYTES;
+        // Use Uint16 since color can be greater than 1.0 for HDR rendering
         bufferView.setUint16(offset, value[0] * 0xff);
         bufferView.setUint16(offset + 2, value[1] * 0xff);
         bufferView.setUint16(offset + 4, value[2] * 0xff);
@@ -547,18 +549,21 @@ export class UnitVertex {
     public static copyFill(fromBufferView: DataView, fromIndex: number, toBufferView: DataView, toIndex: number) {
         const fromOffset = UnitVertex.SIZE_BYTES * fromIndex + this.FILL_OFFSET_BYTES;
         const toOffset = UnitVertex.SIZE_BYTES * toIndex + this.FILL_OFFSET_BYTES;
+        // Use Uint16 since color can be greater than 1.0 for HDR rendering
         toBufferView.setUint16(toOffset, fromBufferView.getUint16(fromOffset));
         toBufferView.setUint16(toOffset + 2, fromBufferView.getUint16(fromOffset + 2));
         toBufferView.setUint16(toOffset + 4, fromBufferView.getUint16(fromOffset + 4));
     }
     public static getStroke(bufferView: DataView, index: number, value: Vector3) {
         const offset = UnitVertex.SIZE_BYTES * index + this.STROKE_OFFSET_BYTES;
+        // Use Uint16 since color can be greater than 1.0 for HDR rendering
         value[0] = bufferView.getUint16(offset) / 0xff;
         value[1] = bufferView.getUint16(offset + 2) / 0xff;
         value[2] = bufferView.getUint16(offset + 4) / 0xff;
     }
     public static setStroke(bufferView: DataView, index: number, value: Vector3) {
         const offset = UnitVertex.SIZE_BYTES * index + this.STROKE_OFFSET_BYTES;
+        // Use Uint16 since color can be greater than 1.0 for HDR rendering
         bufferView.setUint16(offset, value[0] * 0xff);
         bufferView.setUint16(offset + 2, value[1] * 0xff);
         bufferView.setUint16(offset + 4, value[2] * 0xff);
@@ -566,10 +571,12 @@ export class UnitVertex {
     public static copyStroke(fromBufferView: DataView, fromIndex: number, toBufferView: DataView, toIndex: number) {
         const fromOffset = UnitVertex.SIZE_BYTES * fromIndex + this.STROKE_OFFSET_BYTES;
         const toOffset = UnitVertex.SIZE_BYTES * toIndex + this.STROKE_OFFSET_BYTES;
+        // Use Uint16 since color can be greater than 1.0 for HDR rendering
         toBufferView.setUint16(toOffset, fromBufferView.getUint16(fromOffset));
         toBufferView.setUint16(toOffset + 2, fromBufferView.getUint16(fromOffset + 2));
         toBufferView.setUint16(toOffset + 4, fromBufferView.getUint16(fromOffset + 4));
     }
+    
     // Scale from [0,255] to [0,1]
     public static getFuzz(bufferView: DataView, index: number) {
         const offset = UnitVertex.SIZE_BYTES * index + this.FUZZ_OFFSET_BYTES;
