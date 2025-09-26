@@ -34,8 +34,8 @@ jobs:
       - name: Install dependencies
         run: |
           npm ci
-          npm run build
-          npm run build_vite
+          npm run build_client
+          npm run build_client_vite
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
