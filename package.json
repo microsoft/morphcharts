@@ -1,0 +1,24 @@
+{
+  "scripts": {
+    "build_core": "tsc -p ./core/tsconfig.json",
+    "build_spec": "tsc -p ./core/tsconfig.json && tsc -p ./spec/tsconfig.json",
+    "build_webgpu_renderer": "tsc -p ./core/tsconfig.json && tsc -p ./renderers/webgpuraytrace/tsconfig.json",
+    "build_nodecpu_renderer": "tsc -p ./core/tsconfig.json && tsc -p ./renderers/nodecpuraytrace/tsconfig.json",
+    "build_client": "tsc -p ./core/tsconfig.json && tsc -p ./spec/tsconfig.json && tsc -p ./renderers/webgpuraytrace/tsconfig.json && tsc -p ./client/tsconfig.json",
+    "build_client_vite": "vite build",
+    "build_server": "tsc -p ./core/tsconfig.json && tsc -p ./spec/tsconfig.json && tsc -p ./renderers/nodecpuraytrace/tsconfig.json && tsc -p ./server/tsconfig.json",
+    "build_all": "tsc -p ./core/tsconfig.json && tsc -p ./spec/tsconfig.json && tsc -p ./renderers/webgpuraytrace/tsconfig.json && tsc -p ./renderers/nodecpuraytrace/tsconfig.json && tsc -p ./client/tsconfig.json && tsc -p ./server/tsconfig.json",
+    "start_client": "vite",
+    "start_server": "node ./server/dist/app.js",
+    "preview": "vite preview"
+  },
+  "workspaces": [
+    "core",
+    "renderers/nodecpuraytrace",
+    "renderers/webgpuraytrace",
+    "spec",
+    "server",
+    "client",
+    "webgpuraytrace"
+  ]
+}

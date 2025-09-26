@@ -1,0 +1,17 @@
+{
+    "extends": "../tsconfig-base.json",
+    "compilerOptions": {
+        "allowSyntheticDefaultImports": true,
+        "rootDir": "src",
+        "outDir": "dist",
+    },
+    "types": [
+        "@types/express"
+    ],
+    "include": [
+        "src"
+    ],
+    "exclude": [
+        "dist"
+    ]
+}

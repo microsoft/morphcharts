@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MorphCharts</title>
+    <style>
+        body {
+            font-family: sans-serif;
+        }
+
+        a {
+            color: royalblue;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        code {
+            background-color: whitesmoke;
+            font-family: monospace;
+        }
+
+        footer {
+            margin-top: 32px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1 id="morphcharts">MorphCharts</h1>
+    <p>MorphCharts is a visualization library for creating rich, immersive, and engaging 2D and 3D data visualizations,
+        written in <a href="https://www.typescriptlang.org/">TypeScript</a>.</p>
+    <p>Charts can be created in a web browser, or via a server-side REST API.</p>
+    <h2 id="table-of-contents">Table of Contents</h2>
+    <ol>
+        <li><a href="#components">Components</a></li>
+        <li><a href="#usage">Usage</a></li>
+        <li><a href="#chart-types">Chart types</a></li>
+        <li><a href="#data">Data</a></li>
+        <li><a href="#geometry">Geometry</a></li>
+        <li><a href="#materials">Materials</a></li>
+        <li><a href="#textures">Textures</a></li>
+        <li><a href="#tiling">Tiling</a></li>
+        <li><a href="#installation">Installation</a></li>
+    </ol>
+    <h2 id="components">Components</h2>
+    <p>The MorphCharts GitHub repo has the following components:</p>
+    <ul>
+        <li><strong>Core</strong> - A library of helper functions used by the other components.</li>
+        <li><strong>Client</strong> - A website to demonstrate use of the visualization framework.</li>
+        <li><strong>Server</strong> - A NodeJS application for generating server-side visualizations on a CPU with a
+            REST API.</li>
+        <li><strong>Renderers</strong> - Renderers for generating visualizations:<ul>
+                <li>WebGPU - Web browser rendering on the GPU using WebGPU.</li>
+                <li>NodeJS - Server-side rendering on the CPU using NodeJS and <a
+                        href="https://github.com/Automattic/node-canvas">node-canvas</a>.</li>
+            </ul>
+        </li>
+        <li><strong>Spec</strong> - A visualization grammar parser, based on a subset of the <a
+                href="https://github.com/vega/vega">VEGA</a> specification format, with extensions to support 3D
+            visualizations.</li>
+    </ul>
+    <h2 id="usage">Usage</h2>
+    <p>There are 2 principal ways to create charts using this library:</p>
+    <ol>
+        <li><strong>Provide a JSON specification</strong> based on s subset of the <a
+                href="https://github.com/vega/vega">VEGA</a> specification format, with extensions to support 3D
+            visualizations.</li>
+        <li><strong>Use code</strong> to create visualizations directly, with the <strong>Core</strong> library and a
+            <strong>Renderer</strong>.
+        </li>
+    </ol>
+    <p>Charts can be rendered client-side in a web browser on a GPU (<a href="https://caniuse.com/?search=webgpu">using
+            WebGPU</a>), or server-side on a CPU.</p>
+    <h2 id="chart-types">Chart Types</h2>
+    <p>While the <a href="https://github.com/vega/vega">VEGA</a> specification supports the definition of arbitrary
+        charts, this visualization library is optimized for common 2D/3D chart types such as <strong>bar</strong>
+        charts, <strong>line</strong> charts, <strong>treemaps</strong>, <strong>scatter</strong> plots,
+        <strong>pie/donut</strong> charts, <strong>area</strong> charts, and <strong>node link</strong> graphs.
+    </p>
+    <h2 id="data">Data</h2>
+    <p>When a chart is defined using a JSON specification, there are 2 principal ways to specify a tabular dataset.</p>
+    <ol>
+        <li>Using an inline JSON definition.</li>
+        <li>Linking to an external file in a CSV format via a URL.</li>
+    </ol>
+    <h2 id="geometry">Geometry</h2>
+    <p>Charts are principally rendered using procedural geometry and path tracing. Supported geometric primitives
+        include <strong>rectangle</strong>, <strong>cuboid</strong>, <strong>sphere</strong>, <strong>cylinder</strong>,
+        <strong>hex prism</strong>, <strong>ring</strong> (segments), <strong>torus</strong> (segments).
+    </p>
+    <p>Charts can be rendered using multiple pipelines, including:</p>
+    <ul>
+        <li><strong>Raytrace</strong> - A global-illumination ray tracer.</li>
+        <li><strong>Color</strong> - A simple, normal-based shading with directional and ambient lighting.</li>
+        <li><strong>Normal</strong> - Normal map.</li>
+        <li><strong>Depth</strong> - Grayscale depth map.</li>
+        <li><strong>Segment</strong> - A color map corresponding to a segment id, useful for picking and edge detection.
+        </li>
+        <li><strong>Edge</strong> - An edge outline.</li>
+    </ul>
+    <h2 id="materials">Materials</h2>
+    <p>The ray tracer supports rendering different material types, which can be defined in the chart specification.</p>
+    <ul>
+        <li><strong>Diffuse</strong> - A simple diffuse material with Lambertian shading. This is the default material.
+        </li>
+        <li><strong>Metal</strong> - A metallic material with variable shininess.</li>
+        <li><strong>Glossy</strong> - A glossy material combining diffuse and dielectric material properties.</li>
+        <li><strong>Glass</strong> - A dielectric material.</li>
+        <li><strong>Light</strong> - An emissive light source.</li>
+    </ul>
+    <h2 id="textures">Textures</h2>
+    <p>Materials can be rendered in solid color, or textured.</p>
+    <h2 id="tiling">Tiling</h2>
+    <p>Visualizations can be generated at arbitrary resolutions. Single images can be created, typically up to 4K (3840x2160px) resolution (depending on hardware). For larger resolutions, multiple image tiles can be created,
+        which can be stitched into an arbitrarily large image.</p>
+    <h2 id="installation">Installation</h2>
+    <p>The project can be run locally using the following steps:</p>
+    <ol>
+        <li>Clone the repo.</li>
+        <li><code>npm install</code> to install any required dependencies.</li>
+        <li>Build the project using one of the included scripts (see <code>package.json</code>), such as
+            <code>npm run build_client</code>.
+        </li>
+        <li><code>npm run start_client</code> to run the website using <a href="https://vite.dev/">Vite</a>.</li>
+    </ol>
+    <footer>
+        <span>© 2025 Microsoft</span>
+        <a href="https://go.microsoft.com/fwlink/?LinkId=521839">Privacy &amp; Cookies</a>
+        <a href="https://go.microsoft.com/fwlink/?linkid=2259814">Consumer Health Privacy</a>
+        <a href="https://www.microsoft.com/trademarks">Trademarks</a>
+        <a href="https://www.microsoft.com/en-us/servicesagreement/">Terms of Use</a>
+    </footer>
+</body>
+
+</html>

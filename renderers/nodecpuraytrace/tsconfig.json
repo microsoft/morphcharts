@@ -1,0 +1,15 @@
+{
+    "extends": "../../tsconfig-base.json",
+    "compilerOptions": {
+        "allowSyntheticDefaultImports": true,
+        "rootDir": "src",
+        "outDir": "dist",
+        "module": "ES2020", // Required for __filename etc to work in Node.js
+    },
+    "include": [
+        "src"
+    ],
+    "exclude": [
+        "dist"
+    ]
+}

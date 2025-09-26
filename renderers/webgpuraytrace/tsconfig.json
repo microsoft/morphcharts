@@ -1,0 +1,20 @@
+{
+    "extends": "../../tsconfig-base.json",
+    "compilerOptions": {
+        "rootDir": "src",
+        "outDir": "dist",
+        "lib": [
+            "DOM",
+            "ES2017"
+        ],
+        "types": [
+            "@webgpu/types"
+        ],
+    },
+    "include": [
+        "src"
+    ],
+    "exclude": [
+        "dist"
+    ]
+}

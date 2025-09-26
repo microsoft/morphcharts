@@ -1,0 +1,13 @@
+{
+  "devDependencies": {
+    "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "canvas": "^3.1.0"
+  },
+  "type": "module",
+  "name": "nodecpuraytrace",
+  "version": "1.0.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts"
+}
