@@ -1,0 +1,202 @@
+{
+  "title": "Facetted Pie Charts",
+  "description": "Facetted pie charts",
+
+  "height": 40,
+
+  "signals": [
+    {"name": "side", "value": 150},
+    {"name": "columns", "value": 5},
+    {"name": "rows", "value": 2},
+    {"name": "padding", "value": 0.2},
+
+    {"name": "width", "update": "columns*side"}, 
+    {"name": "depth", "update": "rows*side"},
+    {"name": "paddingOuter", "update": "padding/2"}
+  ],
+
+  "camera": {"position": [0, 1.2, 0.6]},
+
+  "data": [
+    {
+      "name": "table",
+      "values": [
+        {"category": "A", "subcategory": "One",   "amount": 42},
+        {"category": "B", "subcategory": "One",   "amount": 87},
+        {"category": "C", "subcategory": "One",   "amount": 15},
+        {"category": "D", "subcategory": "One",   "amount": 63},
+        {"category": "E", "subcategory": "One",   "amount": 29},
+        {"category": "F", "subcategory": "One",   "amount": 91},
+        {"category": "G", "subcategory": "One",   "amount": 8},
+        {"category": "H", "subcategory": "One",   "amount": 76},
+        {"category": "I", "subcategory": "One",   "amount": 54},
+        {"category": "J", "subcategory": "One",   "amount": 33},
+        {"category": "A", "subcategory": "Two",   "amount": 67},
+        {"category": "B", "subcategory": "Two",   "amount": 23},
+        {"category": "C", "subcategory": "Two",   "amount": 94},
+        {"category": "D", "subcategory": "Two",   "amount": 38},
+        {"category": "E", "subcategory": "Two",   "amount": 81},
+        {"category": "F", "subcategory": "Two",   "amount": 12},
+        {"category": "G", "subcategory": "Two",   "amount": 56},
+        {"category": "H", "subcategory": "Two",   "amount": 33},
+        {"category": "I", "subcategory": "Two",   "amount": 70},
+        {"category": "J", "subcategory": "Two",   "amount": 19},
+        {"category": "A", "subcategory": "Three", "amount": 25},
+        {"category": "B", "subcategory": "Three", "amount": 59},
+        {"category": "C", "subcategory": "Three", "amount": 11},
+        {"category": "D", "subcategory": "Three", "amount": 72},
+        {"category": "E", "subcategory": "Three", "amount": 44},
+        {"category": "F", "subcategory": "Three", "amount": 60},
+        {"category": "G", "subcategory": "Three", "amount": 39},
+        {"category": "H", "subcategory": "Three", "amount": 90},
+        {"category": "I", "subcategory": "Three", "amount": 18},
+        {"category": "J", "subcategory": "Three", "amount": 77},
+        {"category": "A", "subcategory": "Four",  "amount": 80},
+        {"category": "B", "subcategory": "Four",  "amount": 14},
+        {"category": "C", "subcategory": "Four",  "amount": 69},
+        {"category": "D", "subcategory": "Four",  "amount": 47},
+        {"category": "E", "subcategory": "Four",  "amount": 92},
+        {"category": "F", "subcategory": "Four",  "amount": 36},
+        {"category": "G", "subcategory": "Four",  "amount": 58},
+        {"category": "H", "subcategory": "Four",  "amount": 21},
+        {"category": "I", "subcategory": "Four",  "amount": 73},
+        {"category": "J", "subcategory": "Four",  "amount": 5}
+      ]
+    },
+    {
+      "name": "facets",
+      "source": "table",
+      "transform": [
+        {"type": "collect", "sort": {"field": "category", "order": "ascending"}},
+        {"type": "aggregate", "groupby": ["category"]},
+        {"type": "identifier", "as": "categoryid"},
+        {"type": "formula", "expr": "(datum.categoryid-1)%columns", "as": "gridx"}, 
+        {"type": "formula", "expr": "floor((datum.categoryid-1)/columns)", "as": "gridy"}
+      ] 
+    }
+  ],
+
+  "scales": [
+    {
+      "name": "height",
+      "type": "linear",
+      "domain": {"data": "table", "field": "amount"},
+      "range": "height"
+    },
+    {
+      "name": "gridx",
+      "type": "band",
+      "paddingInner": {"signal": "padding"},
+      "paddingOuter": {"signal": "paddingOuter"},
+      "domain": {"data": "facets", "field": "gridx"},
+      "range": {"step": {"signal": "side"}}
+    },
+    {
+      "name": "gridy",
+      "type": "band",
+      "paddingInner": {"signal": "padding"},
+      "paddingOuter": {"signal": "paddingOuter"},
+      "domain": {"data": "facets", "field": "gridy"},
+      "range": {"step": {"signal": "side"}}
+    },
+    {
+      "name": "fill",
+      "type": "ordinal",
+      "domain": {"data": "table", "field": "subcategory"},
+      "range": {"scheme": "category20"}
+    }
+  ],
+
+  "marks": [
+    {
+      "type": "rect",
+      "geometry": "xzrect",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "zc": {"signal": "depth/2"},
+          "yc": {"value": -0.1},
+          "width": {"signal": "max(width,depth)*2"},
+          "depth": {"signal": "max(width,depth)*2"},
+          "fill": {"value": "white"},
+          "_fill": {
+            "checker": {"color0": {"value": "white"}, "color1": {"value": "whitesmoke"}},
+            "texScale": {"x": {"value": 5}, "z": {"value": 5}},
+            "texOffset": {"x": {"value": 0.25}, "z": {"value": 0}}
+          }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": {"data": "facets"},
+      "encode": {
+        "enter": {
+          "x": {"scale": "gridx", "field": "gridx", "band": 1},
+          "z": {"scale": "gridy", "field": "gridy", "band": 1},
+          "text": {"field": "category"},
+          "baseline": {"value": "middle"},
+          "angleX": {"value": 90}
+        }
+      }
+    },
+    {
+      "type": "group",
+      "from": {"facet": {"name": "facet", "data": "table", "groupby": "category"}}, 
+
+      "data": [
+        {
+          "name": "pie",
+          "source": "facet",
+          "transform": [
+            {"type": "pie", "field": "amount", "sort": false},
+            {"type": "lookup", "from": "facets", "key": "category", "values": ["gridx", "gridy"], "fields": ["category"]}
+          ]
+        }
+      ],
+
+      "marks": [
+        {
+          "type": "arc",
+          "material": "glossy",
+          "from": {"data": "pie"},
+          "encode": {
+            "enter": {
+              "startAngle": {"field": "startAngle"},
+              "endAngle": {"field": "endAngle"},
+              "fill": {"scale": "fill", "field": "subcategory"},
+              "innerRadius": {"scale": "gridx", "band": 0.25}, 
+              "outerRadius": {"scale": "gridx", "band": 0.5}, 
+              "padding": {"value": 1},
+              "angleX": {"value": 90},
+              "fuzz": {"value": 0},
+              "x": {"scale": "gridx", "field": "gridx", "band": 0.5},
+              "z": {"scale": "gridy", "field": "gridy", "band": 0.5},
+              "depth": {"scale": "height", "field": "amount"},
+              "y": {"scale": "height", "field": "amount", "mult": 0.5}
+            }
+          }
+        },
+        {
+          "type": "text",
+          "from": {"data": "pie"},
+          "encode": {
+            "enter": {
+              "x": {"scale": "gridx", "field": "gridx", "band": 0.5},
+              "z": {"scale": "gridy", "field": "gridy", "band": 0.5},
+              "y": {"scale": "height", "field": "amount", "offset": 0.1},
+              "radius": {"scale": "gridx", "band": 0.375},
+              "text": {"field": "amount"},
+              "fill": {"value": "black"},
+              "stroke": {"value": "white"},
+              "strokeWidth": {"value": 0.5},
+              "theta": {"signal": "(datum.startAngle+datum.endAngle)/2"},
+              "angleX": {"value": 90},
+              "angleX2": {"value": 90}
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

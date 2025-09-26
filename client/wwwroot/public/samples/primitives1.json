@@ -1,0 +1,216 @@
+{
+  "title": "Geometric primitives",
+  "description": "Geometric primitives for marks",
+
+  "width": 300,
+  "height": 50,
+  "depth": 300,
+
+  "camera": {"position": [0, 1, 1], "target": [0, 0, 0.05]},
+
+  "scales": [{"name": "degreesToRadians", "domain": [0,360], "range": [0,{"signal": "2*PI"}]}],
+
+  "marks": [
+    {
+      "type": "rect",
+      "geometry": "tubesdf",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "xc": {"value": 50},
+          "zc": {"value": 50},
+          "y": {"value": 0},
+          "height": {"value": 50},
+          "width": {"value": 50},
+          "depth": {"value": 50},
+          "innerRadius": {"value": 25},
+          "rounding": {"value": 1},
+          "fuzz": {"value": 0.1}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "cylindersdf",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "xc": {"value": 150},
+          "zc": {"value": 50},
+          "y": {"value": 0},
+          "height": {"value": 50},
+          "width": {"value": 50},
+          "depth": {"value": 50},
+          "rounding": {"value": 1},
+          "fuzz": {"value": 0.1}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "hexprismsdf",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "xc": {"value": 250},
+          "zc": {"value": 50},
+          "y": {"value": 0},
+          "height": {"value": 50},
+          "width": {"value": 50},
+          "depth": {"value": 50},
+          "rounding": {"value": 1},
+          "fuzz": {"value": 0.1}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "boxsdf",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "xc": {"value": 50},
+          "zc": {"value": 150},
+          "y": {"value": 0},
+          "height": {"value": 50},
+          "width": {"value": 50},
+          "depth": {"value": 50},
+          "rounding": {"value": 1},
+          "fuzz": {"value": 0.1}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "sphere",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "xc": {"value": 150},
+          "zc": {"value": 150},
+          "y": {"value": 0},
+          "height": {"value": 50},
+          "width": {"value": 50},
+          "depth": {"value": 50},
+          "fuzz": {"value": 0.1}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "boxframesdf",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "xc": {"value": 250},
+          "zc": {"value": 150},
+          "y": {"value": 0},
+          "height": {"value": 50},
+          "width": {"value": 50},
+          "depth": {"value": 50},
+          "thickness": {"value": 10},
+          "rounding": {"value": 1},
+          "fuzz": {"value": 0.1}
+        }
+      }
+    },
+    {
+      "type": "arc",
+      "geometry": "ringsdf",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "x": {"value": 50},
+          "z": {"value": 250},
+          "y": {"value": 25},
+          "startAngle": {"scale": "degreesToRadians", "value": 45},
+          "endAngle": {"scale": "degreesToRadians", "value": 315},
+          "innerRadius": {"value": 0},
+          "outerRadius": {"value": 25},
+          "depth": {"value": 12.5},
+          "rounding": {"value": 1},
+          "fuzz": {"value": 0.1}
+        }
+      }
+    },
+    {
+      "type": "arc",
+      "geometry": "ringsdf",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "x": {"value": 150},
+          "z": {"value": 250},
+          "y": {"value": 25},
+          "startAngle": {"scale": "degreesToRadians", "value": 45},
+          "endAngle": {"scale": "degreesToRadians", "value": 315},
+          "innerRadius": {"value": 12.5},
+          "outerRadius": {"value": 25},
+          "depth": {"value": 12.5},
+          "rounding": {"value": 1},
+          "fuzz": {"value": 0.1}
+        }
+      }
+    },
+    {
+      "type": "arc",
+      "geometry": "cappedtorussdf",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "x": {"value": 250},
+          "z": {"value": 250},
+          "y": {"value": 25},
+          "startAngle": {"scale": "degreesToRadians", "value": 45},
+          "endAngle": {"scale": "degreesToRadians", "value": 315},
+          "innerRadius": {"value": 12.5},
+          "outerRadius": {"value": 25},
+          "rounding": {"value": 1},
+          "fuzz": {"value": 0.1}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "box",
+      "material": "light",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2-width"},
+          "yc": {"signal": "width"},
+          "zc": {"signal": "width"},
+          "height": {"signal": "width"},
+          "width": {"signal": "width"},
+          "angleX": {"value": 30},
+          "angleY": {"value": 45},
+          "depth": {"value": 0},
+          "fill": {
+            "color": {
+              "h": {"value": 0},
+              "s": {"value": 0},
+              "l": {"value": 2.848}
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "xzrect",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "zc": {"signal": "depth/2"},
+          "yc": {"value": -0.1},
+          "width": {"signal": "width*4"},
+          "depth": {"signal": "depth*4"},
+          "height": {"value": 0},
+          "gloss": {"value": 0.5},
+          "fuzz": {"value": 0.1},
+          "fill": {"value": "white"}
+        }
+      }
+    }
+  ]
+}

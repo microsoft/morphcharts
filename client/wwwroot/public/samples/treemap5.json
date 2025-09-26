@@ -1,0 +1,155 @@
+{
+  "title": "2D Non-Hierarchical Facetted Treemaps",
+  "description": "2D non-hierarchical, facetted treemaps",
+  "width": 640,
+  "height": 360,
+
+  "camera": {"position": [0, 0, 1.2]},
+
+  "data": [
+    { 
+      "name": "table",
+      "values": [ 
+        {"id": 0,  "category": "A", "value": 1},
+        {"id": 1,  "category": "A", "value": 2},
+        {"id": 2,  "category": "A", "value": 4},
+        {"id": 3,  "category": "A", "value": 8},
+        {"id": 4,  "category": "A", "value": 16},
+        {"id": 5,  "category": "A", "value": 32},
+        {"id": 6,  "category": "A", "value": 64},
+        {"id": 7,  "category": "A", "value": 128},
+        {"id": 8,  "category": "A", "value": 256},
+        {"id": 9,  "category": "A", "value": 512},
+        {"id": 10, "category": "A", "value": 1024},
+
+        {"id": 11, "category": "B", "value": 1},
+        {"id": 12, "category": "B", "value": 4},
+        {"id": 13, "category": "B", "value": 9},
+        {"id": 14, "category": "B", "value": 16},
+        {"id": 15, "category": "B", "value": 25},
+        {"id": 16, "category": "B", "value": 36},
+        {"id": 17, "category": "B", "value": 49},
+        {"id": 18, "category": "B", "value": 64},
+        {"id": 19, "category": "B", "value": 81},
+        {"id": 20, "category": "B", "value": 100},
+        {"id": 21, "category": "B", "value": 121},
+
+        {"id": 22, "category": "C", "value": 1},
+        {"id": 23, "category": "C", "value": 8},
+        {"id": 24, "category": "C", "value": 27},
+        {"id": 25, "category": "C", "value": 64},
+        {"id": 26, "category": "C", "value": 125},
+        {"id": 27, "category": "C", "value": 216},
+        {"id": 28, "category": "C", "value": 343},
+        {"id": 29, "category": "C", "value": 512},
+        {"id": 30, "category": "C", "value": 729},
+        {"id": 31, "category": "C", "value": 1000},
+        {"id": 32, "category": "C", "value": 1331}
+      ]
+    }
+  ],
+
+  "scales": [
+    {
+      "name": "fill",
+      "type": "ordinal",
+      "domain": {"data": "table", "field": "id"},
+      "reverse": true,
+      "range": {"scheme": "category10"}
+    },
+    {
+      "name": "facet",
+      "type": "band",
+      "domain": {"data": "table", "field": "category"},
+      "range": "width",
+      "padding": 0.25
+    }
+  ],
+
+  "marks": [
+    {
+      "from": {"data": "table"},
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"scale": "facet", "field": "category", "band": 0.5},
+          "y": {"value": -12},
+          "text": {"field": "category"}
+        }
+      }
+    },
+    {
+      "type": "group",
+      "from": {
+        "facet": {
+          "data": "table",
+          "name": "facet",
+          "groupby": "category"
+        }
+      },
+
+      "encode": {
+        "enter": {
+          "x": {"scale": "facet", "field": "category"}
+        }
+      },
+
+      "signals": [
+        {"name": "width", "update": "bandwidth('facet')"}
+      ],
+
+      "data": [
+        {
+          "name": "treemap",
+          "source": "facet",
+          "transform": [
+            {
+              "type": "treemap",
+              "field": "value",
+              "method": "squarify",
+              "paddingInner": 1,
+              "paddingOuter": 0,
+              "size": [
+                {"signal": "bandwidth('facet')"},
+                {"signal": "height"}
+              ],
+              "as": ["x0", "y0", "x1", "y1", "size"]
+            }
+          ]
+        }
+      ],
+
+      "marks": [
+        {
+          "type": "rect",
+          "from": {"data": "treemap"},
+          "encode": {
+            "enter": {
+              "x": {"field": "x0"},
+              "x2": {"field": "x1"},
+              "y": {"signal": "height-datum.y0"},
+              "y2": {"signal": "height-datum.y1"},
+              "fill": {"scale": "fill", "field": "id"}
+            }
+          }
+        },
+        {
+          "type": "text",
+          "from": {"data": "treemap"},
+          "encode": {
+            "enter": {
+              "x": {"signal": "(datum.x0+datum.x1)/2"},
+              "y": {"signal": "height-(datum.y0+datum.y1)/2"},
+              "z": {"value": 0.51},
+              "baseline": {"value": "middle"},
+              "align": {"value": "center"},
+              "fontSize": {"signal": "min(48,0.5*min((datum.x1-datum.x0),(datum.y1-datum.y0)))"},
+              "text": {"field": "id"},
+              "fill": {"value": "white"}
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

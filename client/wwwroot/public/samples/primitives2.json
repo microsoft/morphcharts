@@ -1,0 +1,161 @@
+{
+  "title": "Materials",
+  "description": "Materials",
+
+  "width": 250,
+
+  "ambient": "white",
+  "background": "white",
+
+  "camera": {"position": [0, 0.5, 1.5]},
+
+  "marks": [
+    {
+      "type": "rect",
+      "geometry": "box",
+      "material": "light",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2-width"},
+          "yc": {"signal": "width"},
+          "zc": {"signal": "width"},
+          "height": {"signal": "width"},
+          "width": {"signal": "width"},
+          "angleX": {"value": 30},
+          "angleY": {"value": 45},
+          "depth": {"value": 0},
+          "fill": {
+            "color": {
+              "h": {"value": 0},
+              "s": {"value": 0},
+              "l": {"value": 2}
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "sphere",
+      "material": "diffuse",
+      "encode": {
+        "enter": {
+          "xc": {"value": 25},
+          "y": {"value": 0},
+          "height": {"value": 45},
+          "width": {"value": 45},
+          "fill": {
+            "color": {
+              "r": {"value": 102},
+              "g": {"value": 128},
+              "b": {"value": 153}
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "sphere",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "xc": {"value": 75},
+          "y": {"value": 0},
+          "height": {"value": 45},
+          "width": {"value": 45},
+          "fill": {
+            "color": {
+              "r": {"value": 102},
+              "g": {"value": 128},
+              "b": {"value": 153}
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "sphere",
+      "material": "metal",
+      "encode": { 
+        "enter": {
+          "xc": {"value": 125},
+          "y": {"value": 0},
+          "height": {"value": 45},
+          "width": {"value": 45},
+          "fill": {
+            "color": {
+              "r": {"value": 204},
+              "g": {"value": 179},
+              "b": {"value": 153}
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "sphere",
+      "material": "metal",
+      "encode": {
+        "enter": {
+          "xc": {"value": 175},
+          "y": {"value": 0},
+          "height": {"value": 45},
+          "width": {"value": 45},
+          "fuzz": {"value": 0.5},
+          "fill": {
+            "color": {
+              "r": {"value": 204},
+              "g": {"value": 179},
+              "b": {"value": 153}
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "sphere",
+      "material": "glass",
+      "encode": {
+        "enter": {
+          "xc": {"value": 225},
+          "y": {"value": 0},
+          "height": {"value": 45},
+          "width": {"value": 45}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "xzrect",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "yc": {"value": -0.1},
+          "width": {"signal": "width"},
+          "depth": {"signal": "width"},
+          "fuzz": {"value": 0.01},
+          "gloss": {"value": 0.5},
+          "fill": {
+            "checker": {
+              "color1": { "value": "black" },
+              "color2": { "value": "gainsboro" }
+            },
+            "texScale": {
+              "x":{"value": 5},
+              "z": {"value": 5}
+            },
+            "texOffset": {
+              "x": {"value": 0},
+              "z": {"value": 0}
+            }
+          }
+        }
+      }
+    }
+  ]
+}

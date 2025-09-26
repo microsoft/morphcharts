@@ -1,0 +1,69 @@
+{
+  "title": "Single Series Line Chart",
+  "description": "A single series line chart",
+  "width": 640,
+  "height": 360,
+
+  "camera": {"position": [0, 0, 1.5]},
+  
+  "data": [
+    {
+      "name": "table",
+      "url": "data/random_walk_count_100.csv",
+      "format": {"type": "csv"}
+    } 
+  ], 
+
+  "scales": [
+    {
+      "name": "x",
+      "type": "linear",
+      "range": "width",
+      "domain": {"data": "table", "field": "x"}
+    },
+    {
+      "name": "y",
+      "type": "linear",
+      "range": "height",
+      "nice": true,
+      "domain": {"data": "table", "field": "y"}
+    }
+  ],
+
+  "axes": [ 
+    {
+      "orient": "bottom",
+      "labelBaseline": "top",
+      "labelOffsetY": -2,
+      "scale": "x",
+      "title": "x",
+      "titleOffsetY": -24,
+      "tickCount": 10
+    },
+    {
+      "orient": "left",
+      "scale": "y",
+      "labelAlign": "right",
+      "labelOffsetX": -2,
+      "labelOffsetY": 4,
+      "numberFormat": {"display": "compact"},
+      "tickCount": 6,
+      "title": "y",
+      "titleOffsetX": -24
+    }
+  ],
+
+  "marks": [
+    {
+      "type": "line",
+      "from": {"data": "table"},
+      "encode": {
+        "enter": {
+          "x": {"scale": "x", "field": "x"},
+          "y": {"scale": "y", "field": "y"},
+          "strokeWidth": {"value": 2}
+        }
+      }
+    }
+  ]
+}

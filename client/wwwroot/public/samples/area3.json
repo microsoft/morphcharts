@@ -1,0 +1,94 @@
+{
+  "title": "Multi Series 2D Stacked Area Chart",
+  "description": "A multi series 2D stacked area chart",
+  "width": 640,
+  "height": 360,
+    
+  "camera": {"position": [0, 0, 1.5]},
+  
+  "data": [
+    {
+      "name": "table",
+      "url": "data/random_walk_series_10_count_100.csv",
+      "format": {"type": "csv"},
+      "transform": [
+        {
+          "type": "stack",
+          "groupby": ["x"],
+          "sort": {"field": "series"},
+          "field": "y"
+        }
+      ]
+    }
+  ],
+  
+  "scales": [
+    {
+      "name": "x",
+      "type": "linear",
+      "nice": true,
+      "domain": {"data": "table", "field": "x"},
+      "range": "width"
+    },
+    {
+      "name": "y",
+      "type": "linear",
+      "nice": true,
+      "domain": {"data": "table", "field": "y1"},
+      "range": "height"
+    },
+    {
+      "name": "fill",
+      "type": "ordinal",
+      "range": {"scheme": "category20"},
+      "domain": {"data": "table", "field": "series"}
+    }
+  ],
+
+  "axes": [ 
+    {
+      "orient": "bottom",
+      "labelBaseline": "top",
+      "labelOffsetY": -2,
+      "scale": "x",
+      "title": "x",
+      "titleOffsetY": -24,
+      "tickCount": 10
+    },
+    {
+      "orient": "left",
+      "scale": "y",
+      "labelAlign": "right",
+      "labelOffsetX": -2,
+      "labelOffsetY": 4,
+      "numberFormat": {"display": "compact"},
+      "tickCount": 7,
+      "title": "y",
+      "titleOffsetX": -24
+    }
+  ],
+
+  "marks": [
+    {
+      "type": "group",
+      "from": {"facet": {"name": "series", "data": "table", "groupby": "series"}},
+      "marks": [
+        {
+          "type": "area",
+          "from": {"data": "series"},
+          "encode": {
+            "enter": {
+              "x": {"scale": "x", "field": "x"},
+              "y": {"scale": "y", "field": "y0"},
+              "y2": {"scale": "y", "field": "y1"},
+              "_z": {"signal": "series-datum.series", "mult": 5},
+              "_depth": {"signal": "series-datum.series", "mult": 10},
+              "strokeWidth": {"value": 2},
+              "fill": {"scale": "fill", "field": "series"}
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

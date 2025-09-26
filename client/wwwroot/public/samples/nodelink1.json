@@ -1,0 +1,193 @@
+{
+  "title": "Node Link 3D",
+  "description": "3D Node link chart",
+
+  "width": 640,
+  "height": 640,
+  "depth": 640,
+
+  "camera": {"position": [0.5, 0.25, 2.5], "aperture": 10},
+  
+  "encode": {
+    "enter": {"strokeWidth": {"value": 0}}
+  },
+  
+  "data": [
+    {
+      "name": "nodes",
+      "values": [
+        {"id": 1,  "x": -0.61803, "y": -0.61803, "z": -0.61803, "size": 0.2},
+        {"id": 2,  "x": -0.61803, "y": -0.61803, "z":  0.61803, "size": 0.2},
+        {"id": 3,  "x": -0.61803, "y":  0.61803, "z": -0.61803, "size": 0.2},
+        {"id": 4,  "x": -0.61803, "y":  0.61803, "z":  0.61803, "size": 0.2},
+        {"id": 5,  "x":  0.61803, "y": -0.61803, "z": -0.61803, "size": 0.2},
+        {"id": 6,  "x":  0.61803, "y": -0.61803, "z":  0.61803, "size": 0.2},
+        {"id": 7,  "x":  0.61803, "y":  0.61803, "z": -0.61803, "size": 0.2},
+        {"id": 8,  "x":  0.61803, "y":  0.61803, "z":  0.61803, "size": 0.2},
+        {"id": 9,  "x":  0.00000, "y": -0.38197, "z": -1.00000, "size": 0.2},
+        {"id": 10, "x":  0.00000, "y": -0.38197, "z":  1.00000, "size": 0.2},
+        {"id": 11, "x":  0.00000, "y":  0.38197, "z": -1.00000, "size": 0.2},
+        {"id": 12, "x":  0.00000, "y":  0.38197, "z":  1.00000, "size": 0.2},
+        {"id": 13, "x": -0.38197, "y": -1.00000, "z":  0.00000, "size": 0.2},
+        {"id": 14, "x": -0.38197, "y":  1.00000, "z":  0.00000, "size": 0.2},
+        {"id": 15, "x":  0.38197, "y": -1.00000, "z":  0.00000, "size": 0.2},
+        {"id": 16, "x":  0.38197, "y":  1.00000, "z":  0.00000, "size": 0.2},
+        {"id": 17, "x": -1.00000, "y":  0.00000, "z": -0.38197, "size": 0.2},
+        {"id": 18, "x":  1.00000, "y":  0.00000, "z": -0.38197, "size": 0.2},
+        {"id": 19, "x": -1.00000, "y":  0.00000, "z":  0.38197, "size": 0.2},
+        {"id": 20, "x":  1.00000, "y":  0.00000, "z":  0.38197, "size": 0.2}
+      ],
+      "transform": [
+        {"type": "extent", "field": "x", "signal": "xExtent"},
+        {"type": "extent", "field": "y", "signal": "yExtent"},
+        {"type": "extent", "field": "size", "signal": "sExtent"}
+      ]
+    },
+    {
+      "name": "edges",
+      "values": [
+        {"from":  4, "to": 14, "size": 0.1},
+        {"from": 14, "to": 16, "size": 0.1},
+        {"from": 16, "to":  8, "size": 0.1},
+        {"from":  8, "to": 12, "size": 0.1},
+        {"from": 12, "to":  4, "size": 0.1},
+        {"from":  8, "to": 20, "size": 0.1},
+        {"from": 20, "to":  6, "size": 0.1},
+        {"from":  6, "to": 10, "size": 0.1},
+        {"from": 10, "to": 12, "size": 0.1},
+        {"from": 16, "to":  7, "size": 0.1},
+        {"from":  7, "to": 18, "size": 0.1},
+        {"from": 18, "to": 20, "size": 0.1},
+        {"from": 14, "to":  3, "size": 0.1},
+        {"from":  3, "to": 11, "size": 0.1},
+        {"from": 11, "to":  7, "size": 0.1},
+        {"from":  4, "to": 19, "size": 0.1},
+        {"from": 19, "to": 17, "size": 0.1},
+        {"from": 17, "to":  3, "size": 0.1},
+        {"from": 10, "to":  2, "size": 0.1},
+        {"from":  2, "to": 19, "size": 0.1},
+        {"from":  2, "to": 13, "size": 0.1},
+        {"from": 13, "to":  1, "size": 0.1},
+        {"from":  1, "to": 17, "size": 0.1},
+        {"from":  1, "to":  9, "size": 0.1},
+        {"from":  9, "to": 11, "size": 0.1},
+        {"from":  9, "to":  5, "size": 0.1},
+        {"from":  5, "to": 18, "size": 0.1},
+        {"from":  6, "to": 15, "size": 0.1},
+        {"from": 15, "to": 13, "size": 0.1},
+        {"from":  5, "to": 15, "size": 0.1}
+      ],
+      "transform": [
+        {
+          "type": "lookup",
+          "from": "nodes",
+          "key": "id",
+          "fields": ["from"],
+          "values": ["x", "y", "z", "size"],
+          "as": ["x1", "y1", "z1", "s1"]
+        },
+        {
+          "type": "lookup",
+          "from": "nodes",
+          "key": "id",
+          "fields": ["to"],
+          "values": ["x", "y", "z", "size"],
+          "as": ["x2", "y2", "z2", "s2"]
+        }
+      ]
+    }
+  ],
+
+  "scales": [
+    {
+      "name": "position",
+      "type": "linear",
+      "domain": {"data": "nodes", "field": "x"},
+      "range": "width"
+    },
+    {
+      "name": "size",
+      "type": "linear",
+      "domain": [0, {"signal": "(xExtent[1]-xExtent[0])"}],
+      "range": "width"
+    }
+  ],
+
+  "marks": [
+    {
+      "type": "rect",
+      "geometry": "xzrect",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "zc": {"signal": "depth/2"},
+          "yc": {
+            "scale": "position",
+            "signal": "yExtent[0]",
+            "offset": {"scale": "size", "signal": "sExtent[1]", "mult": -0.5}
+          },
+          "width": {"signal": "width*16"},
+          "depth": {"signal": "depth*16"},
+          "fuzz": {"value": 0.01},
+          "gloss": {"value": 0.5},
+          "fill": {"value": "white"}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "material": "light",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "-width"},
+          "yc": {"signal": "width*2"},
+          "zc": {"signal": "width*2"},
+          "width": {"signal": "width"},
+          "height": {"signal": "width"},
+          "angleX": {"value": 45},
+          "angleY": {"value": 45},
+          "fill": {"color": {"h": {"value": 0}, "s": {"value": 0}, "l": {"value": 2}}}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "sphere",
+      "material": "metal",
+      "from": {"data": "nodes"},
+      "encode": {
+        "enter": {
+          "xc": {"scale": "position", "field": "x"},
+          "yc": {"scale": "position", "field": "y"},
+          "zc": {"scale": "position", "field": "z"},
+          "width": {"scale": "size", "field": "size"},
+          "fuzz": {"value": 0},
+          "fill": {"value": "silver"}
+        }
+      }
+    },
+    {
+      "type": "rule",
+      "geometry": "cylinderSdf",
+      "material": "metal",
+      "from": {"data": "edges"},
+      "encode": {
+        "enter": {
+          "x": {"scale": "position", "field": "x1"},
+          "x2": {"scale": "position", "field": "x2"},
+          "y": {"scale": "position", "field": "y1"},
+          "y2": {"scale": "position", "field": "y2"},
+          "z": {"scale": "position", "field": "z1"},
+          "z2": {"scale": "position", "field": "z2"},
+          "strokeWidth": {"scale": "size", "field": "size"},
+          "rounding": {"scale": "size", "value": 0.005},
+          "offset": {"scale": "size", "field": "s1", "mult": -0.5},
+          "offset2": {"scale": "size", "field": "s2", "mult": -0.5},
+          "fuzz": {"value": 0.5},
+          "stroke": {"value": "silver"}
+        }
+      }
+    }
+  ]
+}

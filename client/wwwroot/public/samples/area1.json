@@ -1,0 +1,150 @@
+{
+  "title": "Multi Series 3D Area Chart",
+  "description": "A multi series 3D area chart",
+  "width": 640,
+  "height": 360,
+  "depth": 640,
+  
+  "camera": {"position": [1, 0.5, 1.75], "target": [0, -0.1, 0.1]},
+  
+  "signals": [
+    {"name": "series", "value": 100},
+    {"name": "rows", "value": 10}
+  ],
+  
+  "data": [
+    {
+      "name": "table",
+      "url": "data/random_walk_series_100_count_10.csv",
+      "format": {"type": "csv"} 
+    }
+  ], 
+  
+  "scales": [
+    {
+      "name": "x",
+      "type": "linear",
+      "nice": true,
+      "domain": {"data": "table", "field": "x"},
+      "range": "width"
+    },
+    {
+      "name": "y",
+      "type": "linear",
+      "nice": true,
+      "domain": {"data": "table", "field": "y"},
+      "range": "height"
+    },
+    {
+      "name": "z",
+      "type": "band",
+      "padding": 0.8,
+      "domain": {
+        "data": "table", 
+        "field": "series",
+        "sort": {"field": "y", "op": "max",  "order": "descending"}
+      },
+      "range": "depth"
+    },
+    {
+      "name": "fill",
+      "type": "linear",
+      "nice": true,
+      "range": {"scheme": "blues"},
+      "reverse": false,
+      "domain": {"data": "table", "field": "y"}
+    }
+  ],
+
+  "axes": [
+    {
+      "orient": "bottom",
+      "labelBaseline": "top",
+      "labelOffsetZ": 2,
+      "labelAngleX": 90,
+      "scale": "x",
+      "title": "x",
+      "titleOffsetZ": 32,
+      "titleAngleX": 90,
+      "tickCount": 10,
+      "gridZ": true,
+      "gridWidth": 0.1
+    },
+    {
+      "orient": "right",
+      "orientZ": "bottom",
+      "scale": "z",
+      "title": "series",
+      "titleAngleX": 90,
+      "titleOffsetX": 32,
+      "labelAlign": "left",
+      "labelFontSize": 6,
+      "labelOffsetX": 2,
+      "labelAngleX": 90 
+    },
+    {
+      "orient": "right",
+      "orientZ": "back", 
+      "scale": "y", 
+      "labelAlign": "left",
+      "labelOffsetX": 2,
+      "labelOffsetY": 4,
+      "labelAngleY": -30,
+      "tickCount": 5,
+      "title": "y",
+      "titleAngleY": -30,
+      "titleOffsetX": 32,
+      "grid": true,
+      "gridWidth": 0.1
+    },
+    {
+      "orient": "left",
+      "orientZ": "front",
+      "scale": "y",
+      "labels": false,
+      "tickCount": 5,
+      "domainWidth": 0.1,
+      "gridZ": true,
+      "gridWidth": 0.1
+    }
+  ],
+
+  "marks": [
+    {
+      "type": "rect",
+      "geometry": "xzrect",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "yc": {"value": -0.1},
+          "zc": {"signal": "depth/2"},
+          "width": {"signal": "width*4"},
+          "depth": {"signal": "depth*4"},
+          "fill": {"value": "white"}
+        }
+      }
+    },
+    {
+      "type": "group",
+      "from": {"facet": {"name": "series", "data": "table", "groupby": "series"}},
+      "marks": [
+        {
+          "type": "area",
+          "from": {"data": "series"},
+          "encode": {
+            "enter": {
+              "x": {"scale": "x", "field": "x"},
+              "y": {"scale": "y", "value": "0"},
+              "y2": {"scale": "y", "field": "y"},
+              "z": {"scale": "z", "field": "series"},
+              "depth": {"scale": "z", "band": 1},
+              "strokeWidth": {"value": 2},
+              "fill": {"scale": "fill", "field": "y"},
+              "segmentId": {"field": "series", "offset": 1}
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

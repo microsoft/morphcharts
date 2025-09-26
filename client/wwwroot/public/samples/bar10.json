@@ -1,0 +1,143 @@
+{
+  "title": "2D Bar Chart",
+  "description": "A 2D bar chart",
+  "width": 640,
+  "height": 360,
+  
+  "camera": {"position": [0, 0, 1.3]},
+
+  "signals": [
+    {"name": "stackx", "value": 5}
+  ],
+  
+  "data": [
+    {
+      "name": "table",
+      "values": [
+        {"category": "A", "amount": 42},
+        {"category": "B", "amount": 87},
+        {"category": "C", "amount": 15},
+        {"category": "D", "amount": 63},
+        {"category": "E", "amount": 29},
+        {"category": "F", "amount": 91},
+        {"category": "G", "amount": 8},
+        {"category": "H", "amount": 76},
+        {"category": "I", "amount": 54},
+        {"category": "J", "amount": 33}
+      ]
+    },
+    {
+      "name": "unit",
+      "source": "table",
+      "transform": [
+        {"type": "unit", "field": "amount"},
+        {
+          "type": "unitstack",
+          "groupby": ["category"],
+          "x": {"signal": "stackx"}
+        },
+        {"type": "extent", "field": "y1", "signal": "stacky"}
+      ]
+    }
+  ],
+  
+  "scales": [
+    {
+      "name": "xscale", 
+      "type": "band",
+      "domain": {"data": "table", "field": "category"},
+      "padding": 0.25,
+      "range": "width"
+    },
+    {
+      "name": "yscale",
+      "type": "linear",
+      "nice": true,
+      "domain": [0, {"signal":"stacky[1]*stackx"}],
+      "range": "height"
+    }
+  ],
+  
+  "axes": [
+    {
+      "orient": "bottom",
+      "scale": "xscale",
+      "labelBaseline": "top",
+      "labelOffsetY": -2,
+      "title": "Category",
+      "titleOffsetY": -24
+    },
+    {
+      "orient": "left",
+      "orientZ": "back",
+      "scale": "yscale",
+      "grid": true,
+      "gridWidth": 0.1,
+      "tickCount": 10,
+      "labelAlign": "right",
+      "labelOffsetX": -2,
+      "title": "Amount",
+      "titleOffsetX": -32,
+      "titleAngle": -90
+    }
+  ],
+  
+  "marks": [
+    {
+      "type": "group",
+      "from": {
+        "facet": {
+          "data": "unit",
+          "name": "facet",
+          "groupby": "category"
+        }
+      },
+      "encode":
+        {
+          "enter": {"x": {"scale": "xscale", "field": "category"}
+        }
+      },
+      "signals": [
+        {"name": "width", "update": "bandwidth('xscale')"}
+      ],
+      "scales": [
+        {
+          "name": "unit",
+          "type": "linear",
+          "range": "width",
+          "domain": [0,1]
+        }
+      ],
+      "marks": [
+        {
+          "from": {"data": "facet"},
+          "geometry": "xyrect",
+          "type": "rect",
+          "encode": {
+            "enter": {
+              "x": {"scale": "unit", "field": "x0"},
+              "x2": {"scale": "unit", "field": "x1", "offset": -0.5},
+              "y2": {"scale": "yscale", "field": "y1", "mult": {"signal": "stackx"}, "offset": -0.5},
+              "y": {"scale": "yscale", "field": "y0", "mult": {"signal": "stackx"}}
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "from": {"data": "table"},
+      "encode": {
+        "enter": {
+          "align": {"value": "center"},
+          "baseline": {"value": "bottom"},
+          "x": {"scale": "xscale", "field": "category", "band": 0.5},
+          "y": {"scale": "yscale", "signal": "ceil(datum.amount/stackx)*stackx"},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.5},
+          "text": {"field": "amount"}
+        }
+      }
+    }
+  ]
+}

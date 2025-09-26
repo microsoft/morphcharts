@@ -1,0 +1,109 @@
+{    
+  "title": "3D Flat Treemap",
+  "description": "A 3D non-hierarchical treemap",
+  "width": 640,
+  "height": 60,
+  "depth": 360,
+      
+  "camera": {"position": [0, 1.2, 0.6]},
+        
+  "data": [
+    {
+      "name": "table",
+      "values": [
+        {"id": 0,  "value": 1},
+        {"id": 1,  "value": 2},
+        {"id": 2,  "value": 4},
+        {"id": 3,  "value": 8},
+        {"id": 4,  "value": 16},
+        {"id": 5,  "value": 32},
+        {"id": 6,  "value": 64},
+        {"id": 7,  "value": 128},
+        {"id": 8,  "value": 256},
+        {"id": 9,  "value": 512},
+        {"id": 10, "value": 1024}
+      ],
+      "transform": [
+        { 
+          "type": "treemap",
+          "field": "value",
+          "method": "squarify",
+          "paddingInner": 1,
+          "paddingOuter": 0,
+          "size": [640, 360],
+          "as": ["x0", "y0", "x1", "y1", "size"]          
+        } 
+      ]
+    } 
+  ], 
+  
+  "scales": [
+    {
+      "name": "height",
+      "type": "linear",
+      "range": "height",
+      "domain": {"data": "table", "field": "size"}
+    },
+    {
+      "name": "fill",
+      "type": "ordinal",
+      "range": {"scheme": "category10"},
+      "reverse": true,
+      "domain": {"data": "table", "field": "id"}
+    }
+  ],
+
+  "marks": [
+    {
+      "type": "rect",
+      "geometry": "boxsdf",
+      "material": "glossy",
+      "from": {"data": "table"},
+      "encode": {
+        "enter": {
+          "x": {"field": "x0"},
+          "x2": {"field": "x1"},
+          "z": {"field": "y0"},
+          "z2": {"field": "y1"},
+          "y": {"value": 0},
+          "y2": {"scale": "height", "field": "size"},
+          "rounding": {"value": 1},
+          "fuzz": {"value": 0.1},
+          "fill": {"scale": "fill", "field": "id"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": {"data": "table"},
+      "encode": {
+        "enter": {
+          "x": {"signal": "(datum.x0+datum.x1)/2"},
+          "z": {"signal": "(datum.y0+datum.y1)/2"},
+          "y": {"scale": "height", "field": "size", "offset": 0.1},
+          "baseline": {"value": "middle"},
+          "align": {"value": "center"},
+          "fontSize": {"signal": "min(48,0.5*min((datum.x1-datum.x0),(datum.y1-datum.y0)))"},
+          "text": {"field": "id"},
+          "angleX": {"value": 90},
+          "fill": {"value": "white"}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "xzrect",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "zc": {"signal": "depth/2"},
+          "width": {"signal": "width*5"},
+          "depth": {"signal": "width*5"},
+          "fuzz": {"value": 0.1},
+          "fill": {"value": "white"}
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,192 @@
+{
+  "title": "3D Non-Hierarchical Facetted Treemaps",
+  "description": "3D non-hierarchical, facetted treemaps",
+  "width": 640,
+  "height": 60,
+  "depth": 360,
+      
+  "camera": {"position": [0, 1.2, 0.6]},
+
+  "data": [
+    { 
+      "name": "table",
+      "values": [ 
+        {"id": 0,  "category": "2^n", "value": 1},
+        {"id": 1,  "category": "2^n", "value": 2},
+        {"id": 2,  "category": "2^n", "value": 4},
+        {"id": 3,  "category": "2^n", "value": 8},
+        {"id": 4,  "category": "2^n", "value": 16},
+        {"id": 5,  "category": "2^n", "value": 32},
+        {"id": 6,  "category": "2^n", "value": 64},
+        {"id": 7,  "category": "2^n", "value": 128},
+        {"id": 8,  "category": "2^n", "value": 256},
+        {"id": 9,  "category": "2^n", "value": 512},
+        {"id": 10, "category": "2^n", "value": 1024},
+
+        {"id": 11, "category": "n^2", "value": 1},
+        {"id": 12, "category": "n^2", "value": 4},
+        {"id": 13, "category": "n^2", "value": 9},
+        {"id": 14, "category": "n^2", "value": 16},
+        {"id": 15, "category": "n^2", "value": 25},
+        {"id": 16, "category": "n^2", "value": 36},
+        {"id": 17, "category": "n^2", "value": 49},
+        {"id": 18, "category": "n^2", "value": 64},
+        {"id": 19, "category": "n^2", "value": 81},
+        {"id": 20, "category": "n^2", "value": 100},
+        {"id": 21, "category": "n^2", "value": 121},
+
+        {"id": 22, "category": "n^3", "value": 1},
+        {"id": 23, "category": "n^3", "value": 8},
+        {"id": 24, "category": "n^3", "value": 27},
+        {"id": 25, "category": "n^3", "value": 64},
+        {"id": 26, "category": "n^3", "value": 125},
+        {"id": 27, "category": "n^3", "value": 216},
+        {"id": 28, "category": "n^3", "value": 343},
+        {"id": 29, "category": "n^3", "value": 512},
+        {"id": 30, "category": "n^3", "value": 729},
+        {"id": 31, "category": "n^3", "value": 1000},
+        {"id": 32, "category": "n^3", "value": 1331}
+      ]
+    }
+  ],
+  
+  "scales": [
+    {
+      "name": "fill",
+      "type": "ordinal",
+      "domain": {"data": "table", "field": "id"},
+      "reverse": true,
+      "range": {"scheme": "category10"}
+    },
+    {
+      "name": "facet",
+      "type": "band",
+      "domain": {"data": "table", "field": "category"},
+      "range": "width",
+      "padding": 0.25
+    }
+  ],
+  
+  "marks": [
+    {
+      "from": {"data": "table"},
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"scale": "facet", "field": "category", "band": 0.5},
+          "z": {"signal": "depth", "offset": 12},
+          "angleX": {"value": 90},
+          "baseline": {"value": "top"},
+          "text": {"field": "category"}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "xzrect",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "zc": {"signal": "depth/2"},
+          "yc": {"value": -0.1},
+          "width": {"signal": "width*5"},
+          "depth": {"signal": "width*5"},
+          "fuzz": {"value": 0.1},
+          "fill": {"value": "white"}
+        }
+      }
+    },
+    {
+      "type": "group",
+      "from": {
+        "facet": {
+          "data": "table",
+          "name": "facet",
+          "groupby": "category"
+        }
+      },
+  
+      "encode": {
+        "enter": {
+          "x": {"scale": "facet", "field": "category"}
+        }
+      },
+  
+      "signals": [
+        {"name": "width", "update": "bandwidth('facet')"}
+      ],
+
+      "scales": [
+        {
+          "name": "height",
+          "type": "linear",
+          "range": "height",
+          "domain": {"data": "treemap", "field": "size"}
+        }
+      ],
+  
+      "data": [
+        {
+          "name": "treemap",
+          "source": "facet",
+          "transform": [
+            {
+              "type": "treemap",
+              "field": "value",
+              "method": "squarify",
+              "paddingInner": 0.5,
+              "_paddingInnerMultiplier": 0.99,
+              "size": [
+                {"signal": "bandwidth('facet')"},
+                {"signal": "depth"}
+              ],
+              "as": ["x0", "y0", "x1", "y1", "size"]
+            }
+          ]
+        }
+      ],
+  
+      "marks": [
+        {
+          "type": "rect",
+          "geometry": "boxsdf",
+          "material": "glossy",
+          "from": {"data": "treemap"},
+          "encode": {
+            "enter": {
+              "x": {"field": "x0"},
+              "x2": {"field": "x1"},
+              "z": {"field": "y0"},
+              "z2": {"field": "y1"},
+              "y": {"value": 0},
+              "y2": {"scale": "height", "field": "size"},
+              "rounding": {"value": 1},
+              "fuzz": {"value": 0.1},
+              "fill": {"scale": "fill", "field": "id"}
+            }
+          } 
+        },
+        {
+          "type": "text",
+          "from": {"data": "treemap"},
+          "numberFormat": {"useGrouping": false},
+          "encode": { 
+            "enter": {
+              "x": {"signal": "(datum.x0+datum.x1)/2"},
+              "z": {"signal": "(datum.y0+datum.y1)/2"},
+              "y": {"scale": "height", "field": "size", "offset": 0.1},
+              "baseline": {"value": "middle"},
+              "align": {"value": "center"},
+              "angleY": {"signal": "(datum.y1-datum.y0)>(datum.x1-datum.x0)?-90:0"},
+              "fontSize": {"signal": "(datum.y1-datum.y0)>(datum.x1-datum.x0)?min(1.5*(datum.y1-datum.y0)/length(toString(datum.value)),(datum.x1-datum.x0)):min(1.5*(datum.x1-datum.x0)/length(toString(datum.value)),(datum.y1-datum.y0))"},
+              "text": {"field": "value"},
+              "angleX": {"value": 90},
+              "fill": {"value": "white"}
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

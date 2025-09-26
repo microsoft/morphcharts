@@ -1,0 +1,139 @@
+{
+  "title": "2D Hierarchical Treemap",
+  "description": "A 2D hierarchical treemap",
+  "width": 640,
+  "height": 360,
+
+  "camera": {"position": [0, 0, 1.2]},
+
+  "data": [
+    { 
+      "name": "tree",
+      "values": [ 
+        {"id": 0, "parent": 0, "value": 1},
+
+        {"id": 1,  "parent": 0, "value": 2},
+        {"id": 2,  "parent": 0, "value": 4},
+        {"id": 3,  "parent": 0, "value": 8},
+        {"id": 4,  "parent": 0, "value": 16},
+        {"id": 5,  "parent": 0, "value": 32},
+        {"id": 6,  "parent": 0, "value": 64},
+        {"id": 7,  "parent": 0, "value": 128},
+        {"id": 8,  "parent": 0, "value": 256},
+        {"id": 9,  "parent": 0, "value": 512},
+        {"id": 10, "parent": 0, "value": 1024},
+
+        {"id": 11, "parent": 1, "value": 2},
+        {"id": 12, "parent": 1, "value": 4},
+        {"id": 13, "parent": 1, "value": 8},
+        {"id": 14, "parent": 1, "value": 16},
+        {"id": 15, "parent": 1, "value": 32},
+        {"id": 16, "parent": 1, "value": 64},
+        {"id": 17, "parent": 1, "value": 128},
+        {"id": 18, "parent": 1, "value": 256},
+        {"id": 19, "parent": 1, "value": 512},
+        {"id": 20, "parent": 1, "value": 1024},
+
+        {"id": 21, "parent": 11, "value": 2},
+        {"id": 22, "parent": 11, "value": 4},
+        {"id": 23, "parent": 11, "value": 8},
+        {"id": 24, "parent": 11, "value": 16},
+        {"id": 25, "parent": 11, "value": 32},
+        {"id": 26, "parent": 11, "value": 64},
+        {"id": 27, "parent": 11, "value": 128},
+        {"id": 28, "parent": 11, "value": 256},
+        {"id": 29, "parent": 11, "value": 512},
+        {"id": 30, "parent": 11, "value": 1024}
+      ],
+      "transform": [
+        {
+          "type": "stratify",
+          "key": "id",
+          "parentKey": "parent"
+        },
+        {
+          "type": "treemap",
+          "field": "value",
+          "method": "squarify",
+          "paddingInner": 1,
+          "paddingOuter": 20,
+          "size": [640,360],
+          "as": ["x0", "y0", "x1", "y1", "depth", "children", "size", "descendents"]
+        }
+      ]
+    },
+    { 
+      "name": "leafs",
+      "source": "tree",
+      "transform": [
+        {"type": "filter", "expr": "datum.children==0"}
+      ]
+    },
+    { 
+      "name": "parents",
+      "source": "tree",
+      "transform": [
+        {"type": "filter", "expr": "datum.children>0"}
+      ]
+    }
+  ],
+
+  "scales": [
+    {
+      "name": "fill",
+      "type": "ordinal",
+      "domain": {"data": "tree", "field": "id"},
+      "reverse": true,
+      "range": {"scheme": "category10"}
+    }
+  ],
+
+  "marks": [
+    {
+      "type": "rect",
+      "from": {"data": "tree"},
+      "encode": {
+        "enter": {
+          "x": {"field": "x0"},
+          "x2": {"field": "x1"},
+          "y": {"field": "y0"},
+          "y2": {"field": "y1"},
+          "z": {"field": "depth"},
+          "fill": {"scale": "fill", "field": "id"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": {"data": "leafs"},
+      "encode": {
+        "enter": {
+          "x": {"signal": "(datum.x0+datum.x1)/2"},
+          "y": {"signal": "(datum.y0+datum.y1)/2"},
+          "z": {"field": "depth", "offset": 0.51},
+          "baseline": {"value": "middle"},
+          "align": {"value": "center"},
+          "fontSize": {"signal": "min(48,0.5*min((datum.x1-datum.x0),(datum.y1-datum.y0)))"},
+          "text": {"field": "id"},
+          "fill": {"value": "white"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": {"data": "parents"},
+      "encode": {
+        "enter": {
+          "x": {"field": "x0", "offset": 1},
+          "y": {"field": "y0"},
+          "z": {"field": "depth", "offset": 0.51},
+          "baseline": {"value": "bottom"},
+          "align": {"value": "left"},
+          "fontSize": {"value": 10},
+          "text": {"field": "id"},
+          "fill": {"value": "white"}
+        }
+      }
+    }
+  ]
+}

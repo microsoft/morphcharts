@@ -1,0 +1,210 @@
+{
+  "title": "2-Dice Roll Sum Histogram",
+  "description": "A unit historgram of the sum of rolling 2 dice, highlighting doubles",
+ 
+  "height": 360,
+
+  "encode": {
+    "enter": {
+      "strokeWidth": {"value": 0}
+    }
+  },
+
+  "signals": [
+    {"name": "rolls", "value": 8192},
+    {"name": "sides", "value": 6},
+    {"name": "stackWidth", "value": 6},
+    {"name": "stackDepth", "value": 6},
+    {"name": "blockSize", "value": 10},
+    {"name": "stackPadding", "value": 2},
+    {"name": "width", "update": "blockSize*(2*sides-1)*(stackWidth+stackPadding)"},
+    {"name": "depth", "update": "blockSize*(stackDepth+stackPadding)"}
+  ],  
+
+  "camera": {"position": [0, 0.6, 1.2]},
+ 
+  "data": [ 
+    {
+      "name": "table", 
+      "transform": [
+        {
+          "type": "sequence",
+          "start": 0,
+          "stop": {"signal": "rolls"},
+          "step": 1,
+          "as": "id" 
+        },
+        {
+          "type": "formula",
+          "as": "dice1",
+          "expr": "floor(random()*sides)+1"
+        },
+        {
+          "type": "formula",
+          "as": "dice2",
+          "expr": "floor(random()*sides)+1"
+        },
+        {
+          "type": "formula",
+          "as": "sum",
+          "expr": "datum.dice1+datum.dice2"
+        },
+        {
+          "type": "formula",
+          "as": "select",
+          "expr": "(datum.dice1==datum.dice2)?1:0"
+        }
+      ]
+    },
+    {
+      "name": "bin",
+      "source": "table",
+      "transform": [
+        {"type": "bin", "field": "sum", "extent": [2, {"signal": "sides*2+1"}], "maxbins": {"signal": "sides*2-1"}}
+      ]
+    },
+    {
+      "name": "all_sums",
+      "source": "table",
+      "transform": [
+        {"type": "sequence", "start": 2, "stop": {"signal": "sides*2+1"}, "as": "sum"}
+      ]
+    },
+    {
+      "name": "aggregate",
+      "source": "bin",
+      "transform": [
+        {
+          "type": "aggregate",
+          "groupby": ["sum"],
+          "ops": ["count"],
+          "fields": ["sum"],
+          "as": ["count"]
+        },
+        {
+          "type": "formula",
+          "expr": "datum.count/rolls",
+          "as": "percent"
+        }
+      ]
+    },
+    {
+      "name": "unitstack",
+      "source": "table",
+      "transform": [
+        {
+          "type": "unitstack",
+          "sort": {"field": "select", "order": "descending"},
+          "groupby": ["sum"],
+          "x":{"signal": "stackWidth"},
+          "width": {"signal": "stackWidth"},
+          "z": {"signal": "stackDepth"},
+          "depth": {"signal": "stackDepth"}
+        }
+      ]
+    }
+  ],
+
+  "scales": [
+    {
+      "name": "block",
+      "type": "linear",
+      "domain": [0,1],
+      "range": [0,{"signal": "blockSize"}]
+    },
+    {
+      "name": "sum",
+      "type": "band",
+      "domain": {"data": "all_sums", "field": "sum"},
+      "_domain": {"data": "table", "field": "sum", "sort": {"field": "sum", "op": "max", "order": "ascending"}},
+      "_range": {"step": {"signal": "blockSize*(stackWidth+stackPadding)"}},
+      "range": "width"
+    },
+    {
+      "name": "color",
+      "type": "ordinal",
+      "domain": {"data": "table", "field": "select", "sort": {"field": "select", "op": "max", "order": "ascending"}},
+      "range": ["steelblue", "darkorange"]
+    }
+  ],
+
+  "axes": [
+    {
+      "orient": "bottom",
+      "orientZ": "front",
+      "scale": "sum",
+      "labelFontSize": 24,
+      "labelOffsetZ": 8,
+      "labelBaseline": "top",
+      "labelAngleX": 90,
+      "title": "sum",
+      "titleFontSize": 24,
+      "titleBaseline": "top",
+      "titleOffsetZ": 32,
+      "titleAngleX": 90,
+      "gridZ": true,
+      "bandGridPosition": 1,
+      "_domain": false
+    },
+    {
+      "orient": "bottom",
+      "orientZ": "back",
+      "scale": "sum",
+      "gridZ": true,
+      "bandGridPosition": 0,
+      "labels": false
+    }
+  ],
+
+  "marks": [
+    {
+      "type": "rect",
+      "material": "glossy",
+      "geometry": "xzrect",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "zc": {"signal": "depth/2"},
+          "yc": {"value": -0.1},
+          "width": {"signal": "width*4"},
+          "depth": {"signal": "width*4"},
+          "fuzz": {"value": 0.1},
+          "fill": {"value": "white"}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "boxsdf",
+      "material": "metal",
+      "from": {"data": "unitstack"},
+      "encode": {
+        "enter": {
+          "x": {"scale": "block", "field": "x0", "offset": {"scale": "sum", "field": "sum", "offset": {"scale": "block", "signal": "stackPadding/2"}}},
+          "x2": {"scale": "block", "field": "x1", "offset": {"scale": "sum", "field": "sum", "offset": {"scale": "block", "signal": "stackPadding/2"}}},
+          "y": {"scale": "block", "field": "y0"},
+          "y2": {"scale": "block", "field": "y1"},
+          "z": {"scale": "block", "field": "z0", "offset": {"scale": "block", "signal": "stackPadding/2"}},
+          "z2": {"scale": "block", "field": "z1", "offset": {"scale": "block", "signal": "stackPadding/2"}},
+          "fuzz": {"value": 0.5},
+          "fill": {"scale": "color", "field": "select"},
+          "rounding": {"scale": "block", "value": 0.1}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": {"data": "aggregate"},
+      "numberFormat": {"style": "percent", "minimumFractionDigits": 2},
+      "encode": {
+        "enter": {
+          "x": {"scale": "sum", "field": "sum", "offset": {"scale": "block", "signal": "(stackWidth+stackPadding)/2"}},
+          "y": {"scale": "block", "signal": "ceil(datum.count/stackWidth/stackDepth)"},
+          "z": {"scale": "block", "signal": "stackPadding/2"},
+          "baseline": {"value": "bottom"},
+          "text": {"field": "percent"} 
+        }
+      }
+    }
+  ]
+}

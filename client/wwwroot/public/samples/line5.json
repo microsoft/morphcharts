@@ -1,0 +1,158 @@
+{
+  "title": "3D Line Chart Lissajous Generator",
+  "description": "A 3D line chart Lissajou generator",
+
+  "width": 640,
+  "height": 360,
+  "depth": 640,
+
+  "camera": {"position": [1, 1, 2], "target": [0, -0.1, 0]},
+
+  "signals": [
+    {"name": "rows", "value": 1000},
+    {"name": "a", "value": 19},
+    {"name": "b", "value": 23},
+    {"name": "c", "value": 4},
+    {"name": "strokeWidth", "value": 15}
+  ],
+
+  "data": [
+    {
+      "name": "table", 
+      "transform": [
+        {
+          "type": "sequence",
+          "start": 0,
+          "stop": {"signal": "rows+1"},
+          "step": 1,
+          "as": "id"
+        },
+        {
+          "type": "formula",
+          "as": "t",
+          "expr": "2*PI*datum.id/(rows+1)"
+        },
+        {
+          "type": "formula",
+          "as": "x",
+          "expr": "sin(a*datum.t)"
+        },
+        {
+          "type": "formula",
+          "as": "y",
+          "expr": "sin(b*datum.t)"
+        },
+        {
+          "type": "formula",
+          "as": "z",
+          "expr": "sin(c*datum.t)"
+        }
+      ]
+    }
+  ], 
+
+  "scales": [
+    {
+      "name": "x",
+      "type": "linear",
+      "domain": {"data": "table", "field": "x"},
+      "range": "width"
+    },
+    {
+      "name": "y",
+      "type": "linear",
+      "domain": {"data": "table", "field": "y"},
+      "range": "height"
+    },
+    {
+      "name": "z",
+      "type": "linear",
+      "domain": {"data": "table", "field": "z"},
+      "range": "depth"
+    },
+    {
+      "name": "fill",
+      "type": "linear",
+      "domain": {"data": "table", "field": "t"},
+      "range": {"scheme": "blues"}
+    }
+  ],
+
+  "marks": [
+    {
+      "type": "rect",
+      "material": "glossy",
+      "geometry": "xzrect",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "zc": {"signal": "depth/2"},
+          "yc": {"signal": "-strokeWidth/2-0.1"},
+          "width": {"signal": "width*4"},
+          "depth": {"signal": "depth*4"},
+          "fuzz": {"value": 0.01},
+          "gloss": {"value": 0.5},
+          "fill": {"value": "white"}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "box",
+      "material": "light",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2-width"},
+          "yc": {"signal": "width"},
+          "zc": {"signal": "width"},
+          "height": {"signal": "width"},
+          "width": {"signal": "width"},
+          "angleX": {"value": 30},
+          "angleY": {"value": 45},
+          "depth": {"value": 0},
+          "fill": {
+            "color": {
+              "h": {"value": 0},
+              "s": {"value": 0},
+              "l": {"value": 2}
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "line",
+      "geometry": "cylindersdf",
+      "material": "metal",
+      "from": {"data": "table"},
+      "encode": {
+        "enter": {
+          "x": {"scale": "x", "field": "x"},
+          "y": {"scale": "y", "field": "y"},
+          "z": {"scale": "z", "field": "z"},
+          "fuzz": {"value": 0.1},
+          "strokeWidth": {"signal": "strokeWidth"},
+          "stroke": {"value": "copper"},
+          "_stroke": {"scale": "fill", "field": "t"}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "sphere",
+      "material": "metal",
+      "from": {"data": "table"},
+      "encode": {
+        "enter": {
+          "xc": {"scale": "x", "field": "x"},
+          "yc": {"scale": "y", "field": "y"},
+          "zc": {"scale": "z", "field": "z"},
+          "fuzz": {"value": 0.1},
+          "width": {"signal": "strokeWidth"},
+          "fill": {"value": "copper"},
+          "_fill": {"scale": "fill", "field": "t"}
+        }
+      }
+    }
+  ]
+}
