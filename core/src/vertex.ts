@@ -535,7 +535,7 @@ export class UnitVertex {
     public static getFill(bufferView: DataView, index: number, value: Vector3) {
         const offset = UnitVertex.SIZE_BYTES * index + this.FILL_OFFSET_BYTES;
         value[0] = bufferView.getUint16(offset) / 0xff;
-        value[1] = bufferView.getUint16(offset + 2) / 0xff
+        value[1] = bufferView.getUint16(offset + 2) / 0xff;
         value[2] = bufferView.getUint16(offset + 4) / 0xff;
     }
     public static setFill(bufferView: DataView, index: number, value: Vector3) {
@@ -554,7 +554,7 @@ export class UnitVertex {
     public static getStroke(bufferView: DataView, index: number, value: Vector3) {
         const offset = UnitVertex.SIZE_BYTES * index + this.STROKE_OFFSET_BYTES;
         value[0] = bufferView.getUint16(offset) / 0xff;
-        value[1] = bufferView.getUint16(offset + 2) / 0xff
+        value[1] = bufferView.getUint16(offset + 2) / 0xff;
         value[2] = bufferView.getUint16(offset + 4) / 0xff;
     }
     public static setStroke(bufferView: DataView, index: number, value: Vector3) {
