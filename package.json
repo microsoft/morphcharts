@@ -18,6 +18,7 @@
     "renderers/webgpuraytrace",
     "spec",
     "server",
-    "client"
+    "client",
+    "webgpuraytrace"
   ]
 }
