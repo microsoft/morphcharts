@@ -59,7 +59,7 @@ export class UnitStack extends Transform {
             if (typeof this._transformJSON.paddingZ == "object" && this._transformJSON.paddingZ.signal) {
                 paddingZ = group.parseSignalValue(this._transformJSON.paddingZ.signal);
             }
-            else if (typeof this._transformJSON.z == "number") {
+            else if (typeof this._transformJSON.paddingZ == "number") {
                 paddingZ = this._transformJSON.paddingZ;
             }
         }
@@ -144,7 +144,7 @@ export class UnitStack extends Transform {
                 y1 = 1;
                 x0 = (0.5 * paddingX) * unitX;
                 x1 = x0 + unitX;
-                z0 = (0.5 * paddingX) * unitZ;
+                z0 = (0.5 * paddingZ) * unitZ;
                 z1 = z0 + unitZ;
             }
             row.push(y0.toString());
