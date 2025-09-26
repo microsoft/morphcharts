@@ -1,0 +1,148 @@
+{
+  "title": "3D Bar Chart Textured",
+  "description": "A 3D bar chart with aligned checker textures",
+  "width": 640,
+  "height": 360,
+  
+  "camera": {"position": [0, 0.6, 1.2]},
+  
+  "data": [
+    {
+      "name": "table",
+      "values": [
+        {"category": "A", "amount": 42},
+        {"category": "B", "amount": 87},
+        {"category": "C", "amount": 15},
+        {"category": "D", "amount": 63},
+        {"category": "E", "amount": 29},
+        {"category": "F", "amount": 91},
+        {"category": "G", "amount": 8},
+        {"category": "H", "amount": 76},
+        {"category": "I", "amount": 54},
+        {"category": "J", "amount": 33}
+      ]
+    }
+  ],
+  
+  "scales": [
+    {
+      "name": "xscale", 
+      "type": "band",
+      "domain": {
+        "data": "table",
+        "field": "category",
+        "sort": {
+          "data": "table",
+          "op": "max",
+          "field": "amount",
+          "order": "descending"
+        }
+      },
+      "range": "width",
+      "padding": 0.25
+    },
+    {
+      "name": "yscale",
+      "type": "linear",
+      "domain": {"data": "table", "field": "amount"},
+      "nice": true,
+      "range": "height"
+    }
+  ],
+  
+  "axes": [
+    {
+      "orient": "bottom",
+      "scale": "xscale",
+      "labelBaseline": "top",
+      "labelOffsetY": 0.1,
+      "labelOffsetZ": 32,
+      "labelAngleX": 90,
+      "title": "Category",
+      "titleOffsetZ": 64,
+      "titleOffsetY": 0.1,
+      "titleAngleX": 90,
+      "domain": false
+    },
+    {
+      "orient": "left",
+      "orientZ": "back",
+      "scale": "yscale",
+      "grid": true,
+      "gridWidth": 0.1,
+      "tickCount": 10,
+      "labelAlign": "right",
+      "labelOffsetX": -2,
+      "labelOffsetY": 4,
+      "title": "Amount",
+      "titleOffsetX": -32,
+      "titleAngle": -90
+    }
+  ],
+  
+  "marks": [
+    {
+      "type": "rect",
+      "geometry": "xzrect",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "width": {"signal": "width*2"},
+          "depth": {"signal": "width*2"},
+          "fuzz": {"value": 0.1},
+          "fill": {"value": "white"}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "cylindersdf",
+      "material": "glossy",
+      "from": {"data": "table"},
+      "encode": {
+        "enter": {
+          "x": {"scale": "xscale", "field": "category"},
+          "width": {"scale": "xscale", "band": 1},
+          "y": {"scale": "yscale", "value": 0},
+          "y2": {"scale": "yscale", "field": "amount"},
+          "fuzz": {"value": 0.1},
+          "rounding": {"scale": "xscale", "band": 0.025},
+          "fill": {
+            "checker": {
+               "color1": {"value": "black"},
+               "color2": {"value": "gainsboro"}
+            },
+            "texScale": {
+               "x": {"value": 1},
+               "y": {"signal": "8*datum.amount/100"},
+               "z": {"value": 1},
+               "w": {"signal": "PI"}
+            },
+            "texOffset": {
+               "x": {"value": 0},
+               "y": {"signal": "0.5*(8*datum.amount/100)%1"},
+               "z": {"value": 0},
+               "w": {"signal": "0.5*(PI%1)"}
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": {"data": "table"},
+      "encode": {
+        "enter": {
+          "align": {"value": "center"},
+          "baseline": {"value": "bottom"},
+          "x": {"scale": "xscale", "field": "category", "band": 0.5},
+          "y": {"scale": "yscale", "field": "amount"},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.5},
+          "text": {"field": "amount"}
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,165 @@
+{
+  "title": "Textures",
+  "description": "Textures",
+
+  "width": 250,
+
+  "camera": {"position": [0, 0.5, 1.5]},
+
+  "images": [
+    {"name": "test", "url": "textures/calibrate.png"}
+  ],
+
+  "marks": [
+    {
+      "type": "rect",
+      "geometry": "xzrect",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "yc": {"value": -0.1},
+          "width": {"signal": "width*2"},
+          "depth": {"signal": "width*2"},
+          "fuzz": {"value": 0.01},
+          "gloss": {"value": 0.5},
+          "fill": {"value": "white"}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "cylindersdf",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "xc": {"value": 25},
+          "y": {"value": 0},
+          "height": {"value": 45},
+          "width": {"value": 45},
+          "rounding": {"value": 1},
+          "fill": {
+            "color": {
+              "r": {"value": 102},
+              "g": {"value": 128},
+              "b": {"value": 153}
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "cylindersdf",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "xc": {"value": 75},
+          "y": {"value": 0},
+          "height": {"value": 45},
+          "width": {"value": 45},
+          "rounding": {"value": 1},
+          "fill": {
+            "checker": {
+              "color1": { "value": "black" },
+              "color2": { "value": "white" }
+            },
+            "texScale": {
+              "x": {"value": 1},
+              "y": {"value": 1}
+            },
+            "texOffset": {
+              "x": {"value": 0},
+              "y": {"value": 0}
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "cylindersdf",
+      "material": "glossy",
+      "encode": { 
+        "enter": {
+          "xc": {"value": 125},
+          "y": {"value": 0},
+          "height": {"value": 45},
+          "width": {"value": 45},
+          "rounding": {"value": 1},
+          "fill": {
+            "image": "test",
+            "texCoords": {
+              "x1": {"value": 0},
+              "y1": {"value": 0},
+              "x2": {"value": 1},
+              "y2": {"value": 1}
+            },
+            "texScale": {
+              "x": {"value": 1},
+              "y": {"value": 1},
+              "z": {"value": 1},
+              "w": {"signal": "PI"}
+            },
+            "texOffset": {
+              "x": {"value": 0},
+              "y": {"value": 0}
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "cylindersdf",
+      "material": "glossy",
+      "texture": "uv",
+      "encode": {
+        "enter": {
+          "xc": {"value": 175},
+          "y": {"value": 0},
+          "height": {"value": 45},
+          "width": {"value": 45},
+          "rounding": {"value": 1},
+          "fill": {
+            "texScale": {
+              "x": {"value": 1},
+              "y": {"value": 1}
+            },
+            "texOffset": {
+              "x": {"value": 0},
+              "y": {"value": 0}
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "cylindersdf",
+      "material": "glossy",
+      "texture": "uvw",
+      "encode": {
+        "enter": {
+          "xc": {"value": 225},
+          "y": {"value": 0},
+          "height": {"value": 45},
+          "width": {"value": 45},
+          "rounding": {"value": 1},
+          "fill": {
+            "texScale": {
+              "x": {"value": 1},
+              "y": {"value": 1},
+              "w": {"value": 1}
+            },
+            "texOffset": {
+              "x": {"value": 0},
+              "y": {"value": 0},
+              "w": {"value": 0}
+            }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,220 @@
+{
+  "title": "2D Normal Distribution Histogram",
+  "description": "2D normal distribution histogram using Box-Muller transform, showing standard deviations as color",
+ 
+  "height": 360,
+
+  "background": "white",
+  "ambient": "white",
+
+  "encode": {
+    "enter": {
+      "strokeWidth": {"value": 0}
+    }
+  },
+
+  "signals": [
+    {"name": "samples", "value": 4096},
+    {"name": "bins", "value": 50},
+    {"name": "stackWidth", "value": 1},
+    {"name": "stackDepth", "value": 1},
+    {"name": "blockSize", "value": 10},
+    {"name": "stackPadding", "value": 0.1},
+    {"name": "width", "update": "blockSize*bins*(stackWidth+stackPadding)"},
+    {"name": "depth", "update": "blockSize*bins*(stackDepth+stackPadding)"}
+  ],  
+
+  "camera": {"position": [1, 0.2, 1.6], "target": [0, -0.15, 0]},
+ 
+  "data": [ 
+    {
+      "name": "table", 
+      "transform": [
+        {
+          "type": "sequence",
+          "start": 0,
+          "stop": {"signal": "samples"},
+          "step": 1,
+          "as": "id" 
+        },
+        {
+          "type": "formula",
+          "as": "theta",
+          "expr": "2*PI*random()"
+        },
+        {
+          "type": "formula",
+          "as": "R",
+          "expr": "sqrt(-2*log(random()))"
+        },
+        {
+          "type": "formula",
+          "as": "x",
+          "expr": "datum.R*cos(datum.theta)"
+        },
+        {
+          "type": "formula",
+          "as": "y",
+          "expr": "datum.R*sin(datum.theta)"
+        },
+        {
+          "type": "formula",
+          "as": "s",
+          "expr": "floor(sqrt(datum.x*datum.x+datum.y*datum.y))"
+        }
+      ]
+    },
+    {
+      "name": "binX",
+      "source": "table", 
+      "transform": [
+        {"type": "bin", "field": "x", "extent": [-5, 5], "maxbins": {"signal": "bins"}, "as": ["binx0", "binx1"]}
+      ]
+    },
+    {
+      "name": "binY",
+      "source": "binX",
+      "transform": [
+        {"type": "bin", "field": "y", "extent": [-5, 5], "maxbins": {"signal": "bins"}, "as": ["biny0", "biny1"]}
+      ]
+    },
+    {
+      "name": "unitstack",
+      "source": "binY",
+      "transform": [
+        {
+          "type": "unitstack",
+          "groupby": ["binx0", "biny0"],
+          "x":{"signal": "stackWidth"},
+          "width": {"signal": "stackWidth"},
+          "z": {"signal": "stackDepth"},
+          "depth": {"signal": "stackDepth"}
+        }
+      ]
+    }
+  ],
+
+  "scales": [
+    {
+      "name": "block",
+      "type": "linear",
+      "domain": [0,1],
+      "range": [0,{"signal": "blockSize"}]
+    },
+    {
+      "name": "x",
+      "type": "linear",
+      "domain": [-5,5],
+      "range": "width"
+    },
+    {
+      "name": "z",
+      "type": "linear",
+      "domain": [-5,5],
+      "range": "depth"
+    },
+    {
+      "name": "y",
+      "type": "linear",
+      "domain": {"data": "unitstack", "field": "y1"},
+      "range": "height"
+    },
+    {
+      "name": "color",
+      "type": "linear",
+      "domain": [0,5],
+      "reverse": true,
+      "range": {"scheme": "viridis"}
+    }
+  ],
+
+  "axes": [
+    {
+      "orient": "bottom",
+      "orientZ": "front",
+      "scale": "x",
+      "labelOffsetZ": 4,
+      "labelBaseline": "top",
+      "labelAngleX": 90,
+      "title": "x",
+      "titleBaseline": "top",
+      "titleOffsetZ": 16,
+      "titleAngleX": 90,
+      "tickCount": 10,
+      "gridZ": true,
+      "gridWidth": 0.2,
+      "domain": false
+    },
+    {
+      "orient": "bottom",
+      "orientZ": "front",
+      "scale": "x",
+      "labels": false,
+      "tickCount": 50,
+      "gridZ": true,
+      "gridWidth": 0.05,
+      "domain": false
+    },
+    {
+      "orient": "right",
+      "orientZ": "bottom",
+      "scale": "z",
+      "labelOffsetX": 4,
+      "labelAlign": "left",
+      "labelAngleX": 90,
+      "title": "z",
+      "titleAlign": "left",
+      "titleOffsetX": 16,
+      "titleAngleX": 90,
+      "tickCount": 10,
+      "grid": true,
+      "gridWidth": 0.2,
+      "domain": false
+    },
+    {
+      "orient": "right",
+      "orientZ": "bottom",
+      "scale": "z",
+      "labels": false,
+      "tickCount": 50,
+      "grid": true,
+      "gridWidth": 0.05,
+      "domain": false
+    }
+  ],
+
+  "marks": [
+    {
+      "type": "rect",
+      "geometry": "xzrect",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "zc": {"signal": "depth/2"},
+          "yc": {"value": -0.1},
+          "width": {"signal": "width*4"},
+          "depth": {"signal": "depth*4"},
+          "fill": {"value": "white"}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "cylindersdf",
+      "material": "glossy",
+      "from": {"data": "unitstack"},
+      "encode": {
+        "enter": {
+          "x": {"scale": "block", "field": "x0", "offset": {"scale": "x", "field": "binx0", "offset": {"scale": "block", "signal": "stackPadding/2"}}},
+          "x2": {"scale": "block", "field": "x1", "offset": {"scale": "x", "field": "binx0", "offset": {"scale": "block", "signal": "stackPadding/2"}}},
+          "y": {"scale": "y", "field": "y0"},
+          "y2": {"scale": "y", "field": "y1"},
+          "z": {"scale": "block", "field": "z0", "offset": {"scale": "z", "field": "biny0", "offset": {"scale": "block", "signal": "stackPadding/2"}}},
+          "z2": {"scale": "block", "field": "z1", "offset": {"scale": "z", "field": "biny0", "offset": {"scale": "block", "signal": "stackPadding/2"}}},
+          "fill": {"scale": "color", "field": "s"},
+          "rounding": {"scale": "block", "value": 0.05}
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,197 @@
+{   
+  "title": "3D Unit Stack Histogram",
+  "description": "A 3D unit stack histogram. Some randomness introduced into the stack positions. Includes an accent light.",
+  "width": 640,
+  "height": 360,
+  "depth": 48,
+      
+  "camera": {"position": [0, 0.6, 1.2]},
+  
+  "signals": [
+    {"name": "stackx", "value": 2},
+    {"name": "stackz", "value": 2}
+  ],
+      
+  "data": [
+    {
+      "name": "table",
+      "values": [
+        {"category": "A", "amount": 42},
+        {"category": "B", "amount": 87},
+        {"category": "C", "amount": 15},
+        {"category": "D", "amount": 63},
+        {"category": "E", "amount": 29},
+        {"category": "F", "amount": 91},   
+        {"category": "G", "amount": 8},
+        {"category": "H", "amount": 76},
+        {"category": "I", "amount": 54},
+        {"category": "J", "amount": 33}
+      ]
+    },
+    {
+      "name": "unit",
+      "source": "table",
+      "transform": [
+        {"type": "unit", "field": "amount"},
+        {
+          "type": "unitstack",
+          "groupby": ["category"],
+          "x": {"signal": "stackx"},
+          "z": {"signal": "stackz"}
+        },
+        {"type": "extent", "field": "y1", "signal": "stacky"},
+        {"type": "formula", "expr": "random()-0.5", "as": "random1"},
+        {"type": "formula", "expr": "random()-0.5", "as": "random2"}
+      ]
+    }
+  ],
+  
+  "scales": [
+    { 
+      "name": "xscale",
+      "type": "band",
+      "domain": {"data": "table", "field": "category"},
+      "padding": 0.25,
+      "range": "width"
+    },
+    {
+      "name": "yscale",
+      "type": "linear",
+      "nice": true,
+      "domain": [0, {"signal":"stacky[1]*stackx*stackz"}],
+      "range": "height"
+    },
+    {
+      "name": "unitz",
+      "type": "linear",
+      "range": "depth",
+      "domain": [0,1]
+    }
+  ],
+
+  "axes": [
+    {
+      "orient": "bottom",
+      "scale": "xscale",
+      "labelBaseline": "top",
+      "labelOffsetZ": 16,
+      "labelAngleX": 90,
+      "title": "Category",
+      "titleOffsetZ": 48,
+      "titleAngleX": 90,
+      "domain": false
+    },
+    {
+      "orient": "left",
+      "orientZ": "back",
+      "scale": "yscale",
+      "grid": true,
+      "gridWidth": 0.1,
+      "tickCount": 10,
+      "labelAlign": "right",
+      "labelOffsetX": -2,
+      "labelOffsetY": 4,
+      "title": "Amount",
+      "titleOffsetX": -32,
+      "titleAngle": -90
+    }
+  ],
+
+  "marks": [
+    {
+      "type": "rect",
+      "geometry": "xzrect",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "yc": {"value": -0.1},
+          "width": {"signal": "width*2"},
+          "depth": {"signal": "width*2"},
+          "fuzz": {"value": 0.1},
+          "fill": {"value": "white"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": {"data": "table"},
+      "encode": {
+        "enter": {
+          "align": {"value": "center"},
+          "baseline": {"value": "bottom"},
+          "x": {"scale": "xscale", "field": "category", "band": 0.5},
+          "y": {"scale": "yscale", "signal": "ceil(datum.amount/stackx/stackz)*stackx*stackz"},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.5},
+          "text": {"field": "amount"}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "box",
+      "material": "light",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2-width"},
+          "yc": {"signal": "width"},
+          "zc": {"signal": "width"},
+          "height": {"signal": "width/2"},
+          "width": {"signal": "width/2"},
+          "angleX": {"value": 30},
+          "angleY": {"value": 45},
+          "depth": {"value": 0},
+          "fill": {
+            "color": {
+              "h": {"value": 0},
+              "s": {"value": 0},
+              "l": {"value": 2.848}
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "group",
+      "from": {
+        "facet": {
+          "data": "unit",
+          "name": "facet",
+          "groupby": "category"
+        }
+      },
+      "encode": {"enter": {"x": {"scale": "xscale", "field": "category"}}},
+      "signals": [{"name": "width", "update": "bandwidth('xscale')"}],
+      "scales": [
+        {
+          "name": "unitx",
+          "type": "linear",
+          "range": "width",
+          "domain": [0,1]
+        }
+      ],
+      "marks": [
+        {
+          "geometry": "cylindersdf",
+          "material": "metal",
+          "from": {"data": "facet"},
+          "type": "rect",
+          "encode": {
+            "enter": {
+              "x": {"scale": "unitx", "field": "x0", "offset": {"field": "random1"}},
+              "x2": {"scale": "unitx", "field": "x1", "offset": -0.5},
+              "y2": {"scale": "yscale", "field": "y1", "mult": {"signal": "stackx*stackz"}},
+              "y": {"scale": "yscale", "field": "y0", "mult": {"signal": "stackx*stackz"}},
+              "z2": {"scale": "unitz", "field": "z1", "offset": {"field": "random2"}},
+              "z": {"scale": "unitz", "field": "z0", "offset": -0.5},
+              "rounding": {"value": 1},
+              "fuzz": {"value": 0.1},
+              "fill": {"value": "silver"}
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

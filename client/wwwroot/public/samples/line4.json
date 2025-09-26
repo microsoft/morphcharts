@@ -1,0 +1,168 @@
+{
+  "title": "Multi Series 3D Line Chart",
+  "description": "A multi series 3D line chart",
+  "width": 640,
+  "height": 90,
+  "depth": 640,
+
+  "camera": {"position": [0.65, 0.8, 1.4], "target": [-0.1, -0.25, -0.1]},
+
+  "signals": [
+    {"name": "series", "value": 10},
+    {"name": "rows", "value": 500}
+  ],
+
+  "data": [
+    {
+      "name": "table", 
+      "transform": [
+        {
+          "type": "sequence",
+          "start": 0,
+          "stop": {"signal": "rows*series"},
+          "step": 1,
+          "as": "id" 
+        },
+        {
+          "type": "formula",
+          "as": "series",
+          "expr": "datum.id%series"
+        },
+        {
+          "type": "formula",
+          "as": "x",
+          "expr": "(datum.id-datum.series)/series"
+        },
+        {
+          "type": "formula",
+          "as": "y" ,
+          "expr": "1+sin(16*PI*sqrt((datum.x/rows-0.5)*(datum.x/rows-0.5)+(datum.series/series-0.5)*(datum.series/series-0.5)))"
+        }
+      ]
+    }
+  ], 
+
+  "scales": [
+    {
+      "name": "x",
+      "type": "linear",
+      "nice": true,
+      "domain": {"data": "table", "field": "x"},
+      "range": "width"
+    },
+    {
+      "name": "y",
+      "type": "linear",
+      "nice": true,
+      "domain": {"data": "table", "field": "y"},
+      "range": "height"
+    },
+    {
+      "name": "z",
+      "type": "band",
+      "padding": 0.5,
+      "reverse": true,
+      "domain": {
+        "data": "table", 
+        "field": "series",
+        "_sort": {"field": "y", "op": "max",  "order": "descending"}
+      },
+      "range": "depth"
+    },
+    {
+      "name": "fill",
+      "type": "linear",
+      "nice": true,
+      "range": {"scheme": "viridis"},
+      "reverse": false,
+      "domain": {"data": "table", "field": "y"}
+    }
+  ],
+
+  "axes": [
+    {
+      "orient": "bottom",
+      "labelBaseline": "top",
+      "labelOffsetZ": 2,
+      "labelAngleX": 90,
+      "scale": "x",
+      "title": "x",
+      "titleOffsetZ": 32,
+      "titleAngleX": 90,
+      "tickCount": 10,
+      "gridZ": true,
+      "gridWidth": 0.1
+    },
+    {
+      "orient": "right",
+      "orientZ": "bottom",
+      "scale": "z",
+      "title": "series",
+      "titleAngleX": 90,
+      "titleOffsetX": 32,
+      "labelAlign": "left",
+      "labelOffsetX": 2,
+      "labelAngleX": 90 
+    },
+    {
+      "orient": "right",
+      "orientZ": "back", 
+      "scale": "y", 
+      "labelAlign": "left",
+      "labelOffsetX": 2,
+      "labelOffsetY": 4,
+      "tickCount": 4,
+      "title": "y",
+      "titleOffsetX": 32,
+      "grid": true,
+      "gridWidth": 0.1
+    },
+    {
+      "orient": "left",
+      "orientZ": "front",
+      "scale": "y",
+      "labels": false,
+      "tickCount": 4,
+      "domainWidth": 0.1,
+      "gridZ": true,
+      "gridWidth": 0.1
+    }
+  ],
+
+  "marks": [
+    {
+      "type": "rect",
+      "geometry": "xzrect",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "yc": {"value": -0.1},
+          "zc": {"signal": "depth/2"},
+          "width": {"signal": "width*4"},
+          "depth": {"signal": "depth*4"},
+          "fill": {"value": "white"}
+        }
+      }
+    },
+    {
+      "type": "group",
+      "from": {"facet": {"name": "series", "data": "table", "groupby": "series"}},
+      "marks": [
+        {
+          "type": "line",
+          "from": {"data": "series"},
+          "encode": {
+            "enter": {
+              "x": {"scale": "x", "field": "x"},
+              "y": {"scale": "y", "field": "y", "offset": {"scale": "z", "band": 0.02}},
+              "z": {"scale": "z", "field": "series", "offset": {"scale": "z", "band": 0.5}},
+              "strokeWidth": {"scale": "z", "band": 0.01},
+              "strokeDepth": {"scale": "z", "band": 1},
+              "stroke": {"scale": "fill", "field": "y"}
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

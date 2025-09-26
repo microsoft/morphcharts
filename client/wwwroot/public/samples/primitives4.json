@@ -1,0 +1,234 @@
+{
+  "title": "Textured Geometric Primitives",
+  "description": "Textured geometric primitives for marks",
+
+  "width": 300,
+  "height": 50,
+  "depth": 200,
+
+  "camera": {"position": [0, 1, 1], "target": [0, 0, 0.05]},
+
+  "marks": [
+    {
+      "type": "rect",
+      "geometry": "tubesdf",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "xc": {"value": 50},
+          "zc": {"value": 50},
+          "y": {"value": 0},
+          "height": {"value": 50},
+          "width": {"value": 50},
+          "depth": {"value": 50},
+          "innerRadius": {"value": 25},
+          "rounding": {"value": 1},
+          "fuzz": {"value": 0.1},
+          "fill": {
+            "checker": {
+              "color1": {"value": "black"},
+              "color2": {"value": "gainsboro"}
+            },
+            "texScale": {
+              "x": {"value": 2},
+              "y": {"value": 2},
+              "z": {"value": 2},
+              "w": {"value": 5}
+            },
+            "texOffset": {
+              "x": {"value": 0},
+              "y": {"value": 0},
+              "z": {"value": 0},
+              "w": {"value": 0}
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "cylindersdf",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "xc": {"value": 150},
+          "zc": {"value": 50},
+          "y": {"value": 0},
+          "height": {"value": 50},
+          "width": {"value": 50},
+          "depth": {"value": 50},
+          "rounding": {"value": 1},
+          "fuzz": {"value": 0.1},
+          "fill": {
+            "checker": {
+              "color1": {"value": "black"},
+              "color2": {"value": "gainsboro"}
+            },
+            "texScale": {
+              "x": {"value": 2},
+              "y": {"value": 2},
+              "z": {"value": 2},
+              "w": {"value": 5}
+            },
+            "texOffset": {
+              "x": {"value": 0},
+              "y": {"value": 0},
+              "z": {"value": 0},
+              "w": {"value": 0}
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "hexprismsdf",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "xc": {"value": 250},
+          "zc": {"value": 50},
+          "y": {"value": 0},
+          "height": {"value": 50},
+          "width": {"value": 50},
+          "depth": {"value": 50},
+          "rounding": {"value": 1},
+          "fuzz": {"value": 0.1},
+          "fill": {
+            "checker": {
+              "color1": {"value": "black"},
+              "color2": {"value": "gainsboro"}
+            },
+            "texScale": {
+              "x": {"value": 2},
+              "y": {"value": 2},
+              "z": {"value": 2},
+              "w": {"value": 6}
+            },
+            "texOffset": {
+              "x": {"value": 0},
+              "y": {"value": 0},
+              "z": {"value": 0},
+              "w": {"value": 0}
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "boxsdf",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "xc": {"value": 50},
+          "zc": {"value": 150},
+          "y": {"value": 0},
+          "height": {"value": 50},
+          "width": {"value": 50},
+          "depth": {"value": 50},
+          "rounding": {"value": 1},
+          "fuzz": {"value": 0.1},
+          "fill": {
+            "checker": {
+              "color1": {"value": "black"},
+              "color2": {"value": "gainsboro"}
+            },
+            "texScale": {
+              "x": {"value": 2},
+              "y": {"value": 2},
+              "z": {"value": 2}
+            },
+            "texOffset": {
+              "x": {"value": 0},
+              "y": {"value": 0},
+              "z": {"value": 0}
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "sphere",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "xc": {"value": 150},
+          "zc": {"value": 150},
+          "y": {"value": 0},
+          "height": {"value": 50},
+          "width": {"value": 50},
+          "depth": {"value": 50},
+          "fuzz": {"value": 0.1},
+          "fill": {
+            "checker": {
+              "color1": {"value": "black"},
+              "color2": {"value": "gainsboro"}
+            },
+            "texScale": {
+              "x": {"value": 5},
+              "y": {"value": 2}
+            },
+            "texOffset": {
+              "x": {"value": 0},
+              "y": {"value": 0}
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "boxframesdf",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "xc": {"value": 250},
+          "zc": {"value": 150},
+          "y": {"value": 0},
+          "height": {"value": 50},
+          "width": {"value": 50},
+          "depth": {"value": 50},
+          "thickness": {"value": 10},
+          "rounding": {"value": 1},
+          "fuzz": {"value": 0.1},
+          "fill": {
+            "checker": {
+              "color1": {"value": "black"},
+              "color2": {"value": "gainsboro"}
+            },
+            "texScale": {
+              "x": {"value": 2},
+              "y": {"value": 2},
+              "z": {"value": 2}
+            },
+            "texOffset": {
+              "x": {"value": 0},
+              "y": {"value": 0},
+              "z": {"value": 0}
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "xzrect",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "zc": {"signal": "depth/2"},
+          "yc": {"value": -0.1},
+          "width": {"signal": "width*2"},
+          "depth": {"signal": "depth*2"},
+          "height": {"value": 0},
+          "gloss": {"value": 0.5},
+          "fuzz": {"value": 0.1},
+          "fill": {"value": "white"}
+        }
+      }
+    }
+  ]
+}

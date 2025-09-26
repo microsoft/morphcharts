@@ -1,0 +1,185 @@
+{
+  "title": "3D Stacked Bar Chart",
+  "description": "A 3D stacked bar chart",
+  "width": 640,
+  "height": 240,
+  "depth": 180,
+
+  "camera": {"position": [0, 0.6, 1.2]},
+
+  "config": {"range": {"category": {"scheme": "category20"}}},
+
+  "data": [
+    {
+      "name": "table",
+      "values": [
+        {"category": "A", "subcategory": "One", "amount": 42},
+        {"category": "B", "subcategory": "One", "amount": 87},
+        {"category": "C", "subcategory": "One", "amount": 15},
+        {"category": "D", "subcategory": "One", "amount": 63},
+        {"category": "E", "subcategory": "One", "amount": 29},
+        {"category": "F", "subcategory": "One", "amount": 91},
+        {"category": "G", "subcategory": "One", "amount": 8},
+        {"category": "H", "subcategory": "One", "amount": 76},
+        {"category": "I", "subcategory": "One", "amount": 54},
+        {"category": "J", "subcategory": "One", "amount": 33},
+
+        {"category": "A", "subcategory": "Two", "amount": 67},
+        {"category": "B", "subcategory": "Two", "amount": 23},
+        {"category": "C", "subcategory": "Two", "amount": 94},
+        {"category": "D", "subcategory": "Two", "amount": 38},
+        {"category": "E", "subcategory": "Two", "amount": 81},
+        {"category": "F", "subcategory": "Two", "amount": 12},
+        {"category": "G", "subcategory": "Two", "amount": 56},
+        {"category": "H", "subcategory": "Two", "amount": 33},
+        {"category": "I", "subcategory": "Two", "amount": 70},
+        {"category": "J", "subcategory": "Two", "amount": 19},
+
+        {"category": "A", "subcategory": "Three", "amount": 25},
+        {"category": "B", "subcategory": "Three", "amount": 59},
+        {"category": "C", "subcategory": "Three", "amount": 11},
+        {"category": "D", "subcategory": "Three", "amount": 72},
+        {"category": "E", "subcategory": "Three", "amount": 44},
+        {"category": "F", "subcategory": "Three", "amount": 60},
+        {"category": "G", "subcategory": "Three", "amount": 39},
+        {"category": "H", "subcategory": "Three", "amount": 90},
+        {"category": "I", "subcategory": "Three", "amount": 18},
+        {"category": "J", "subcategory": "Three", "amount": 77}
+      ]
+    }
+  ],
+
+  "scales": [
+    {
+      "name": "xscale",
+      "type": "band",
+      "domain": {"data": "table", "field": "category"},
+      "range": "width",
+      "padding": 0.25
+    },
+    {
+      "name": "yscale",
+      "type": "linear",
+      "domain": {"data": "table", "field": "amount"},
+      "nice": true,
+      "range": "height"
+    },
+    {
+      "name": "zscale",
+      "type": "band",
+      "domain": {"data": "table", "field": "subcategory"},
+      "range": "depth",
+      "reverse": true,
+      "padding": 0.25
+    },
+    {
+      "name": "color",
+      "type": "ordinal",
+      "range": "category",
+      "domain": {"data": "table", "field": "subcategory"}
+    }
+  ],
+
+  "axes": [
+    {
+      "orient": "bottom",
+      "orientZ": "front",
+      "scale": "xscale",
+      "labelBaseline": "top",
+      "labelOffsetY": 0.1,
+      "labelAngleX": 90,
+      "title": "Category",
+      "titleOffsetZ": 32,
+      "titleOffsetY": 0.1,
+      "titleAngleX": 90,
+      "gridZ": true,
+      "gridWidth": 0.5,
+      "domain": false
+    },
+    {
+      "orient": "left",
+      "orientZ": "bottom",
+      "scale": "zscale",
+      "labelAlign": "right",
+      "labelOffsetY": 0.1,
+      "labelAngleX": 90,
+      "title": "Subcategory",
+      "titleOffsetX": -48,
+      "titleOffsetY": 0.1,
+      "titleAngleX": 90,
+      "titleAngleZ": 90,
+      "grid": true,
+      "gridWidth": 0.5,
+      "domain": false
+    },
+    {
+      "orient": "right",
+      "orientZ": "bottom",
+      "scale": "zscale",
+      "labelAlign": "left",
+      "labelOffsetY": 0.1,
+      "labelAngleX": 90,
+      "title": "Subcategory",
+      "titleOffsetX": 48,
+      "titleOffsetY": 0.1,
+      "titleAngleX": 90,
+      "titleAngleZ": -90,
+      "domain": false
+    }
+  ],
+
+  "marks": [
+    {
+      "type": "rect",
+      "geometry": "xzrect",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "zc": {"signal": "depth/2"},
+          "width": {"signal": "width*2"},
+          "depth": {"signal": "width*2"},
+          "fuzz": {"value": 0.1},
+          "fill": {"value": "white"}
+        }
+      }
+    },
+    {
+      "from": {"data": "table"},
+      "type": "rect",
+      "geometry": "cylindersdf",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "x": {"scale": "xscale", "field": "category"},
+          "width": {"scale": "xscale", "band": 1},
+          "y": {"scale": "yscale", "value": 0},
+          "y2": {"scale": "yscale", "field": "amount"},
+          "z": {"scale": "zscale", "field": "subcategory"},
+          "depth": {"scale": "zscale", "band": 1},
+          "rounding": {"scale": "xscale", "band": 0.025},
+          "fill": {"scale": "color", "field": "subcategory"}
+        }
+      }
+    },
+    {
+      "from": {"data": "table"},
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"scale": "xscale", "field": "category", "band": 0.5},
+          "y": {"scale": "yscale", "field": "amount", "offset": 0.1},
+          "z": {"scale": "zscale", "field": "subcategory", "band": 0.5},
+          "align": {"value": "center"},
+          "baseline": {"value": "center"},
+          "angleX": {"value": 90},
+          "fontSize": {"value": 16},
+          "fill": {"value": "white"},
+          "stroke": {"value": "black"},
+          "strokeWidth": {"value": 0.5},
+          "text": {"field": "amount"}
+        }
+      }
+    }
+  ]
+}

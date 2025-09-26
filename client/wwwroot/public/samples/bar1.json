@@ -1,0 +1,95 @@
+{
+  "title": "2D Bar Chart",
+  "description": "A 2D bar chart",
+  "width": 640,
+  "height": 360,
+  
+  "camera": {"position": [0, 0, 1.3]},
+  
+  "data": [
+    {
+      "name": "table",
+      "values": [
+        {"category": "A", "amount": 42},
+        {"category": "B", "amount": 87},
+        {"category": "C", "amount": 15},
+        {"category": "D", "amount": 63},
+        {"category": "E", "amount": 29},
+        {"category": "F", "amount": 91},
+        {"category": "G", "amount": 8},
+        {"category": "H", "amount": 76},
+        {"category": "I", "amount": 54},
+        {"category": "J", "amount": 33}
+      ]
+    }
+  ],
+  
+  "scales": [
+    {
+      "name": "xscale", 
+      "type": "band",
+      "domain": {"data": "table", "field": "category"},
+      "range": "width",
+      "padding": 0.25
+    },
+    {
+      "name": "yscale",
+      "type": "linear",
+      "domain": {"data": "table", "field": "amount"},
+      "nice": true,
+      "range": "height"
+    }
+  ],
+  
+  "axes": [
+    {
+      "orient": "bottom",
+      "scale": "xscale",
+      "labelBaseline": "top",
+      "labelOffsetY": -2,
+      "title": "Category",
+      "titleOffsetY": -24
+    },
+    {
+      "orient": "left",
+      "orientZ": "back",
+      "scale": "yscale",
+      "grid": true,
+      "gridWidth": 0.1,
+      "tickCount": 10,
+      "labelAlign": "right",
+      "labelOffsetX": -2,
+      "title": "Amount",
+      "titleOffsetX": -32,
+      "titleAngle": -90
+    }
+  ],
+  
+  "marks": [
+    {
+      "type": "rect",
+      "from": {"data":"table"},
+      "encode": {
+        "enter": {
+          "x": {"scale": "xscale", "field": "category"},
+          "width": {"scale": "xscale", "band": 1},
+          "y": {"scale": "yscale", "value": 0},
+          "y2": {"scale": "yscale", "field": "amount"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": {"data":"table"},
+      "encode": {
+        "enter": {
+          "align": {"value": "center"},
+          "baseline": {"value": "bottom"},
+          "x": {"scale": "xscale", "field": "category", "band": 0.5},
+          "y": {"scale": "yscale", "field": "amount"},
+          "text": {"field": "amount"}
+        }
+      }
+    }
+  ]
+}

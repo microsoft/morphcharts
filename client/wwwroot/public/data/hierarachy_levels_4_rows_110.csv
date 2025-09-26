@@ -1,0 +1,112 @@
+id,parent,value,name
+0,0,0,zero
+1,0,1,one
+2,0,2,two
+3,0,3,three
+4,0,4,four
+5,0,5,five
+6,0,6,six
+7,0,7,seven
+8,0,8,eight
+9,0,9,nine
+10,0,10,ten
+11,2,1,eleven
+12,2,2,twelve
+13,2,3,thirteen
+14,2,4,fourteen
+15,2,5,fifteen
+16,2,6,sixteen
+17,2,7,seventeen
+18,2,8,eighteen
+19,2,9,nineteen
+20,2,10,twenty
+21,4,1,twenty one
+22,4,2,twenty two
+23,4,3,twenty three
+24,4,4,twenty four
+25,4,5,twenty five
+26,4,6,twenty six
+27,4,7,twenty seven
+28,4,8,twenty eight
+29,4,9,twenty nine
+30,4,10,thirty
+31,6,1,thirty one
+32,6,2,thirty two
+33,6,3,thirty three
+34,6,4,thirty four
+35,6,5,thirty five
+36,6,6,thirty six
+37,6,7,thirty seven
+38,6,8,thirty eight
+39,6,9,thirty nine
+40,6,10,forty
+41,8,1,forty one
+42,8,2,forty two
+43,8,3,forty three
+44,8,4,forty four
+45,8,5,forty five
+46,8,6,forty six
+47,8,7,forty seven
+48,8,8,forty eight
+49,8,9,forty nine
+50,8,10,fifty
+51,10,1,fifty one
+52,10,2,fifty two
+53,10,3,fifty three
+54,10,4,fifty four
+55,10,5,fifty five
+56,10,6,fifty six
+57,10,7,fifty seven
+58,10,8,fifty eight
+59,10,9,fifty nine
+60,10,10,sixty
+61,11,1,sixty one
+62,11,2,sixty two
+63,11,3,sixty three
+64,11,4,sixty four
+65,11,5,sixty five
+66,11,6,sixty six
+67,11,7,sixty seven
+68,11,8,sixty eight
+69,11,9,sixty nine
+70,11,10,seventy
+71,21,1,seventy one
+72,21,2,seventy two
+73,21,3,seventy three
+74,21,4,seventy four
+75,21,5,seventy five
+76,21,6,seventy six
+77,21,7,seventy seven
+78,21,8,seventy eight
+79,21,9,seventy nine
+80,21,10,eighty
+81,31,1,eighty one
+82,31,2,eighty two
+83,31,3,eighty three
+84,31,4,eighty four
+85,31,5,eighty five
+86,31,6,eighty six
+87,31,7,eighty seven
+88,31,8,eighty eight
+89,31,9,eighty nine
+90,31,10,ninety
+91,41,1,ninety one
+92,41,2,ninety two
+93,41,3,ninety three
+94,41,4,ninety four
+95,41,5,ninety five
+96,41,6,ninety six
+97,41,7,ninety seven
+98,41,8,ninety eight
+99,41,9,ninety nine
+100,41,10,one hundred
+101,51,1,one hundred & one
+102,51,2,one hundred & two
+103,51,3,one hundred & three
+104,51,4,one hundred & four
+105,51,5,one hundred & five
+106,51,6,one hundred & six
+107,51,7,one hundred & seven
+108,51,8,one hundred & eight
+109,51,9,one hundred & nine
+110,51,10,one hundred & ten

@@ -1,0 +1,108 @@
+{
+  "title": "Donut Chart",
+  "description": "A donut chart with ring segments and rotated labels",
+
+  "width": 640,
+  "height": 40,
+  "depth": 640,
+
+  "camera": {"position": [0, 1.2, 0.6], "target": [0, -0.05, 0]},
+
+  "data": [
+    {
+      "name": "table",
+      "values": [
+        {"category": "A", "amount": 42},
+        {"category": "B", "amount": 87},
+        {"category": "C", "amount": 15},
+        {"category": "D", "amount": 63},
+        {"category": "E", "amount": 29},
+        {"category": "F", "amount": 91},
+        {"category": "G", "amount": 8},
+        {"category": "H", "amount": 76},
+        {"category": "I", "amount": 54},
+        {"category": "J", "amount": 33}
+      ],
+      "transform": [
+        {"type": "pie", "field": "amount", "sort": true},
+        {"type": "formula", "as": "midAngle", "expr": "(datum.startAngle+datum.endAngle)/2"}
+      ]
+    }
+  ],
+
+  "scales": [
+    {
+      "name": "radiansToDegrees", "range": [0,360], "domain": [0,{"signal": "2*PI"}]
+    },
+    {
+      "name": "fillscale",
+      "type": "ordinal",
+      "domain": {
+        "data": "table", "field": "category",
+        "sort": {"field": "amount", "op": "max", "order": "ascending"}
+      },
+      "range": {"scheme": "category20"}
+    }
+  ],
+
+  "marks": [
+    {
+      "type": "rect",
+      "geometry": "xzrect",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "zc": {"signal": "depth/2"},
+          "yc": {"value": -0.1},
+          "width": {"signal": "width*2"},
+          "depth": {"signal": "depth*2"},
+          "fill": {"value": "white"}
+        }
+      }
+    },
+    {
+      "type": "arc",
+      "geometry": "cappedtorussdf",
+      "material": "glossy",
+      "from": {"data": "table"},
+      "encode": {
+        "enter": {
+          "x": {"signal": "width/2"},
+          "z": {"signal": "depth/2"},
+          "y": {"value": 40},
+          "startAngle": {"field": "startAngle"},
+          "endAngle": {"field": "endAngle"},
+          "padAngle": {"value": 0},
+          "padding": {"value": 1},
+          "innerRadius": {"value": 100},
+          "outerRadius": {"value": 180},
+          "fill": {"scale": "fillscale", "field": "category"},
+          "angleX": {"value": 90}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": {"data": "table"},
+      "encode": {
+        "enter": {
+          "x": {"signal": "width/2"},
+          "z": {"signal": "depth/2"},
+          "y": {"value": 80},
+          "dz": {"value": 0.1},
+          "align": {"value": "center"},
+          "radius": {"value": 140},
+          "theta": {"field": "midAngle"},
+          "text": {"field": "amount"},
+          "fontSize": {"value": 16},
+          "fill": {"value": "black"},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.5},
+          "angleX": {"value": 90},
+          "angleY": {"scale": "radiansToDegrees", "field": "midAngle"},
+          "angleX2": {"value": 90}
+        }
+      }
+    }
+  ]
+}

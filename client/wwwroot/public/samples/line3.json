@@ -1,0 +1,137 @@
+{
+  "title": "Multi Series Facetted 2D Line Chart",
+  "description": "A multi series facetted 2D line chart",
+    
+  "signals": [
+    {"name": "side", "value": 100},
+    {"name": "padding", "value": 25},
+    {"name": "columns", "value": 5},
+    {"name": "rows", "value": 2},
+    {"name": "width", "update": "columns*side+(columns-1)*padding"}, 
+    {"name": "height", "update": "rows*side+(rows-1)*padding"}
+  ],
+  
+  "camera": {"position": [0, 0, 1.2]}, 
+
+  "encode": { 
+    "enter": {
+      "strokeWidth": {"value": 0}
+    }
+  },
+
+  "data": [
+    {
+      "name": "table1",
+      "url": "data/random_walk_series_10_count_100.csv",
+      "format": {"type": "csv"}
+    },
+    {
+      "name": "facets",
+      "source": "table1",
+      "transform": [
+        {"type": "collect", "sort": {"field": "series", "order": "ascending"}},
+        {"type": "aggregate", "groupby": ["series"]},
+        {"type": "identifier", "as": "seriesid"},
+        {"type": "formula", "expr": "(datum.seriesid-1)%columns", "as": "gridx"},
+        {"type": "formula", "expr": "floor((datum.seriesid-1)/columns)", "as": "gridy"}
+      ] 
+    },   
+    {
+      "name": "table",
+      "source": "table1",
+      "transform": [
+        {"type": "lookup", "from": "facets", "key": "series", "values": ["gridx", "gridy"], "fields": ["series"]}
+      ] 
+    }
+  ],
+
+  "marks": [
+    {
+      "type": "text",
+      "from": {"data": "facets"},
+      "encode": {
+        "enter": {
+          "x": {"signal": "datum.gridx*(side+padding)+side/2"},
+          "y": {"signal": "datum.gridy*(side+padding)-padding/2"},
+          "text": {"field": "series"},
+          "baseline": {"value": "middle"},
+          "fontSize": {"value": 8}
+        }
+      }
+    },
+    {
+      "type": "group",
+      "from": {"facet": {"name": "series", "data": "table", "groupby": "series"}},
+
+      "signals": [
+        {"name": "width", "update": "side"},
+        {"name": "height", "update": "side"}
+      ],
+
+      "encode": { 
+        "enter": {
+          "stroke": {"value": "red"},
+          "strokeWidth": {"value": 0},
+          "x": {"signal": "datum.gridx*(side+padding)"},
+          "y": {"signal": "datum.gridy*(side+padding)"} 
+        }
+      },
+
+      "scales": [
+        {
+          "name": "x",
+          "type": "linear",
+          "range": "width",
+          "domain": {"data": "table", "field": "x"}
+        },
+        {
+          "name": "y",
+          "type": "linear",
+          "range": "height",
+          "nice": true,
+          "domain": {"data": "table", "field": "y"}
+        }
+      ],
+
+      "axes": [
+        {
+          "orient": "bottom", 
+          "tickCount": 10,
+          "labelBaseline": "top",
+          "labelOffsetY": -2,
+          "labelFontSize": 5,
+          "grid": true,
+          "gridWidth": 0.1,
+          "domainWidth": 0.5,
+          "scale": "x"
+        },
+        {
+          "orient": "left",
+          "scale": "y",
+          "labelAlign": "right",
+          "labelOffsetX": -2,
+          "labelFontSize": 5,
+          "grid": true,
+          "gridWidth": 0.1,
+          "domainWidth": 0.5,
+          "tickCount": 9
+        }
+      ],
+
+      "marks": [
+        {
+          "type": "line",
+          "from": {"data": "series"},
+          "encode": {
+            "enter": {
+              "x": {"scale": "x", "field": "x"},
+              "y": {"scale": "y", "field": "y"},
+              "strokeWidth": {"value": 1},
+              "segmentId": {"field": "series", "offset": 1}
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

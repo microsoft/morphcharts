@@ -1,0 +1,127 @@
+{
+  "title": "Messy Stack Alphabet Blocks",
+  "description": "A stack of labelled blocks with random size and rotation",
+
+  "width": 640,
+  "height": 300,
+
+  "signals": [
+    {"name": "size", "value": 0.05},
+    {"name": "rotation", "value": 5}
+  ],
+
+  "camera": {"position": [0, 0.6, 1.2], "target": [0, 0, 0]},
+
+  "data": [
+    {
+      "name": "table",
+      "values": [
+        {"c": "a", "x": 0}, {"c": "b", "x": 0},
+        {"c": "c", "x": 0}, {"c": "d", "x": 0},
+        {"c": "e", "x": 1}, {"c": "f", "x": 1},
+        {"c": "g", "x": 1}, {"c": "h", "x": 1},
+        {"c": "i", "x": 2}, {"c": "j", "x": 2},
+        {"c": "k", "x": 2}, {"c": "l", "x": 2},
+        {"c": "m", "x": 3}, {"c": "n", "x": 3},
+        {"c": "o", "x": 3}, {"c": "p", "x": 3},
+        {"c": "q", "x": 4}, {"c": "r", "x": 4},
+        {"c": "s", "x": 4}, {"c": "t", "x": 4},
+        {"c": "u", "x": 5}, {"c": "v", "x": 5},
+        {"c": "w", "x": 5}, {"c": "x", "x": 5},
+        {"c": "y", "x": 6}, {"c": "z", "x": 6}
+      ],
+      "transform": [
+        {"type": "formula", "expr": "1-random()*size", "as": "size"},
+        {"type": "formula", "expr": "random()*rotation*2-rotation", "as": "angle"},
+        {"type": "stack", "groupby": ["x"], "field": "size", "as": ["y0","y1"], "sort": {"field": "c", "order": "descending"}},
+        {"type": "formula", "expr": "upper(datum.c)", "as": "c2"}
+      ]
+    }
+  ],
+
+  "scales": [
+    {
+      "name": "xscale",
+      "type": "band",
+      "padding": 0.2,
+      "domain": {"data": "table", "field": "x"},
+      "range": "width"
+    },
+    {
+      "name": "fillscale",
+      "type": "ordinal",
+      "domain": {"data": "table", "field": "c"},
+      "range": {"scheme": "category20"}
+    }
+  ],
+
+  "encode": {
+    "enter": {
+      "strokeWidth": {"value": 0},
+      "depth": {"signal": "bandwidth('xscale')"}
+    }
+  },
+
+  "marks": [
+    {
+      "type": "rect",
+      "geometry": "xzrect",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "width": {"signal": "width*4"},
+          "yc": {"value": -0.1},
+          "zc": {"signal": "depth/2"},
+          "depth": {"signal": "width*4"},
+          "fill": {"value": "white"},
+          "fuzz": {"value": 0.1}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "boxsdf",
+      "material": "glossy",
+      "from": {"data": "table"},
+      "encode": {
+        "enter": {
+          "xc": {"scale": "xscale", "field": "x", "offset": {"scale": "xscale", "band": 0.5}},
+          "width": {"scale": "xscale", "band": {"field": "size"}},
+          "depth": {"scale": "xscale", "band": {"field": "size"}},
+          "zc": {"scale": "xscale", "band": 0.5},
+          "y": {"scale": "xscale", "band": {"field": "y0"}},
+          "height": {"scale": "xscale", "band": {"field": "size"}},
+          "rounding": {"scale": "xscale", "band": 0.05},
+          "angleY": {"field": "angle"},
+          "fuzz": {"value": 0.1},
+          "gloss": {"value": 0.5},
+          "fill": {"scale": "fillscale", "field": "c"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "material": "metal",
+      "from": {"data": "table"},
+      "encode": {
+        "enter": {
+          "x": {"scale": "xscale", "field": "x", "offset": {"scale": "xscale", "band": 0.5}},
+          "y": {"scale": "xscale", "band": {"field": "y0"}},
+          "z": {"scale": "xscale", "band": 0.5},
+          "dz": {"scale": "xscale", "band": {"field": "size", "mult": 0.5}, "offset": 0.01},
+          "dy": {"scale": "xscale", "band": {"field": "size", "mult": 0.5}},
+          "angleY": {"field": "angle"},
+          "text": {"field": "c2"},
+          "font": {"value": "Times New Roman"},
+          "fontSize": {"scale": "xscale", "band": {"field": "size", "mult": 0.8}},
+          "fontWeight": {"value": 600},
+          "fill": {"value": "white"},
+          "stroke": {"value": "black"},
+          "strokeWidth": {"scale": "xscale", "band": {"field": "size", "mult": 0.02}},
+          "fuzz": {"value": 0.5}
+        }
+      }
+    }
+  ]
+}
