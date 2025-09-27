@@ -96,6 +96,7 @@
       "axes": [
         {
           "orient": "bottom", 
+          "orientZ": "back", 
           "tickCount": 10,
           "labelBaseline": "top",
           "labelOffsetY": -2,
@@ -107,6 +108,7 @@
         },
         {
           "orient": "left",
+          "orientZ": "back", 
           "scale": "y",
           "labelAlign": "right",
           "labelOffsetX": -2,
@@ -127,6 +129,7 @@
               "x": {"scale": "x", "field": "x"},
               "y": {"scale": "y", "field": "y"},
               "strokeWidth": {"value": 1},
+              "strokeDepth": {"value": 0.1},
               "segmentId": {"field": "series", "offset": 1}
             }
           }

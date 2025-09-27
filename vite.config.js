@@ -5,6 +5,7 @@ export default defineConfig({
     root: './client/wwwroot',
     server: {
         hmr: false,
+        open: 'client.html',
     },
     build: {
         emptyOutDir: true,
