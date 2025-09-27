@@ -38,6 +38,8 @@ export class Main {
     private _focusRange: HTMLInputElement;
     private _focusLabel: HTMLLabelElement;
     private _cameraResetButton: HTMLInputElement;
+    private _captureButton: HTMLButtonElement;
+    private _includeCameraCheckbox: HTMLInputElement;
 
     // Renderer
     private _widthText: HTMLInputElement;
@@ -270,8 +272,8 @@ export class Main {
         this._initializeTiles();
 
         // Capture
-        const captureButton = document.getElementById("captureButton") as HTMLButtonElement;
-        captureButton.addEventListener("click", async () => {
+        this._captureButton = document.getElementById("captureButton") as HTMLButtonElement;
+        this._captureButton.addEventListener("click", async () => {
             if (this._renderer) {
                 await this._renderer.renderAsync(0);
                 const timestamp = Core.Time.formatDate(new Date());
@@ -279,8 +281,7 @@ export class Main {
                 this._canvas.toBlob((blob: Blob) => { this._capture(blob, filename); }, "image/png");
             }
         });
-        captureButton.disabled = false;
-
+        
         // Update UI with default settings
         this._updateUI();
 
@@ -410,18 +411,28 @@ export class Main {
     private async _initializePlotsAsync(): Promise<void> {
         const start = performance.now();
 
+        // UI
+        this._startStopButton = document.getElementById("startStopButton") as HTMLButtonElement;
+        this._includeCameraCheckbox = document.getElementById("cameraIncludeCheckbox") as HTMLInputElement;
+
         // Editor
         this._editor = new Editor();
         this._editor.changedCallback = () => {
             console.log("spec changed");
             this._hasSpecChanged = true;
             this._updateDebug(0);
+
+            // Disable start button if no spec
+            if (!this._isRunning) {
+                this._startStopButton.disabled = this._editor.content.trim().length == 0;
+                this._includeCameraCheckbox.disabled = this._startStopButton.disabled;
+            }
         };
         this._error = document.getElementById("error") as HTMLDivElement;
 
         // Load initial sample from querystring
         const urlParams = new URLSearchParams(window.location.search);
-        const sample = urlParams.get("sample");
+        const sample = urlParams.get("plot");
         if (sample) {
             const value = sample.toLowerCase().endsWith(".json") ? sample : `${sample}.json`;
             // Try to fetch sample and add to editor
@@ -431,7 +442,7 @@ export class Main {
             }
             catch (error) {
                 console.log("error loading sample from querystring", error);
-                this._sampleLoaded("{}");
+                this._sampleLoaded("");
             }
         }
         else { this._sampleLoaded("{}"); }
@@ -472,10 +483,10 @@ export class Main {
         }
 
         // Start, stop
-        this._startStopButton = document.getElementById("startStopButton") as HTMLButtonElement;
         this._startStopButton.onclick = async () => {
             if (this._startStopButton.value == "Start") {
                 this._startStopButton.disabled = true;
+                this._includeCameraCheckbox.disabled = this._startStopButton.disabled;
                 // Allow button to update to disabled
                 setTimeout(async () => {
                     await this._startAsync();
@@ -485,13 +496,10 @@ export class Main {
                 this._stop();
             }
         }
-        this._startStopButton.disabled = false;
         console.log(`plots initialized ${Core.Time.formatDuration((performance.now() - start))}`);
     }
 
     private _sampleLoaded(spec: string): void {
-        // Stop rendering
-        if (this._isRunning) { this._stop(); }
         this._editor.content = spec;
         this._hasSpecChanged = true;
     }
@@ -647,8 +655,7 @@ export class Main {
                     this._updateSignals(this._plot);
 
                     // Initialize scene
-                    const includeCameraCheckbox = document.getElementById("cameraIncludeCheckbox") as HTMLInputElement;
-                    this._initializeScene(this._scene, includeCameraCheckbox.checked);
+                    this._initializeScene(this._scene, this._includeCameraCheckbox.checked);
                     this._isSpecValid = true;
 
                     // Update UI with scene settings
@@ -679,6 +686,7 @@ export class Main {
                     this._startStopButton.value = "Stop";
                     this._startStopButton.disabled = false;
                     this._cameraResetButton.disabled = false;
+                    this._includeCameraCheckbox.disabled = true;
 
                     // Reset manipulation
                     this._mouseWheel.reset();
@@ -692,12 +700,13 @@ export class Main {
                     this._isRunning = true;
                     this._previousTime = performance.now();
                     this._animationFrame = requestAnimationFrame(async (currentTime: DOMHighResTimeStamp) => await this._tickAsync(currentTime));
+                    this._captureButton.disabled = false
                     console.log("render start");
                     if (totalTiles > 1) { console.log(`tile [${this._tileOffsetX},${this._tileOffsetY}] (${tileIndex} of ${totalTiles})`); }
-
                 }
                 else {
                     console.log("no marks to render");
+                    this._stop();
                 }
                 resolve();
             }
@@ -718,7 +727,8 @@ export class Main {
         // UI
         this._samplesLabel.innerText = this._renderer.frameCount.toString();
         this._startStopButton.value = "Start";
-        this._startStopButton.disabled = false;
+        this._startStopButton.disabled = this._editor.content.trim().length == 0;
+        this._includeCameraCheckbox.disabled = this._startStopButton.disabled;
         this._cameraResetButton.disabled = true;
         console.log("render stop");
     }
