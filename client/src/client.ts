@@ -96,8 +96,8 @@ export class Main {
         setDebugVisibility();
 
         // Manipulation
-        this._dragToleranceSquared = 100; // 10 pixels
-        this._manipulatorMinRelativeDistanceSquared = 100; // 10 pixels
+        this._dragToleranceSquared = 100; // 10px
+        this._manipulatorMinRelativeDistanceSquared = 100; // 10px
         this._mouseWheelZoomScale = 0.001;
         this._multiTouchZoomScale = 1;
         this._mouseWheel = new MouseWheel();
@@ -445,7 +445,7 @@ export class Main {
                 this._sampleLoaded("");
             }
         }
-        else { this._sampleLoaded(""); }
+        else { this._sampleLoaded("{}"); }
 
         // Add samples to popup
         this._samplesPopup = document.getElementById("samplesPopup") as HTMLDivElement;
