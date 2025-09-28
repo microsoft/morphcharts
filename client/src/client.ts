@@ -467,6 +467,10 @@ export class Main {
         const samples = await Common.loadSampleIndex(`${folder}/index.json`);
         const samplesButton = document.getElementById("samplesButton") as HTMLAnchorElement;
         samplesButton.onclick = () => { this._samplesPopup.style.display = "flex"; };
+        const loadSample = async (path: string): Promise<void> => {
+            this._samplesPopup.style.display = "none";
+            await this._loadSampleAsync(path);
+        };
         for (let i = 0; i < samples.length; i++) {
             // Build sample element
             const sample = samples[i];
@@ -480,15 +484,10 @@ export class Main {
             const img = document.createElement("img");
             img.className = "sampleImage";
             img.src = `${folder}/${sample.image}`;
-            img.title = img.alt = sample.description;
+            img.alt = sample.title;
+            img.title = sample.description;
             sampleContainer.appendChild(img);
             samplesContainer.appendChild(sampleContainer);
-
-            // Load sample function
-            const loadSample = async (path: string): Promise<void> => {
-                this._samplesPopup.style.display = "none";
-                await this._loadSampleAsync(path);
-            };
 
             // Load sample on click
             sampleContainer.onclick = async () => {

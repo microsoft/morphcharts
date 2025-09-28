@@ -54,14 +54,10 @@ export class Editor {
             }, 0);
         });
 
+        const NAVIGATION_KEYS = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Home", "End", "PageUp", "PageDown"];
         this._content.addEventListener("keydown", (e) => {
-            // Prevent tab key from moving focus
-            // if (e.key === "Tab") {
-            //     e.preventDefault();
-            // }
-
             // Track cursor position
-            if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Home", "End", "PageUp", "PageDown"].includes(e.key)) {
+            if (NAVIGATION_KEYS.includes(e.key)) {
                 setTimeout(() => {
                     this._updateLineNumbers(false);
                 }, 0);
