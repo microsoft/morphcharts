@@ -1796,8 +1796,10 @@ fn color(@builtin(global_invocation_id) globalId : vec3<u32>) {
                 let halfAngle = normalize(directionToLight - ray.direction);
                 let specular = pow(clamp(dot(halfAngle, normal), 0f, 1f), 32f); // Shininess factor
 
+                let ambientColor = uniforms.ambientColor;
+                let ambientIntensity = 0.5f; // TODO: Add to uniforms
                 let specularIntensity = 0.1f; // TODO: Add to uniforms
-                color += diffuseColor * diffuseIntensity + vec3<f32>(specular) * specularIntensity;
+                color += diffuseColor * diffuseIntensity + ambientColor * diffuseColor * ambientIntensity + vec3<f32>(specular) * specularIntensity;
             }
         }
     }

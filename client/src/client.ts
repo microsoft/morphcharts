@@ -952,6 +952,9 @@ export class Main {
         // Lighting
         this._renderer.ambientColor = scene.ambient || Core.vector3.clone(Core.Config.ambientColor);
         this._renderer.backgroundColor = scene.background || Core.vector4.clone(Core.Config.backgroundColor);
+        this._renderer.directionToLight = scene.directionToLight || Core.vector3.clone(Core.Config.directionToLight);
+        this._renderer.diffuseColor = scene.diffuse || Core.vector3.clone(Core.Config.diffuseColor);
+        this._renderer.specularIntensity = (scene.specular != undefined) ? scene.specular : Core.Config.specularIntensity;
 
         console.log(`scene initialized ${Core.Time.formatDuration((performance.now() - start))}`);
     }
