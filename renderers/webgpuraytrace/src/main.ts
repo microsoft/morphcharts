@@ -540,7 +540,7 @@ export class Main extends Core.Renderer {
             case "color":
                 this._computeUniformBufferData.setAperture(0); // Disable aperture for color render mode
                 this._computeUniformBufferData.setMultisample(this._multisample);
-                this._computeUniformBufferData.setDirectionToLight(Config.directionToLight);
+                this._computeUniformBufferData.setDirectionToLight(this.directionToLight);
                 break;
         }
         this._device.queue.writeBuffer(this._computeUniformBuffer, 0, this._computeUniformBufferData.buffer, this._computeUniformBufferData.byteOffset, this._computeUniformBufferData.byteLength);
