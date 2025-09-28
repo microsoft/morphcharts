@@ -163,7 +163,16 @@ export class Main {
             const tabButton = document.getElementById(`tabButton${i + 1}`);
             const tab = document.getElementById(`tab${i + 1}`);
             if (tabButton && tab) {
-                tabButton.addEventListener("click", () => openTab(tabButton, tab), false);
+                // Open tab on click
+                tabButton.addEventListener("click", () => openTab(tabButton, tab));
+
+                // Open tab on enter or space
+                tabButton.addEventListener("keydown", (e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        openTab(tabButton, tab);
+                    }
+                });
 
                 // Open first tab
                 if (i == 0) { openTab(tabButton, tab); }
@@ -281,7 +290,7 @@ export class Main {
                 this._canvas.toBlob((blob: Blob) => { this._capture(blob, filename); }, "image/png");
             }
         });
-        
+
         // Update UI with default settings
         this._updateUI();
 
@@ -458,11 +467,16 @@ export class Main {
         const samples = await Common.loadSampleIndex(`${folder}/index.json`);
         const samplesButton = document.getElementById("samplesButton") as HTMLAnchorElement;
         samplesButton.onclick = () => { this._samplesPopup.style.display = "flex"; };
+        const loadSample = async (path: string): Promise<void> => {
+            this._samplesPopup.style.display = "none";
+            await this._loadSampleAsync(path);
+        };
         for (let i = 0; i < samples.length; i++) {
             // Build sample element
             const sample = samples[i];
             const sampleContainer = document.createElement("div");
             sampleContainer.className = "sampleContainer";
+            sampleContainer.tabIndex = 0; // Make focusable
             const div = document.createElement("div");
             div.className = "sampleTitle";
             div.innerText = sample.title;
@@ -470,15 +484,22 @@ export class Main {
             const img = document.createElement("img");
             img.className = "sampleImage";
             img.src = `${folder}/${sample.image}`;
-            img.title = img.alt = sample.description;
+            img.alt = sample.title;
+            img.title = sample.description;
             sampleContainer.appendChild(img);
             samplesContainer.appendChild(sampleContainer);
 
             // Load sample on click
             sampleContainer.onclick = async () => {
-                this._samplesPopup.style.display = "none";
-                // this._loadSample(sampleIndex[sample]);
-                await this._loadSampleAsync(`${folder}/${sample.plot}`);
+                await loadSample(`${folder}/${sample.plot}`);
+            };
+
+            // Load sample on enter or space
+            sampleContainer.onkeydown = async (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    await loadSample(`${folder}/${sample.plot}`);
+                }
             };
         }
 

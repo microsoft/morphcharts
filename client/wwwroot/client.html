@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+    <title>MorphCharts Client</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script type="module" src="./js/client.js"></script>
@@ -163,9 +164,10 @@
             margin-right: 2px;
             /* match textarea padding */
             padding: 2px;
-            overflow: hidden;
             /* support scrollTop syncing */
-            color: lightgray;
+            overflow: hidden;
+            /* #727272 on #ffffff: contrast ratio 4.81:1 (WCAG AA compliant for normal text) */
+            color: #727272;
             user-select: none;
         }
 
@@ -184,7 +186,7 @@
         }
 
         .lineCurrent {
-            color: dimgray;
+            color: black;
             font-weight: bold;
         }
 
@@ -332,7 +334,7 @@
 <body>
     <div style="height: 100%; display: flex; flex-direction: row;">
         <!-- left -->
-        <div id="leftContainer" class="leftContainer">
+        <div id="leftContainer" class="leftContainer" tabindex="0">
             <canvas id="canvas"></canvas>
         </div>
         <!-- divider -->
@@ -342,13 +344,13 @@
             <!-- Tabs -->
             <div class="tabButtons">
                 <div style="border-bottom: thin solid gray;">&nbsp;</div>
-                <div id="tabButton1" class="tabButton">Plot</div>
-                <div id="tabButton2" class="tabButton">Render</div>
-                <div id="tabButton3" class="tabButton">Data</div>
-                <div id="tabButton4" class="tabButton">Signals</div>
-                <div id="tabButton5" class="tabButton">Tiles</div>
-                <div id="tabButton6" class="tabButton">Animation</div>
-                <div id="tabButton7" class="tabButton">About</div>
+                <div id="tabButton1" class="tabButton" tabindex="0">Plot</div>
+                <div id="tabButton2" class="tabButton" tabindex="0">Render</div>
+                <div id="tabButton3" class="tabButton" tabindex="0">Data</div>
+                <div id="tabButton4" class="tabButton" tabindex="0">Signals</div>
+                <div id="tabButton5" class="tabButton" tabindex="0">Tiles</div>
+                <div id="tabButton6" class="tabButton" tabindex="0">Animation</div>
+                <div id="tabButton7" class="tabButton" tabindex="0">About</div>
                 <div style="flex-grow: 1; border-bottom: thin solid gray;"></div>
             </div>
             <!-- tab 1 -->
@@ -362,7 +364,7 @@
                         <input type="button" id="captureButton" value="Capture" title="Capture current frame"
                             disabled />
                         <div style="flex-grow: 1;"></div>
-                        <a disabled id="samplesButton" href="#" style="font-size: small">Show&nbsp;examples</a>
+                        <a disabled id="samplesButton" href="#" style="font-size: small" tabindex="0">Show&nbsp;examples</a>
                     </div>
                     <div>
                         <div style="display: flex; flex-direction: row; align-items: center;">Include&nbsp;
@@ -378,7 +380,8 @@
                 <div id="spec" class="spec">
                     <div id="editor" class="editor">
                         <div id="lines" class="lines"></div>
-                        <textarea class="content" id="content" spellcheck="false"></textarea>
+                        <textarea class="content" id="content" spellcheck="false"
+                            aria-label="Editor content"></textarea>
                     </div>
                 </div>
             </div>
