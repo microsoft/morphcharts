@@ -138,10 +138,10 @@ export class Dataset extends Core.Data.Dataset {
                             break;
                     }
                 }
-                else if (datasetJSON.filename) {
+                else if (datasetJSON.file) {
                     // Load data from input file upload
                     const start = performance.now();
-                    const text = datasets[datasetJSON.filename];
+                    const text = datasets[datasetJSON.file];
                     // TODO: Support JSON
                     if (text) {
                         const csv = new Core.Csv();

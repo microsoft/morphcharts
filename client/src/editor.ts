@@ -56,9 +56,9 @@ export class Editor {
 
         this._content.addEventListener("keydown", (e) => {
             // Prevent tab key from moving focus
-            if (e.key === "Tab") {
-                e.preventDefault();
-            }
+            // if (e.key === "Tab") {
+            //     e.preventDefault();
+            // }
 
             // Track cursor position
             if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Home", "End", "PageUp", "PageDown"].includes(e.key)) {
