@@ -1,4 +1,4 @@
-import { Atlas, ColorRGB, ColorRGBA, Config, Constants, GlyphRasterizer, IAtlasVisual, IBuffer, IBufferVisual, IGlyphRasterizerVisual, IImageVisual, ILabelSetVisual, Image, ITransitionBuffer, ITransitionBufferVisual, LabelSet, Vector3 } from "./index.js";
+import { Atlas, ColorRGB, ColorRGBA, Config, Constants, GlyphRasterizer, IAtlasVisual, IBuffer, IBufferVisual, IGlyphRasterizerVisual, IImageVisual, ILabelSetVisual, Image, ITransitionBuffer, ITransitionBufferVisual, LabelSet, vector3, Vector3 } from "./index.js";
 
 export abstract class Renderer {
     protected _isInitialized: boolean; // Ready to call render()
@@ -173,6 +173,24 @@ export abstract class Renderer {
 
         // Multisample
         this._multisample = Config.multisample;
+
+        // Camera
+        this._cameraPosition = vector3.clone(Config.cameraPosition);
+        this._cameraTarget = vector3.clone(Config.cameraTarget);
+        this._cameraFov = Config.cameraFov;
+        this._cameraAperture = Config.cameraAperture;
+        this._cameraFocusDistance = Config.cameraFocusDistance;
+        this._cameraForward = [0, 0, 0];
+        this._cameraRight = [0, 0, 0];
+        this._cameraUp = [0, 0, 0];
+        this._cameraChanged = true; // Force camera update on first render
+
+        // Tiles
+        this._tilesX = 1;
+        this._tilesY = 1;
+        this._tileOffsetX = 0;
+        this._tileOffsetY = 0;
+        this._hasTilesChanged = true; // Force tile update on first render
     }
 
     // Factory methods for renderer-specific classes
