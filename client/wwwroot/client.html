@@ -32,12 +32,13 @@
             flex-grow: 0;
             flex-shrink: 0;
             width: 8px;
-            border-right: thin solid gray;
+            background-color: white;
+            border-right: 1px solid gray;
             cursor: ew-resize;
         }
 
         .divider:hover {
-            background-color: gainsboro;
+            background-color: whitesmoke;
         }
 
         /* right container */
@@ -106,7 +107,7 @@
 
         .tabButton {
             cursor: pointer;
-            border: thin solid gray;
+            border: 1px solid gray;
             border-radius: 4px 4px 0 0;
             padding: 4px 8px;
             margin-top: 1px;
@@ -161,9 +162,8 @@
             width: 3em;
             border-right: 1px solid lightgray;
             text-align: right;
-            margin-right: 2px;
-            /* match textarea padding */
-            padding: 2px;
+            margin-right: 4px;
+            padding: 0 2px 0 0;
             /* support scrollTop syncing */
             overflow: hidden;
             /* #727272 on #ffffff: contrast ratio 4.81:1 (WCAG AA compliant for normal text) */
@@ -173,7 +173,7 @@
 
         .content {
             margin: 0;
-            padding: 2px;
+            padding: 0;
             height: 100%;
             width: 100%;
             border: none;
@@ -192,7 +192,7 @@
 
         .lineError {
             background-color: yellow;
-            color: dimgray
+            color: black;
         }
 
         .error {
@@ -285,7 +285,7 @@
         }
 
         .sampleContainer:hover {
-            border: 1px solid black;
+            border: 1px solid gray;
         }
 
         .sampleTitle {
@@ -328,277 +328,308 @@
         .debugContainer span {
             white-space: pre;
         }
+
+        a {
+            color: royalblue;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        footer {
+            border-top: 1px solid gray;
+            padding: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
     </style>
 </head>
 
 <body>
-    <div style="height: 100%; display: flex; flex-direction: row;">
-        <!-- left -->
-        <div id="leftContainer" class="leftContainer" tabindex="0">
-            <canvas id="canvas"></canvas>
-        </div>
-        <!-- divider -->
-        <div id="divider" class="divider"></div>
-        <!-- right -->
-        <div id="rightContainer" class="rightContainer">
-            <!-- Tabs -->
-            <div class="tabButtons">
-                <div style="border-bottom: thin solid gray;">&nbsp;</div>
-                <div id="tabButton1" class="tabButton" tabindex="0">Plot</div>
-                <div id="tabButton2" class="tabButton" tabindex="0">Render</div>
-                <div id="tabButton3" class="tabButton" tabindex="0">Data</div>
-                <div id="tabButton4" class="tabButton" tabindex="0">Signals</div>
-                <div id="tabButton5" class="tabButton" tabindex="0">Tiles</div>
-                <div id="tabButton6" class="tabButton" tabindex="0">Animation</div>
-                <div id="tabButton7" class="tabButton" tabindex="0">About</div>
-                <div style="flex-grow: 1; border-bottom: thin solid gray;"></div>
+    <div style="height: 100%; display: flex; flex-direction: column;">
+        <div style="height: 100%; display: flex; flex-direction: row; overflow: hidden;">
+            <!-- left -->
+            <div id="leftContainer" class="leftContainer" tabindex="0">
+                <canvas id="canvas"></canvas>
             </div>
-            <!-- tab 1 -->
-            <div id="tab1" class="tab">
-                <!-- UI Container -->
-                <div style="display: flex; flex-direction: column; gap: 12px; padding: 4px;">
-                    <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
-                        <input type="button" id="startStopButton" value="Start" title="Start/stop rendering" disabled />
-                        <input type="button" id="cameraResetButton" value="Reset" title="Reset camera position"
-                            disabled />
-                        <input type="button" id="captureButton" value="Capture" title="Capture current frame"
-                            disabled />
-                        <div style="flex-grow: 1;"></div>
-                        <a disabled id="samplesButton" href="#" style="font-size: small" tabindex="0">Show&nbsp;examples</a>
-                    </div>
-                    <div>
-                        <div style="display: flex; flex-direction: row; align-items: center;">Include&nbsp;
-                            <input type="checkbox" id="cameraIncludeCheckbox" checked disabled />
-                            <label class="checkboxLabel" for="cameraIncludeCheckbox"
-                                title="Set camera from specification">Camera</label>
-                        </div>
-                    </div>
+            <!-- divider -->
+            <div id="divider" class="divider"></div>
+            <!-- right -->
+            <div id="rightContainer" class="rightContainer">
+                <!-- Tabs -->
+                <div class="tabButtons">
+                    <div style="border-bottom: 1px solid gray;">&nbsp;</div>
+                    <div id="tabButton1" class="tabButton" tabindex="0">Plot</div>
+                    <div id="tabButton2" class="tabButton" tabindex="0">Render</div>
+                    <div id="tabButton3" class="tabButton" tabindex="0">Data</div>
+                    <div id="tabButton4" class="tabButton" tabindex="0">Signals</div>
+                    <div id="tabButton5" class="tabButton" tabindex="0">Tiles</div>
+                    <div id="tabButton6" class="tabButton" tabindex="0">Animation</div>
+                    <div id="tabButton7" class="tabButton" tabindex="0">About</div>
+                    <div style="flex-grow: 1; border-bottom: 1px solid gray;"></div>
                 </div>
-                <!-- Error -->
-                <div id="error" class="error"></div>
-                <!-- Spec -->
-                <div id="spec" class="spec">
-                    <div id="editor" class="editor">
-                        <div id="lines" class="lines"></div>
-                        <textarea class="content" id="content" spellcheck="false"
-                            aria-label="Editor content"></textarea>
-                    </div>
-                </div>
-            </div>
-            <!-- tab 2 -->
-            <div id="tab2" class="tab">
-                <!-- rendering -->
-                <div style="display: flex; flex-direction: column; gap: 12px; padding: 4px;">
-                    <!-- image size -->
-                    <div style="display: flex; flex-direction: column; gap: 4px;">
-                        <label class="heading">Size</label>
-                        <div style="display: flex; flex-direction: row; gap: 8px; align-items: baseline;">
-                            <div><input type="radio" name="sizeRadioGroup" id="sizeFit" value="fit" /><label
-                                    for="sizeFit" class="radioLabel">Fit</label></div>
-                            <div><input type="radio" name="sizeRadioGroup" id="sizeHd" value="hd" checked /><label
-                                    for="sizeHd" title="1280x720" class="radioLabel">HD</label></div>
-                            <div><input type="radio" name="sizeRadioGroup" id="sizeFullHd" value="fhd" /><label
-                                    for="sizeFullHd" title="1920x1080" class="radioLabel">Full HD</label></div>
-                            <div><input type="radio" name="sizeRadioGroup" id="size4k" value="4k" /><label for="size4k"
-                                    title="3840x2160" class="radioLabel">4K</label></div>
+                <!-- tab 1 -->
+                <div id="tab1" class="tab">
+                    <!-- UI Container -->
+                    <div style="display: flex; flex-direction: column; gap: 12px; padding: 4px;">
+                        <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
+                            <input type="button" id="startStopButton" value="Start" title="Start/stop rendering"
+                                disabled />
+                            <input type="button" id="cameraResetButton" value="Reset" title="Reset camera position"
+                                disabled />
+                            <input type="button" id="captureButton" value="Capture" title="Capture current frame"
+                                disabled />
+                            <div style="flex-grow: 1;"></div>
+                            <a disabled id="samplesButton" href="#" tabindex="0">Show&nbsp;Examples</a>
+                            <!-- flex padding -->
+                            <div></div>
                         </div>
                         <div>
-                            <div style="display: flex; flex-direction: row; align-items: center;">
-                                <div style="display: flex; flex-direction: row; gap: 8px; align-items: baseline;">
-                                    <div><input type="radio" name="sizeRadioGroup" value="custom"
-                                            id="sizeCustom" /><label for="sizeCustom" class="radioLabel">Custom</label>
-                                    </div>
-                                    <div>
-                                        <input type="text" id="widthText" disabled /><label
-                                            class="textboxLabel">x</label><input type="text" id="heightText"
-                                            disabled /><label class="textboxLabel">px</label>
-                                    </div>
-                                </div>
+                            <div style="display: flex; flex-direction: row; align-items: center;">Include&nbsp;
+                                <input type="checkbox" id="cameraIncludeCheckbox" checked disabled />
+                                <label class="checkboxLabel" for="cameraIncludeCheckbox"
+                                    title="Set camera from specification">Camera</label>
                             </div>
-                        </div>
-                        <input type="button" id="resizeButton" value="Resize" />
-                    </div>
-                    <!-- render mode -->
-                    <div style="display: flex; flex-direction: column; gap: 4px;">
-                        <label class="heading">Mode</label>
-                        <div
-                            style="display: flex; flex-direction: row; align-items: baseline; gap: 8px; flex-wrap: wrap;">
-                            <div><input type="radio" name="renderMode" id="modeRaytrace" value="raytrace"
-                                    checked /><label for="modeRaytrace" class="radioLabel">Ray</label></div>
-                            <div><input type="radio" name="renderMode" id="modeColor" value="color" /><label
-                                    for="modeColor" class="radioLabel">Color</label></div>
-                            <div><input type="radio" name="renderMode" id="modeNormal" value="normal" /><label
-                                    for="modeNormal" class="radioLabel">Normal</label></div>
-                            <div><input type="radio" name="renderMode" id="modeEdge" value="edge" /><label
-                                    for="modeEdge" class="radioLabel">Edge</label></div>
-                            <div><input type="radio" name="renderMode" id="modeSegment" value="segment" /><label
-                                    for="modeSegment" class="radioLabel">Segment</label></div>
-                            <div><input type="radio" name="renderMode" id="modeTexture" value="texture" /><label
-                                    for="modeTexture" class="radioLabel">Texture</label></div>
-                            <div><input type="radio" name="renderMode" id="modeDepth" value="depth" disabled /><label
-                                    for="modeDepth" class="radioLabel disabled">Depth</label></div>
                         </div>
                     </div>
-                    <!-- render options -->
-                    <div style="display: flex; flex-direction: column; gap: 4px;">
-                        <label class="heading">Options</label>
-                        <!-- samples -->
-                        <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
-                            <label class="textboxLabel" style="width: 104px;">Max frames</label>
-                            <input type="text" id="maxSamplesText" value="10000" />
-                            <label id="samplesLabel" class="rangeValue"></label>
+                    <!-- Error -->
+                    <div id="error" class="error"></div>
+                    <!-- Spec -->
+                    <div id="spec" class="spec">
+                        <div id="editor" class="editor">
+                            <div id="lines" class="lines"></div>
+                            <textarea class="content" id="content" spellcheck="false"
+                                aria-label="Editor content"></textarea>
                         </div>
-                        <!-- field of view -->
-                        <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
-                            <label class="rangeLabel" style="width: 104px;">Field of view</label>
-                            <input type="range" min="0" max="100" step="0.1" id="fovRange" />
-                            <div><label class="rangeValue" id="fovLabel"></label><label class="rangeValue">°</label>
-                            </div>
-                        </div>
-                        <!-- raytrace options -->
-                        <div id="raytraceOptions" class="renderOptions">
-                            <!-- aperture -->
-                            <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
-                                <label class="rangeLabel" style="width: 104px;">Aperture</label>
-                                <input type="range" min="0" max="100" step="0.1" id="apertureRange" />
-                                <div><label class="rangeValue" id="apertureLabel"></label><label
-                                        class="rangeValue">mm</label></div>
-                            </div>
-                            <!-- focus distance -->
-                            <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
-                                <label class="rangeLabel" style="width: 104px;">Focus distance</label>
-                                <input type="range" min="-2" max="2" step="0.01" id="focusRange" />
-                                <div><label class="rangeValue" id="focusLabel"></label>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- color options -->
-                        <div id="colorOptions" class="renderOptions">
-                            <!-- antialias -->
-                            <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
-                                <label class="textboxLabel" style="width: 104px;">Antialias</label>
-                                <div><select id="antialiasSelect" style="width: 100%;">
-                                        <option value="1">1x (none)</option>
-                                        <option value="2">2x</option>
-                                        <option value="3">3x</option>
-                                        <option value="4">4x</option>
-                                    </select></div>
-                            </div>
-                        </div>
-                        <!-- edge options -->
-                        <div id="edgeOptions" class="renderOptions">
-                            <!-- color -->
+                    </div>
+                </div>
+                <!-- tab 2 -->
+                <div id="tab2" class="tab">
+                    <!-- rendering -->
+                    <div style="display: flex; flex-direction: column; gap: 12px; padding: 4px;">
+                        <!-- image size -->
+                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                            <label class="heading">Size</label>
                             <div style="display: flex; flex-direction: row; gap: 8px; align-items: baseline;">
-                                <input type="radio" name="edgeMode" value="light" id="edgeLight" checked disabled />
-                                <label for="edgeLight" class="radioLabel disabled">Light</label>
-                                <input type="radio" name="edgeMode" value="dark" id="edgeDart" disabled />
-                                <label for="edgeDark" class="radioLabel disabled">Dark</label>
+                                <div><input type="radio" name="sizeRadioGroup" id="sizeFit" value="fit" /><label
+                                        for="sizeFit" class="radioLabel">Fit</label></div>
+                                <div><input type="radio" name="sizeRadioGroup" id="sizeHd" value="hd" checked /><label
+                                        for="sizeHd" title="1280x720" class="radioLabel">HD</label></div>
+                                <div><input type="radio" name="sizeRadioGroup" id="sizeFullHd" value="fhd" /><label
+                                        for="sizeFullHd" title="1920x1080" class="radioLabel">Full HD</label></div>
+                                <div><input type="radio" name="sizeRadioGroup" id="size4k" value="4k" /><label
+                                        for="size4k" title="3840x2160" class="radioLabel">4K</label></div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- tab 3 -->
-            <div id="tab3" class="tab">
-                <!-- data -->
-                <div style="display: flex; flex-direction: column; gap: 12px; padding: 4px;">
-                    <input type="file" id="dataFileInput" accept=".csv" />
-                    <!-- files -->
-                    <div id="dataFileContainer" style="display: none; flex-direction: column; gap: 4px;">
-                        <label>Files</label>
-                        <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
-                            <div><select id="dataFileSelect" style="width: 100%;"></select></div>
-                            <input type="button" id="dataFileDeleteButton" value="Delete" />
-                        </div>
-                    </div>
-                    <!-- datasets -->
-                    <div id="dataContainer" style="display: none; flex-direction: column; gap: 4px;">
-                        <label>Datasets</label>
-                        <div><select id="dataSelect"></select></div>
-                        <!-- rows -->
-                        <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
-                            <label id="dataRowsLabel">0</label>
-                            <label>rows</label>
-                        </div>
-                        <!-- pages -->
-                        <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
-                            <label>Page</label>
-                            <input type="text" id="dataPageText" value="0" />
-                            <label>of</label>
-                            <label id="dataPagesLabel">0</label>
                             <div>
-                                <input type="button" id="dataPrevButton" value="Prev" />
-                                <input type="button" id="dataNextButton" value="Next" />
-                                <input type="button" id="dataGoButton" value="Go" disabled />
+                                <div style="display: flex; flex-direction: row; align-items: center;">
+                                    <div style="display: flex; flex-direction: row; gap: 8px; align-items: baseline;">
+                                        <div><input type="radio" name="sizeRadioGroup" value="custom"
+                                                id="sizeCustom" /><label for="sizeCustom"
+                                                class="radioLabel">Custom</label>
+                                        </div>
+                                        <div>
+                                            <input type="text" id="widthText" disabled /><label
+                                                class="textboxLabel">x</label><input type="text" id="heightText"
+                                                disabled /><label class="textboxLabel">px</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <input type="button" id="resizeButton" value="Resize" />
+                        </div>
+                        <!-- render mode -->
+                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                            <label class="heading">Mode</label>
+                            <div
+                                style="display: flex; flex-direction: row; align-items: baseline; gap: 8px; flex-wrap: wrap;">
+                                <div><input type="radio" name="renderMode" id="modeRaytrace" value="raytrace"
+                                        checked /><label for="modeRaytrace" class="radioLabel">Ray</label></div>
+                                <div><input type="radio" name="renderMode" id="modeColor" value="color" /><label
+                                        for="modeColor" class="radioLabel">Color</label></div>
+                                <div><input type="radio" name="renderMode" id="modeNormal" value="normal" /><label
+                                        for="modeNormal" class="radioLabel">Normal</label></div>
+                                <div><input type="radio" name="renderMode" id="modeEdge" value="edge" /><label
+                                        for="modeEdge" class="radioLabel">Edge</label></div>
+                                <div><input type="radio" name="renderMode" id="modeSegment" value="segment" /><label
+                                        for="modeSegment" class="radioLabel">Segment</label></div>
+                                <div><input type="radio" name="renderMode" id="modeTexture" value="texture" /><label
+                                        for="modeTexture" class="radioLabel">Texture</label></div>
+                                <div><input type="radio" name="renderMode" id="modeDepth" value="depth"
+                                        disabled /><label for="modeDepth" class="radioLabel disabled">Depth</label>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- render options -->
+                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                            <label class="heading">Options</label>
+                            <!-- samples -->
+                            <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
+                                <label class="textboxLabel" style="width: 104px;">Max frames</label>
+                                <input type="text" id="maxSamplesText" value="10000" />
+                                <label id="samplesLabel" class="rangeValue"></label>
+                            </div>
+                            <!-- field of view -->
+                            <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
+                                <label class="rangeLabel" style="width: 104px;">Field of view</label>
+                                <input type="range" min="0" max="100" step="0.1" id="fovRange" />
+                                <div><label class="rangeValue" id="fovLabel"></label><label class="rangeValue">°</label>
+                                </div>
+                            </div>
+                            <!-- raytrace options -->
+                            <div id="raytraceOptions" class="renderOptions">
+                                <!-- aperture -->
+                                <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
+                                    <label class="rangeLabel" style="width: 104px;">Aperture</label>
+                                    <input type="range" min="0" max="100" step="0.1" id="apertureRange" />
+                                    <div><label class="rangeValue" id="apertureLabel"></label><label
+                                            class="rangeValue">mm</label></div>
+                                </div>
+                                <!-- focus distance -->
+                                <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
+                                    <label class="rangeLabel" style="width: 104px;">Focus distance</label>
+                                    <input type="range" min="-2" max="2" step="0.01" id="focusRange" />
+                                    <div><label class="rangeValue" id="focusLabel"></label>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- color options -->
+                            <div id="colorOptions" class="renderOptions">
+                                <!-- antialias -->
+                                <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
+                                    <label class="textboxLabel" style="width: 104px;">Antialias</label>
+                                    <div><select id="antialiasSelect" style="width: 100%;">
+                                            <option value="1">1x (none)</option>
+                                            <option value="2">2x</option>
+                                            <option value="3">3x</option>
+                                            <option value="4">4x</option>
+                                        </select></div>
+                                </div>
+                            </div>
+                            <!-- edge options -->
+                            <div id="edgeOptions" class="renderOptions">
+                                <!-- color -->
+                                <div style="display: flex; flex-direction: row; gap: 8px; align-items: baseline;">
+                                    <input type="radio" name="edgeMode" value="light" id="edgeLight" checked disabled />
+                                    <label for="edgeLight" class="radioLabel disabled">Light</label>
+                                    <input type="radio" name="edgeMode" value="dark" id="edgeDart" disabled />
+                                    <label for="edgeDark" class="radioLabel disabled">Dark</label>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <!-- export -->
-                    <div id="dataExportContainer"
-                        style="display: none; flex-direction: row; gap: 8px; align-items: center; padding-bottom: 12px;">
-                        <input type="button" id="dataExportButton" value="Export" />
-                        <div style="display: flex; flex-direction: row; gap: 8px; align-items: baseline;">
-                            <div><input type="radio" name="dataExportRadioGroup" id="exportJson" value="json"
-                                    checked /><label for="exportJson" class="radioLabel">JSON</label></div>
-                            <div><input type="radio" name="dataExportRadioGroup" id="exportCsv" value="csv" /><label
-                                    for="exportCsv" class="radioLabel">CSV</label></div>
+                </div>
+                <!-- tab 3 -->
+                <div id="tab3" class="tab">
+                    <!-- data -->
+                    <div style="display: flex; flex-direction: column; gap: 12px; padding: 4px;">
+                        <input type="file" id="dataFileInput" accept=".csv" />
+                        <!-- files -->
+                        <div id="dataFileContainer" style="display: none; flex-direction: column; gap: 4px;">
+                            <label>Files</label>
+                            <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
+                                <div><select id="dataFileSelect" style="width: 100%;"></select></div>
+                                <input type="button" id="dataFileDeleteButton" value="Delete" />
+                            </div>
+                        </div>
+                        <!-- datasets -->
+                        <div id="dataContainer" style="display: none; flex-direction: column; gap: 4px;">
+                            <label>Datasets</label>
+                            <div><select id="dataSelect"></select></div>
+                            <!-- rows -->
+                            <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
+                                <label id="dataRowsLabel">0</label>
+                                <label>rows</label>
+                            </div>
+                            <!-- pages -->
+                            <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
+                                <label>Page</label>
+                                <input type="text" id="dataPageText" value="0" />
+                                <label>of</label>
+                                <label id="dataPagesLabel">0</label>
+                                <div>
+                                    <input type="button" id="dataPrevButton" value="Prev" />
+                                    <input type="button" id="dataNextButton" value="Next" />
+                                    <input type="button" id="dataGoButton" value="Go" disabled />
+                                </div>
+                            </div>
+                        </div>
+                        <!-- export -->
+                        <div id="dataExportContainer"
+                            style="display: none; flex-direction: row; gap: 8px; align-items: center; padding-bottom: 12px;">
+                            <input type="button" id="dataExportButton" value="Export" />
+                            <div style="display: flex; flex-direction: row; gap: 8px; align-items: baseline;">
+                                <div><input type="radio" name="dataExportRadioGroup" id="exportJson" value="json"
+                                        checked /><label for="exportJson" class="radioLabel">JSON</label></div>
+                                <div><input type="radio" name="dataExportRadioGroup" id="exportCsv" value="csv" /><label
+                                        for="exportCsv" class="radioLabel">CSV</label></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- table -->
+                    <div class="data table" id="tableContainer"></div>
+                </div>
+                <!-- tab 4 -->
+                <div id="tab4" class="tab">
+                    <!-- signals -->
+                    <div class="table" id="signalsContainer"></div>
+                </div>
+                <!-- tab 5 -->
+                <div id="tab5" class="tab">
+                    <!-- tiles -->
+                    <div style="display: flex; flex-direction: column; gap: 12px; padding: 4px;">
+                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                            <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
+                                <label class="textboxLabel">X tiles</label>
+                                <input type="text" class="textbox" id="tilesXText" value="1" />
+                                <label class="textboxLabel">offset</label>
+                                <input type="text" class="textbox" id="tileOffsetXText" value="0" />
+                            </div>
+                            <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
+                                <label class="textboxLabel">Y tiles</label>
+                                <input type="text" class="textbox" id="tilesYText" value="1" />
+                                <label class="textboxLabel">offset</label>
+                                <input type="text" class="textbox" id="tileOffsetYText" value="0" />
+                            </div>
+                        </div>
+                        <div style="display: flex; flex-direction: row;">
+                            <input type="checkbox" id="tileAutoCheckbox" checked /><label class="checkboxLabel"
+                                for="tileAutoCheckbox" title="Automatically render all remaining tiles">Auto</label>
+                        </div>
+                        <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
+                            <input type="button" id="tileUpdateButton" value="Update"
+                                title="Update tile settings (auto-applied on start) " />
+                            <input type="button" id="tileResetButton" value="Reset" title="Reset tiling to none" />
                         </div>
                     </div>
                 </div>
-                <!-- table -->
-                <div class="data table" id="tableContainer"></div>
-            </div>
-            <!-- tab 4 -->
-            <div id="tab4" class="tab">
-                <!-- signals -->
-                <div class="table" id="signalsContainer"></div>
-            </div>
-            <!-- tab 5 -->
-            <div id="tab5" class="tab">
-                <!-- tiles -->
-                <div style="display: flex; flex-direction: column; gap: 12px; padding: 4px;">
-                    <div style="display: flex; flex-direction: column; gap: 4px;">
-                        <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
-                            <label class="textboxLabel">X tiles</label>
-                            <input type="text" class="textbox" id="tilesXText" value="1" />
-                            <label class="textboxLabel">offset</label>
-                            <input type="text" class="textbox" id="tileOffsetXText" value="0" />
-                        </div>
-                        <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
-                            <label class="textboxLabel">Y tiles</label>
-                            <input type="text" class="textbox" id="tilesYText" value="1" />
-                            <label class="textboxLabel">offset</label>
-                            <input type="text" class="textbox" id="tileOffsetYText" value="0" />
-                        </div>
-                    </div>
-                    <div style="display: flex; flex-direction: row;">
-                        <input type="checkbox" id="tileAutoCheckbox" checked /><label class="checkboxLabel"
-                            for="tileAutoCheckbox" title="Automatically render all remaining tiles">Auto</label>
-                    </div>
-                    <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
-                        <input type="button" id="tileUpdateButton" value="Update"
-                            title="Update tile settings (auto-applied on start) " />
-                        <input type="button" id="tileResetButton" value="Reset" title="Reset tiling to none" />
-                    </div>
+                <!-- tab 6 -->
+                <div id="tab6" class="tab">
+                    <!-- animation -->
                 </div>
-            </div>
-            <!-- tab 6 -->
-            <div id="tab6" class="tab">
-                <!-- animation -->
-            </div>
-            <!-- tab 7 -->
-            <div id="tab7" class="tab">
-                <!-- about -->
-                <div style="display: flex; flex-direction: column; gap: 12px; padding: 4px;">
-                    <div class="about">MorphCharts Client</div>
-                    <!--  debug -->
-                    <div style="display: flex; flex-direction: row;">
-                        <input type="checkbox" id="debugCheckbox" checked /><label class="checkboxLabel"
-                            for="debugCheckbox">Debug</label>
+                <!-- tab 7 -->
+                <div id="tab7" class="tab">
+                    <!-- about -->
+                    <div style="display: flex; flex-direction: column; gap: 12px; padding: 4px;">
+                        <div class="about">MorphCharts Client</div>
+                        <!--  debug -->
+                        <div style="display: flex; flex-direction: row;">
+                            <input type="checkbox" id="debugCheckbox" checked /><label class="checkboxLabel"
+                                for="debugCheckbox">Debug</label>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+        <footer>
+            <span>© 2025 Microsoft</span>
+            <a href="https://go.microsoft.com/fwlink/?LinkId=521839">Privacy &amp; Cookies</a>
+            <a href="https://go.microsoft.com/fwlink/?linkid=2259814">Consumer Health Privacy</a>
+            <a href="https://www.microsoft.com/trademarks">Trademarks</a>
+            <a href="https://www.microsoft.com/en-us/servicesagreement/">Terms of Use</a>
+        </footer>
     </div>
     <div id="debugContainer" class="debugContainer">
         <!-- render -->

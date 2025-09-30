@@ -80,25 +80,6 @@ export class Main extends Core.Renderer {
         // Canvas
         this._canvas = canvas;
 
-        // Camera
-        // TODO: Move to base renderer
-        this._cameraPosition = Core.vector3.clone(Config.cameraPosition);
-        this._cameraTarget = Core.vector3.clone(Config.cameraTarget);
-        this._cameraFov = Config.cameraFov;
-        this._cameraAperture = Config.cameraAperture;
-        this._cameraFocusDistance = Config.cameraFocusDistance;
-        this._cameraForward = [0, 0, 0];
-        this._cameraRight = [0, 0, 0];
-        this._cameraUp = [0, 0, 0];
-        this._cameraChanged = true; // Force camera update on first render
-
-        // TODO: Move to base renderer
-        this._tilesX = 1;
-        this._tilesY = 1;
-        this._tileOffsetX = 0;
-        this._tileOffsetY = 0;
-        this._hasTilesChanged = true; // Force tile update on first render
-
         // Initialize frame count
         this.frameCount = 0;
     }
