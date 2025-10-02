@@ -263,11 +263,9 @@ export class Main {
                     const maxBufferSize = Math.pow(2, 20) * 128 / 12;
                     if (width * height > maxBufferSize) {
                         console.log(`max buffer size is ${maxBufferSize}`);
+                        return;
                     }
             }
-            // Max 4k
-            width = Math.min(width, 3840);
-            height = Math.min(height, 2160);
             this._resize(width, height);
         };
         resizeButton.onclick = () => sizeChanged();
@@ -434,7 +432,6 @@ export class Main {
             // Disable start button if no spec
             if (!this._isRunning) {
                 this._startStopButton.disabled = this._editor.content.trim().length == 0;
-                this._includeCameraCheckbox.disabled = this._startStopButton.disabled;
             }
         };
         this._error = document.getElementById("error") as HTMLDivElement;
@@ -451,7 +448,7 @@ export class Main {
             }
             catch (error) {
                 console.log("error loading sample from querystring", error);
-                this._sampleLoaded("");
+                this._sampleLoaded("{}");
             }
         }
         else { this._sampleLoaded("{}"); }
@@ -507,7 +504,7 @@ export class Main {
         this._startStopButton.onclick = async () => {
             if (this._startStopButton.value == "Start") {
                 this._startStopButton.disabled = true;
-                this._includeCameraCheckbox.disabled = this._startStopButton.disabled;
+
                 // Allow button to update to disabled
                 setTimeout(async () => {
                     await this._startAsync();
@@ -707,7 +704,6 @@ export class Main {
                     this._startStopButton.value = "Stop";
                     this._startStopButton.disabled = false;
                     this._cameraResetButton.disabled = false;
-                    this._includeCameraCheckbox.disabled = true;
 
                     // Reset manipulation
                     this._mouseWheel.reset();
@@ -749,7 +745,6 @@ export class Main {
         this._samplesLabel.innerText = this._renderer.frameCount.toString();
         this._startStopButton.value = "Start";
         this._startStopButton.disabled = this._editor.content.trim().length == 0;
-        this._includeCameraCheckbox.disabled = this._startStopButton.disabled;
         this._cameraResetButton.disabled = true;
         console.log("render stop");
     }
