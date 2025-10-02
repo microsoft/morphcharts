@@ -1,0 +1,37 @@
+body {
+    background-color: white;
+    font-family: sans-serif;
+    max-width: 1024px;
+    margin: 0 auto;
+}
+
+a {
+    color: royalblue;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+code {
+    background-color: whitesmoke;
+    font-family: monospace;
+}
+
+header,
+footer {
+    padding: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+header {
+    border-bottom: 1px solid gray;
+}
+
+footer {
+    margin-top: 32px;
+    border-top: 1px solid gray;
+}
