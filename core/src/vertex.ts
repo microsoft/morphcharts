@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 import { ColorRGBA } from "./color.js";
 import { Material } from "./material.js";
 import { Quaternion, Vector3, Vector4 } from "./matrix.js";
