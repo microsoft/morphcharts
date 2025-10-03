@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 import { Constants } from "./constants.js";
 import { Vector2, Vector3 } from "./matrix.js";
 

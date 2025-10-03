@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 import { Atlas, ColorRGB, ColorRGBA, Config, Constants, GlyphRasterizer, IAtlasVisual, IBuffer, IBufferVisual, IGlyphRasterizerVisual, IImageVisual, ILabelSetVisual, Image, ITransitionBuffer, ITransitionBufferVisual, LabelSet, vector3, Vector3 } from "./index.js";
 
 export abstract class Renderer {

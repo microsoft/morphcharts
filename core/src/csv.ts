@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 export class Csv {
     public QUOTE = '"';
     public DELIMETER = ',';

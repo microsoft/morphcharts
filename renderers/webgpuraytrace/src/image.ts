@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 import * as Core from "core";
 
 export class ImageVisual extends Core.ImageVisual implements Core.IImageVisual {

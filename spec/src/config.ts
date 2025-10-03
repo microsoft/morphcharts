@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 export class Config {
     private static _default: string = `{
     "range": {

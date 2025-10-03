@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 export class Keyboard {
     private _pressedKeys: Set<string>;
     private _previousPressedKeys: Set<string>;

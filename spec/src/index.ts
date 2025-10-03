@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 export { Axis } from "./axis.js";
 export { Camera } from "./camera.js";
 export { Color } from "./color.js";

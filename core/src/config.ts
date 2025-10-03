@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 import { ColorRGB, ColorRGBA } from "./color.js";
 import { Constants } from "./constants.js";
 import { Vector3 } from "./matrix.js";

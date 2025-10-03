@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 import * as Core from "core";
 import { Color } from "../color.js";
 import { Scale } from "../scales/scale.js";

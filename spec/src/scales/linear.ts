@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 import * as Core from "core";
 import { Group } from "../marks/group.js";
 import { Scale } from "./scale.js";

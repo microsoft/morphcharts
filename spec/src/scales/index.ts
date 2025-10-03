@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 export { Scale, ScaleDomain, ScaleRange } from "./scale.js";
 export { Linear } from "./linear.js";
 export { Band } from "./band.js";

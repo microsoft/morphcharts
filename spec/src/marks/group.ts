@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 import * as Core from "core";
 import { Axis } from "../axis.js";
 import { Dataset } from "../dataset.js";

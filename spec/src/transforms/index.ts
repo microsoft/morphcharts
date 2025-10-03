@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 export { Aggregate } from './aggregate.js';
 export { Bin } from './bin.js';
 export { Collect } from './collect.js';

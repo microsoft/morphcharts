@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 export interface IImageOptions {
     url?: string;
     dataURL?: string;

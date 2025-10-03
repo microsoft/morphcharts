@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 export class Cube {
     // RH coordinates (+z from screen to eye, -z from eye to screen)
     //    +y

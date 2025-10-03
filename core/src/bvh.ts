@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 import { Vector3 } from "./matrix.js";
 import { Hittable } from "./hittable.js";
 import { AABB } from "./aabb.js";

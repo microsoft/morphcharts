@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 export interface ISquarifiedTreeMapOptions {
     ids: Uint32Array,
     sizes?: ArrayLike<number>, // If sizes are not provided, the sizes are assumed to be 1

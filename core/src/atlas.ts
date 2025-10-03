@@ -1,4 +1,7 @@
-import { Vector4 } from "./matrix";
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
+import { Vector4 } from "./matrix.js";
 
 export interface IAtlasOptions {
     type: string; // "font", "sdf"

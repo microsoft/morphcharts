@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 export class Common {
     static async loadSampleIndex(path: string): Promise<{ plot: string, title: string, description: string, image: string }[]> {
         try {

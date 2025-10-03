@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 export class Editor {
     private _content: HTMLTextAreaElement;
     private _numbers: HTMLDivElement;

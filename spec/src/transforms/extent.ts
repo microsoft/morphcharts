@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 import { Dataset } from "../dataset.js";
 import { Transform } from "./transform.js";
 import { Group } from "../marks/group.js";

@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 export { AABB } from "./aabb.js";
 export { Angles } from "./angles.js";
 export { Atlas, AtlasVisual } from "./atlas.js";

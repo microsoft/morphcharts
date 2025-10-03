@@ -1,4 +1,7 @@
-import { Quaternion, Vector2, Vector3, Vector4 } from "./matrix";
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
+import { Quaternion, Vector2, Vector3, Vector4 } from "./matrix.js";
 
 export class Constants {
     // Epsilon

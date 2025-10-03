@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 import { IBuffer } from "../buffer.js";
 import { ColorRGBA } from "../color.js";
 import { Config } from "../config.js";

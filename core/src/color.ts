@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 /**
  * RBGA color
  * [R, G, B, A] = [[0,1], [0,1], [0,1], [0,1]]
