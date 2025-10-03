@@ -460,8 +460,9 @@ export class Main {
         const samplesContainer = document.getElementById("samples") as HTMLDivElement;
 
         // Load index
-        const folder = "samples"
-        const samples = await Common.loadSampleIndex(`${folder}/index.json`);
+        const specFolder = "samples";
+        const imageFolder = "gallery";
+        const samples = await Common.loadSampleIndex(`${specFolder}/index.json`);
         const samplesButton = document.getElementById("samplesButton") as HTMLAnchorElement;
         samplesButton.onclick = () => { this._samplesPopup.style.display = "flex"; };
         const loadSample = async (path: string): Promise<void> => {
@@ -480,7 +481,7 @@ export class Main {
             sampleContainer.appendChild(div);
             const img = document.createElement("img");
             img.className = "sampleImage";
-            img.src = `${folder}/${sample.image}`;
+            img.src = `${imageFolder}/${sample.image}`;
             img.alt = sample.title;
             img.title = sample.description;
             sampleContainer.appendChild(img);
@@ -488,14 +489,14 @@ export class Main {
 
             // Load sample on click
             sampleContainer.onclick = async () => {
-                await loadSample(`${folder}/${sample.plot}`);
+                await loadSample(`${specFolder}/${sample.plot}`);
             };
 
             // Load sample on enter or space
             sampleContainer.onkeydown = async (e) => {
                 if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    await loadSample(`${folder}/${sample.plot}`);
+                    await loadSample(`${specFolder}/${sample.plot}`);
                 }
             };
         }
