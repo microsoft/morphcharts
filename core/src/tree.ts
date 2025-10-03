@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 import { Constants } from "./constants.js";
 import { quaternion, Quaternion, vector3, Vector3 } from "./matrix.js";
 import { Time } from "./time.js";

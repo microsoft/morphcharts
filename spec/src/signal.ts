@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 import { Expression } from "./expression.js";
 import { Group } from "./marks/group.js";
 

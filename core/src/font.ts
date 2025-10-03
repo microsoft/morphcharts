@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 export interface IFontOptions {
     name: string; // Font family, e.g. "Arial", "Times New Roman"
     /**

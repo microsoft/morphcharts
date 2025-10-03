@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 import * as Core from "core";
 import { IScene, Plot } from "../plot.js";
 import { MarkEncodings } from "./encoding.js";

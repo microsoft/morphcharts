@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 import { ColorRGB } from "./color.js";
 
 export class Palette {

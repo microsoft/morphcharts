@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 import { Vector3 } from "./matrix.js";
 
 export class Ray {

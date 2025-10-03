@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 export class MouseWheel {
     private _previousTotal: number;
     public total: number;

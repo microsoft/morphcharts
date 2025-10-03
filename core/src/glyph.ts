@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 import { IAtlasVisual } from "./atlas.js";
 import { Font, IFontOptions } from "./font.js";
 import { Vector4 } from "./matrix.js";

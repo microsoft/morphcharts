@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 import { Quaternion, vector3, Vector3 } from "./matrix.js";
 import { Hittable, HittableBox, HittableCylinder, HittableHexPrism, HittableType } from "./hittable.js";
 import type { HittableBufferData, IHittableBoxOptions, IHittableCylinderOptions, IHittableHexPrismOptions, IHittableOptions } from "./hittable.js";

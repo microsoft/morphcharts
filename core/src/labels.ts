@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 // text metrics (+ve y is up)
 //
 //        -   .------------.

@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 import { IBuffer } from "../buffer.js";
 import { quaternion, Quaternion, Vector3 } from "../matrix.js";
 import { Time } from "../time.js";

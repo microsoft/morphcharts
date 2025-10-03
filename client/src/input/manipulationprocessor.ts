@@ -1,5 +1,7 @@
-import * as Core from "core";
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
 
+import * as Core from "core";
 import { Manipulator } from "./manipulator.js";
 import { MathUtils } from "core/dist/math.js";
 

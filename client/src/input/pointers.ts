@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 import { Manipulator } from "./manipulator.js";
 
 export class Pointers {

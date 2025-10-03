@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 import * as Core from "core";
 
 export class LabelSetVisual extends Core.LabelSetVisual implements Core.ILabelSetVisual {

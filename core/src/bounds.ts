@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 import { Quaternion, vector3, Vector3 } from "./matrix.js";
 import { Cube } from "./meshes/cube.js";
 

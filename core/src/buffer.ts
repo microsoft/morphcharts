@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 import { Color, ColorRGBA } from "./color.js";
 import { Pick } from "./pick.js";
 import { UnitVertex } from "./vertex.js";

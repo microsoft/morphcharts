@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license. 
+
 import { Filter } from "./filter.js";
 
 export const ColumnType = {
