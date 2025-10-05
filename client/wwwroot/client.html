@@ -35,6 +35,8 @@
             background-color: white;
             border-right: 1px solid gray;
             cursor: ew-resize;
+            /* iPhone fix for touch events */
+            touch-action: none;
         }
 
         .divider:hover {
@@ -344,6 +346,19 @@
             display: flex;
             flex-wrap: wrap;
             gap: 16px;
+        }
+
+        .loading {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 8px;
+            border: 1px solid gray;
+            border-radius: 4px;
+            pointer-events: none;
         }
     </style>
 </head>
@@ -655,6 +670,8 @@
             <div id="samples" class="samples"></div>
         </div>
     </div>
+    <!-- loading -->
+    <div class="loading" id="loadingContainer">Loading...</div>
 </body>
 
 </html>

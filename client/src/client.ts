@@ -19,6 +19,8 @@ export class Main {
     private _isRunning: boolean;
     private _animationFrame: number;
     private _previousTime: DOMHighResTimeStamp;
+    private _isLoadingTime: number;
+    private _minLoadingTime: number;
 
     // Spec
     private _samplesPopup: HTMLDivElement;
@@ -53,6 +55,7 @@ export class Main {
     private _maxSamplesText: HTMLInputElement;
     private _maxSamplesPerPixel: number;
     private _samplesLabel: HTMLLabelElement;
+    private _loadingContainer: HTMLDivElement;
 
     // Manipulation
     private _dragToleranceSquared: number;
@@ -122,20 +125,20 @@ export class Main {
         let startX: number;
         let startWidth: number;
         let isDragging = false;
-        divider.addEventListener("mousedown", (e) => {
+        divider.addEventListener("pointerdown", (e) => {
             startX = e.clientX;
             startWidth = rightContainer.clientWidth;
             isDragging = true;
         });
-        document.addEventListener("mouseup", () => {
+        document.addEventListener("pointerup", () => {
             if (isDragging) { console.log(`resized to ${rightContainer.clientWidth}px`); }
             isDragging = false;
         });
-        document.addEventListener("mouseleave", () => {
+        document.addEventListener("pointerleave", () => {
             if (isDragging) { console.log(`resized to ${rightContainer.clientWidth}px`); }
             isDragging = false;
         });
-        document.addEventListener("mousemove", (e) => {
+        document.addEventListener("pointermove", (e) => {
             if (isDragging) {
                 const deltaX = e.clientX - startX;
                 const width = Math.max(startWidth - deltaX, minWidth);
@@ -181,6 +184,10 @@ export class Main {
                 if (i == 0) { openTab(tabButton, tab); }
             }
         }
+
+        // Loading time
+        this._isLoadingTime = 0; // ms
+        this._minLoadingTime = 500; // ms
 
         // Initialize
         this._initialize();
@@ -423,6 +430,7 @@ export class Main {
 
         // UI
         this._startStopButton = document.getElementById("startStopButton") as HTMLButtonElement;
+        this._loadingContainer = document.getElementById("loadingContainer") as HTMLDivElement;
         this._includeCameraCheckbox = document.getElementById("cameraIncludeCheckbox") as HTMLInputElement;
 
         // Editor
@@ -431,7 +439,7 @@ export class Main {
             console.log("spec changed");
             this._hasSpecChanged = true;
             this._updateDebug(0);
-
+            
             // Disable start button if no spec
             if (!this._isRunning) {
                 this._startStopButton.disabled = this._editor.content.trim().length == 0;
@@ -509,10 +517,11 @@ export class Main {
             if (this._startStopButton.value == "Start") {
                 this._startStopButton.disabled = true;
 
+                // Show loading if starting takes a while
+                this._showLoading();
+
                 // Allow button to update to disabled
-                setTimeout(async () => {
-                    await this._startAsync();
-                });
+                setTimeout(async () => await this._startAsync());
             }
             else {
                 this._stop();
@@ -524,6 +533,7 @@ export class Main {
     private _sampleLoaded(spec: string): void {
         this._editor.content = spec;
         this._hasSpecChanged = true;
+        this._isLoadingTime = 0;
     }
 
     private async _loadSampleAsync(path: string): Promise<void> {
@@ -744,6 +754,7 @@ export class Main {
     private _stop(): void {
         this._isRunning = false;
         if (this._animationFrame) { cancelAnimationFrame(this._animationFrame); }
+        this._hideLoading();
 
         // UI
         this._samplesLabel.innerText = this._renderer.frameCount.toString();
@@ -751,6 +762,26 @@ export class Main {
         this._startStopButton.disabled = this._editor.content.trim().length == 0;
         this._cameraResetButton.disabled = true;
         console.log("render stop");
+    }
+
+    private _showLoading(): void {
+        if (this._isLoadingTime < this._minLoadingTime) {
+            this._loadingContainer.style.display = "block";
+        }
+    }
+    private _hideLoading(): void {
+        // Ensure loading is shown for at least a short time
+        if (this._loadingContainer.style.display == "block") {
+            if (this._isLoadingTime < this._minLoadingTime) {
+                setTimeout(() => {
+                    this._loadingContainer.style.display = "none";
+                    this._isLoadingTime = this._minLoadingTime;
+                }, this._minLoadingTime - this._isLoadingTime);
+            } else {
+                this._loadingContainer.style.display = "none";
+                this._isLoadingTime = this._minLoadingTime;
+            }
+        }
     }
 
     private async _tickAsync(currentTime: DOMHighResTimeStamp): Promise<void> {
@@ -765,6 +796,10 @@ export class Main {
 
         // Next frame
         if (this._isRunning) {
+            // Loading complete
+            this._hideLoading();
+
+            // Render complete?
             if (this._renderer.frameCount >= this._maxSamplesPerPixel) {
                 const timestamp = Core.Time.formatDate(new Date());
                 let filename = `${timestamp}_${this._renderer.frameCount}spp`;
