@@ -43,7 +43,12 @@ export class Treemap extends Transform {
         let sizeColumnIndex;
         if (field) {
             sizeColumnIndex = dataset.getColumnIndex(field);
-            if (sizeColumnIndex > -1) { sizeValues = dataset.all.columnValues(sizeColumnIndex, false) }
+            if (sizeColumnIndex == -1) { throw new Error(`treemap transform field "${field}" not found`); }
+            sizeValues = dataset.all.columnValues(sizeColumnIndex, false);
+        }
+        else {
+            // No size
+            sizeColumnIndex = -1;
         }
         const method = this._transformJSON.method;
         const paddingOuter = this._transformJSON.paddingOuter;

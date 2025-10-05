@@ -90,12 +90,11 @@ export class UnitStack extends Transform {
             const sort = this._transformJSON.sort;
             if (sort.field) {
                 const columnIndex = dataset.getColumnIndex(sort.field);
-                if (columnIndex != -1) {
-                    orderedIds = dataset.all.orderedIds(columnIndex);
-                    // Order
-                    if (sort.order && sort.order.toLowerCase() == "descending") {
-                        orderedIds = Array.from(orderedIds).reverse(); // Reverse order
-                    }
+                if (columnIndex == -1) { throw new Error(`unitstack transform sort field "${sort.field}" not found`); }
+                orderedIds = dataset.all.orderedIds(columnIndex);
+                // Order
+                if (sort.order && sort.order.toLowerCase() == "descending") {
+                    orderedIds = Array.from(orderedIds).reverse(); // Reverse order
                 }
             }
         }
@@ -105,14 +104,13 @@ export class UnitStack extends Transform {
         let multiplier = 1;
         for (let i = 0; i < groupby.length; i++) {
             const columnIndex = dataset.getColumnIndex(groupby[i]);
-            if (columnIndex != -1) {
-                groupbyColumnIndices.push(columnIndex);
-                // Force discrete to get count of unique values to allow creation of spatial index
-                groupbyColumnValues.push(dataset.all.columnValues(columnIndex, true));
-                const distinctValues = dataset.all.distinctStrings(columnIndex).length;
-                groupbyMultipliers.push(multiplier);
-                multiplier *= distinctValues;
-            }
+            if (columnIndex == -1) { throw new Error(`unitstack transform groupby field "${groupby[i]}" not found`); }
+            groupbyColumnIndices.push(columnIndex);
+            // Force discrete to get count of unique values to allow creation of spatial index
+            groupbyColumnValues.push(dataset.all.columnValues(columnIndex, true));
+            const distinctValues = dataset.all.distinctStrings(columnIndex).length;
+            groupbyMultipliers.push(multiplier);
+            multiplier *= distinctValues;
         }
         const spatialIndices = new Array(dataset.length);
         const counts: { [key: number]: number } = {};

@@ -31,8 +31,7 @@ export class Lookup extends Transform {
         const key = this._transformJSON.key;
         const keyColumnIndex = lookupDataset.getColumnIndex(key);
         if (keyColumnIndex == -1) {
-            console.log(`lookup key column ${key} not found`);
-            throw new Error(`lookup key column ${key} not found`);
+            throw new Error(`lookup transform key field "${key}" not found`);
         }
 
         // Fields: string[], data fields to lookup
@@ -40,15 +39,11 @@ export class Lookup extends Transform {
         const fields = this._transformJSON.fields;
         let fieldColumnIndex: number;
         if (!Array.isArray(fields) || fields.length == 0) {
-            console.log(`lookup fields not specified or empty`);
-            return dataset;
+            throw new Error(`lookup transform fields not specified or empty`);
         }
-        else {
-            fieldColumnIndex = dataset.getColumnIndex(fields[0]);
-            if (fieldColumnIndex == -1) {
-                console.log(`lookup field column ${fields[0]} not found`);
-                throw new Error(`lookup field column ${fields[0]} not found`);
-            }
+        fieldColumnIndex = dataset.getColumnIndex(fields[0]);
+        if (fieldColumnIndex == -1) {
+            throw new Error(`lookup transform field "${fields[0]}" not found`);
         }
 
         // Optional fields

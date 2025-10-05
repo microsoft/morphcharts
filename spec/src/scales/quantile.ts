@@ -17,15 +17,14 @@ export class Quantile extends Scale {
         if (this.domain.data) {
             const dataset = this.domain.data;
             const columnIndex = dataset.getColumnIndex(this.domain.field);
-            if (columnIndex != -1) {
-                const distinctStringValue = dataset.all.distinctStringValues(columnIndex)[value]; // Get the distinct string value
+            if (columnIndex == -1) { throw new Error(`quantile scale field "${this.domain.field}" not found`); }
+            const distinctStringValue = dataset.all.distinctStringValues(columnIndex)[value]; // Get the distinct string value
 
-                // Get the bin for the value
-                const bin = this.binIds[distinctStringValue];
+            // Get the bin for the value
+            const bin = this.binIds[distinctStringValue];
 
-                // Map value to range
-                return bin;
-            }
+            // Map value to range
+            return bin;
         }
 
         // Prevent exceptions
@@ -41,22 +40,23 @@ export class Quantile extends Scale {
         if (typeof scaleJSON.domain.data) {
             // Data reference
             const data = scaleJSON.domain.data;
-            if (!data) { throw new Error("no data specified for scale domain"); }
+            if (!data) { throw new Error("quantile scale domain data not specified"); }
             const dataset = group.getDataset(data);
-            if (!dataset) { throw new Error(`dataset "${data}" not found`); }
+            if (!dataset) { throw new Error(`quantile scale dataset "${data}" not found`); }
             const field = scaleJSON.domain.field;
-            if (!field) { throw new Error("no field specified for scale domain"); }
+            if (!field) { throw new Error("quantile scale domain field not specified"); }
             domain.data = dataset;
             domain.field = field;
             const columnIndex = dataset.getColumnIndex(field);
-            if (columnIndex == -1) { throw new Error(`field "${field}" not found`); }
+            if (columnIndex == -1) { throw new Error(`quantile scale field "${field}" not found`); }
 
             // Min, max
             const isDiscrete = true;
             domain.min = dataset.all.minValue(columnIndex, isDiscrete);
             domain.max = dataset.all.maxValue(columnIndex, isDiscrete);
         }
-        else { console.log(`unknown domain type ${scaleJSON.domain}`); }
+        else { console.log(`quantile scale unknown domain type "${scaleJSON.domain}"`); }
+
 
         // Range
         // TODO: Move to ScaleRange.fromJSON
@@ -114,7 +114,7 @@ export class Quantile extends Scale {
             const dataset = domain.data;
             const field = domain.field;
             const columnIndex = dataset.getColumnIndex(field);
-            if (columnIndex == -1) { throw new Error(`field "${field}" not found`); }
+            if (columnIndex == -1) { throw new Error(`quantile scale field "${field}" not found`); }
 
             const ids = dataset.all.ids;
             const orderedIds = dataset.all.orderedIds(columnIndex); // Get ordered ids for the column, using discrete values

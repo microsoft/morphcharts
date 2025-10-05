@@ -275,7 +275,7 @@ export class Expression {
                 continue;
             }
 
-            // String
+            // String functions
             if (expr.substring(i, i + 5) == "split") {
                 expression += "split";
                 i += 5;

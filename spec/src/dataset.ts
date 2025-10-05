@@ -105,17 +105,27 @@ export class Dataset extends Core.Data.Dataset {
                     }
                     switch (format) {
                         case "csv":
+                        case "tsv":
                             try {
                                 const response = await fetch(datasetJSON.url);
                                 if (!response.ok) {
-                                    console.log(`error loading csv data ${name} url ${datasetJSON.url}`, response.statusText);
+                                    console.log(`error loading ${format} data ${name} url ${datasetJSON.url}`, response.statusText);
                                     reject(`${datasetJSON.url} ${response.statusText.toLowerCase()}`);
                                 }
                                 else {
                                     const text = await response.text();
-                                    const csv = new Core.Csv();
-                                    const headings = csv.readline(text, 0);
-                                    const rows = csv.read(text, 1); // Remaining rows
+                                    let rows: string[][];
+                                    let headings: string[];
+                                    if (format == "csv") {
+                                        const csv = new Core.Csv();
+                                        headings = csv.readline(text, 0);
+                                        rows = csv.read(text, 1); // Remaining rows
+                                    }
+                                    else {
+                                        const tsv = new Core.Tsv();
+                                        headings = tsv.readline(text, 0);
+                                        rows = tsv.read(text, 1); // Remaining rows
+                                    }
                                     const columnTypes = Dataset.inferTypes(rows);
                                     // Override inferred column types
                                     if (explicitColumnTypes) {
@@ -131,7 +141,7 @@ export class Dataset extends Core.Data.Dataset {
                                 }
                             }
                             catch (error) {
-                                console.log(`error loading csv data ${name} url ${datasetJSON.url}`, error);
+                                console.log(`error loading ${format} data ${name} url ${datasetJSON.url}`, error);
                                 reject(error);
                             }
                             break;

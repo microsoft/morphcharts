@@ -25,7 +25,8 @@ export class Band extends Scale {
         if (this.domain.data) {
             const dataset = this.domain.data;
             const columnIndex = dataset.getColumnIndex(this.domain.field);
-            if (columnIndex != -1) { columnValue = dataset.all.distinctStringValues(columnIndex)[value]; }
+            if (columnIndex == -1) { throw new Error(`band scale field "${this.domain.field}" not found`); }
+            columnValue = dataset.all.distinctStringValues(columnIndex)[value];
 
             // Order
             if (this.domain.orderedLookup) { columnValue = this.domain.orderedLookup[columnValue]; }
@@ -99,15 +100,15 @@ export class Band extends Scale {
         else if (typeof scaleJSON.domain == "object") {
             // Data reference
             const data = scaleJSON.domain.data;
-            if (!data) { throw new Error("no data specified for scale domain"); }
+            if (!data) { throw new Error("band scale domain data not specified"); }
             const dataset = group.getDataset(data);
-            if (!dataset) { throw new Error(`dataset "${data}" not found`); }
+            if (!dataset) { throw new Error(`band scale dataset "${data}" not found`); }
             const field = scaleJSON.domain.field;
-            if (!field) { throw new Error("no field specified for scale domain"); }
+            if (!field) { throw new Error("band scale domain field not specified"); }
             domain.data = dataset;
             domain.field = field;
             const columnIndex = dataset.getColumnIndex(field);
-            if (columnIndex == -1) { throw new Error(`field "${field}" not found`); }
+            if (columnIndex == -1) { throw new Error(`band scale field "${field}" not found`); }
 
             // Min, max
             const isDiscrete = true; // Band scales are always discrete
@@ -140,6 +141,7 @@ export class Band extends Scale {
                     sort.op = scaleJSON.domain.sort.op;
                     if (sort.op) {
                         const aggregateColumnIndex = dataset.getColumnIndex(sort.field);
+                        if (aggregateColumnIndex == -1) { throw new Error(`band scale op field "${sort.field}" not found`); }
                         const aggregateColumnType = dataset.getColumnType(aggregateColumnIndex);
                         if (aggregateColumnType == Core.Data.ColumnType.float || aggregateColumnType == Core.Data.ColumnType.integer || aggregateColumnType == Core.Data.ColumnType.date) {
                             const groupByColumnValues = dataset.all.columnValues(columnIndex, true); // Discrete
@@ -266,7 +268,7 @@ export class Band extends Scale {
                     break;
                 // TODO: Color scheme defaults
                 default:
-                    console.log(`unknown range type ${scaleJSON.range}`);
+                    console.log(`band scale unknown range type "${scaleJSON.range}"`);
                     break;
             }
         }

@@ -23,7 +23,9 @@ export class Stratify extends Transform {
         const parentKey = this._transformJSON.parentKey;
         // Both key and parent keys must be same datatype
         const keyColumnIndex = dataset.getColumnIndex(key);
+        if (keyColumnIndex == -1) { throw new Error(`stratify transform key field "${key}" not found`); }
         const parentKeyColumnIndex = dataset.getColumnIndex(parentKey);
+        if (parentKeyColumnIndex == -1) { throw new Error(`stratify transform parent key field "${parentKey}" not found`); }
         const keyValues = new Uint32Array(dataset.all.columnValues(keyColumnIndex, false));
         const parentKeyValues = new Uint32Array(dataset.all.columnValues(parentKeyColumnIndex, false));
         if (dataset.columnTypes[dataset.getColumnIndex(key)] == Core.Data.ColumnType.string) {

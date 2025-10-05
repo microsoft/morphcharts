@@ -30,6 +30,7 @@ export { Text } from "./text.js";
 export { Time } from "./time.js";
 export { Tree3D } from "./tree.js";
 export { TreeMap } from "./treemap.js";
+export { Tsv } from "./tsv.js";
 export { UnitVertex } from "./vertex.js";
 
 export type { IAtlasOptions, IAtlasVisual } from "./atlas.js";

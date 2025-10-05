@@ -15,8 +15,10 @@ export class Geopoint3D extends Transform {
             if (Array.isArray(fields) && fields.length >= 2) {
                 columnIndex0 = dataset.getColumnIndex(fields[0]);
                 columnIndex1 = dataset.getColumnIndex(fields[1]);
-                if (columnIndex0 != -1) { columnValues0 = dataset.all.columnValues(columnIndex0, false); }
-                if (columnIndex1 != -1) { columnValues1 = dataset.all.columnValues(columnIndex1, false); }
+                if (columnIndex0 == -1) { throw new Error(`geopoint3d transform field "${fields[0]}" not found`); }
+                columnValues0 = dataset.all.columnValues(columnIndex0, false);
+                if (columnIndex1 == -1) { throw new Error(`geopoint3d transform field "${fields[1]}" not found`); }
+                columnValues1 = dataset.all.columnValues(columnIndex1, false);
             }
         }
         if (!columnValues0 || !columnValues1) { return dataset; }
@@ -24,7 +26,8 @@ export class Geopoint3D extends Transform {
         // Optional fields (altitude)
         if (fields.length == 3) {
             columnIndex2 = dataset.getColumnIndex(fields[2]);
-            if (columnIndex2 != -1) { columnValues2 = dataset.all.columnValues(columnIndex2, false); }
+            if (columnIndex2 == -1) { throw new Error(`geopoint3d transform field "${fields[2]}" not found`); }
+            columnValues2 = dataset.all.columnValues(columnIndex2, false);
         }
 
         // As
