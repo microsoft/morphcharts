@@ -42,7 +42,6 @@ export class Collect extends Transform {
                 }
                 for (let i = 0; i < sortFieldColumnIndices.length; i++) {
                     const columnIndex = sortFieldColumnIndices[i];
-                    if (columnIndex == -1) { throw new Error(`collect transform sort field "${fields}" not found`); }
                     const columnType = dataset.columnTypes[columnIndex];
                     const sortColumnLookup = new Uint32Array(dataset.length);
                     switch (columnType) {

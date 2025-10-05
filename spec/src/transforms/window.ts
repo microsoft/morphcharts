@@ -50,7 +50,7 @@ export class Window extends Transform {
             for (let i = 0; i < groupby.length; i++) {
                 const columnIndex = dataset.getColumnIndex(groupby[i]);
                 if (columnIndex == -1) {
-                    throw new Error(`window transform groupby field ${groupby[i]} not found`);
+                    throw new Error(`window transform groupby field "${groupby[i]}" not found`);
                 }
                 groupbyColumnIndices.push(columnIndex);
                 // Force discrete to get count of unique values to allow creation of spatial index
@@ -96,7 +96,7 @@ export class Window extends Transform {
                 const columnName = this._transformJSON.fields[i];
                 const columnIndex = dataset.getColumnIndex(columnName);
                 if (columnIndex == -1) {
-                    throw new Error(`field column ${columnName} not found`);
+                    throw new Error(`window transform field "${columnName}" not found`);
                 }
                 else {
                     fieldColumnNames.push(columnName);
