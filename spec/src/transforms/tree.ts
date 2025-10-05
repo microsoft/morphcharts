@@ -85,14 +85,18 @@ export class Tree3D extends Transform {
                 let columnIndex;
                 const edgeLengths = this._transformJSON.lengths;
                 let edgeLengthValues;
-                columnIndex = dataset.getColumnIndex(edgeLengths);
-                if (columnIndex == -1) { throw new Error(`tree3d transform field "${edgeLengths}" not found`); }
-                edgeLengthValues = dataset.all.columnValues(columnIndex, false);
+                if (edgeLengths) {
+                    columnIndex = dataset.getColumnIndex(edgeLengths);
+                    if (columnIndex == -1) { throw new Error(`tree3d transform field "${edgeLengths}" not found`); }
+                    edgeLengthValues = dataset.all.columnValues(columnIndex, false);
+                }
                 const splitAngles = this._transformJSON.splits;
                 let splitAngleValues;
-                columnIndex = dataset.getColumnIndex(splitAngles);
-                if (columnIndex == -1) { throw new Error(`tree3d transform field "${splitAngles}" not found`); }
-                splitAngleValues = dataset.all.columnValues(columnIndex, false);
+                if (splitAngles) {
+                    columnIndex = dataset.getColumnIndex(splitAngles);
+                    if (columnIndex == -1) { throw new Error(`tree3d transform field "${splitAngles}" not found`); }
+                    splitAngleValues = dataset.all.columnValues(columnIndex, false);
+                }
                 const branchAngles = this._transformJSON.angles;
                 const twistAngles = this._transformJSON.twists;
 

@@ -17,7 +17,7 @@ export class Ordinal extends Scale {
         if (this.domain.data) {
             const dataset = this.domain.data;
             const columnIndex = dataset.getColumnIndex(this.domain.field);
-            if (columnIndex == -1) { throw new Error(`ordinal scale field ${this.domain.field} not found`); }
+            if (columnIndex == -1) { throw new Error(`ordinal scale field "${this.domain.field}" not found`); }
             columnValue = dataset.all.distinctStringValues(columnIndex)[value];
 
             // Order
