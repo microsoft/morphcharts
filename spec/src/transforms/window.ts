@@ -50,17 +50,14 @@ export class Window extends Transform {
             for (let i = 0; i < groupby.length; i++) {
                 const columnIndex = dataset.getColumnIndex(groupby[i]);
                 if (columnIndex == -1) {
-                    console.log(`groupby column ${groupby[i]} not found`);
-                    throw new Error(`groupby column ${groupby[i]} not found`);
+                    throw new Error(`window transform groupby field "${groupby[i]}" not found`);
                 }
-                else {
-                    groupbyColumnIndices.push(columnIndex);
-                    // Force discrete to get count of unique values to allow creation of spatial index
-                    groupbyColumnValues.push(dataset.all.columnValues(columnIndex, true));
-                    const distinctValues = dataset.all.distinctStrings(columnIndex).length;
-                    groupbyMultipliers.push(multiplier);
-                    multiplier *= distinctValues;
-                }
+                groupbyColumnIndices.push(columnIndex);
+                // Force discrete to get count of unique values to allow creation of spatial index
+                groupbyColumnValues.push(dataset.all.columnValues(columnIndex, true));
+                const distinctValues = dataset.all.distinctStrings(columnIndex).length;
+                groupbyMultipliers.push(multiplier);
+                multiplier *= distinctValues;
             }
 
             // Generate spatial indices and generate groupby rows
@@ -99,8 +96,7 @@ export class Window extends Transform {
                 const columnName = this._transformJSON.fields[i];
                 const columnIndex = dataset.getColumnIndex(columnName);
                 if (columnIndex == -1) {
-                    console.log(`field column ${columnName} not found`);
-                    throw new Error(`field column ${columnName} not found`);
+                    throw new Error(`window transform field "${columnName}" not found`);
                 }
                 else {
                     fieldColumnNames.push(columnName);

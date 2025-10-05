@@ -71,17 +71,14 @@ export class Aggregate extends Transform {
         for (let i = 0; i < groupby.length; i++) {
             const columnIndex = dataset.getColumnIndex(groupby[i]);
             if (columnIndex == -1) {
-                console.log(`groupby column ${groupby[i]} not found`);
-                throw new Error(`groupby column ${groupby[i]} not found`);
+                throw new Error(`aggregate transform groupby column "${groupby[i]}" not found`);
             }
-            else {
-                groupbyColumnIndices.push(columnIndex);
-                // Force discrete to get count of unique values to allow creation of spatial index
-                groupbyColumnValues.push(dataset.all.columnValues(columnIndex, true));
-                const distinctValues = dataset.all.distinctStrings(columnIndex).length;
-                groupbyMultipliers.push(multiplier);
-                multiplier *= distinctValues;
-            }
+            groupbyColumnIndices.push(columnIndex);
+            // Force discrete to get count of unique values to allow creation of spatial index
+            groupbyColumnValues.push(dataset.all.columnValues(columnIndex, true));
+            const distinctValues = dataset.all.distinctStrings(columnIndex).length;
+            groupbyMultipliers.push(multiplier);
+            multiplier *= distinctValues;
         }
 
         // Fields
@@ -92,13 +89,10 @@ export class Aggregate extends Transform {
                 const columnName = this._transformJSON.fields[i];
                 const columnIndex = dataset.getColumnIndex(columnName);
                 if (columnIndex == -1) {
-                    console.log(`field column ${columnName} not found`);
-                    throw new Error(`field column ${columnName} not found`);
+                    throw new Error(`aggregate transform field column "${columnName}" not found`);
                 }
-                else {
-                    fieldColumnNames.push(columnName);
-                    fieldColumnValues.push(dataset.all.columnValues(columnIndex, false));
-                }
+                fieldColumnNames.push(columnName);
+                fieldColumnValues.push(dataset.all.columnValues(columnIndex, false));
             }
         }
 

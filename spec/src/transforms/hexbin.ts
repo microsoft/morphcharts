@@ -14,12 +14,10 @@ export class Hexbin extends Transform {
             if (Array.isArray(fields) && fields.length == 2) {
                 columnIndexX = dataset.getColumnIndex(fields[0]);
                 columnIndexY = dataset.getColumnIndex(fields[1]);
-                if (columnIndexX != -1) {
-                    columnValuesX = dataset.all.columnValues(columnIndexX, false);
-                }
-                if (columnIndexY != -1) {
-                    columnValuesY = dataset.all.columnValues(columnIndexY, false);
-                }
+                if (columnIndexX == -1) { throw new Error(`hexbin transform field "${fields[0]}" not found`); }
+                columnValuesX = dataset.all.columnValues(columnIndexX, false);
+                if (columnIndexY == -1) { throw new Error(`hexbin transform field "${fields[1]}" not found`); }
+                columnValuesY = dataset.all.columnValues(columnIndexY, false);
             }
         }
         if (this._transformJSON.extent) {

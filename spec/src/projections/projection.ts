@@ -155,7 +155,7 @@ export class Orthographic extends Projection {
     }
 
     public unproject(x: number, y: number): Core.Vector2 {
-        throw new Error("not implemented");
+        throw new Error("orthographic projection unproject not implemented");
     }
 }
 
@@ -290,7 +290,7 @@ export class CylindricalEqualArea extends Projection {
     }
 
     public unproject(x: number, y: number): Core.Vector2 {
-        throw new Error("not implemented");
+        throw new Error("cylindrical equal area projection unproject not implemented");
     }
 }
 

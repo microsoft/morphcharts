@@ -23,7 +23,7 @@ export class Line extends Mark {
         let dataset: Dataset;
         if (this.from && this.from.data) {
             dataset = group.getDataset(this.from.data);
-            if (!dataset) { throw new Error(`dataset ${this.from.data} not found`); }
+            if (!dataset) { throw new Error(`line mark dataset "${this.from.data}" not found`); }
         }
         else {
             // Create empty dataset

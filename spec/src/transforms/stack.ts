@@ -28,12 +28,11 @@ export class Stack extends Transform {
             const sort = this._transformJSON.sort;
             if (sort.field) {
                 const columnIndex = dataset.getColumnIndex(sort.field);
-                if (columnIndex != -1) {
-                    orderedIds = dataset.all.orderedIds(columnIndex);
-                    // Order
-                    if (sort.order && sort.order.toLowerCase() == "descending") {
-                        orderedIds = Array.from(orderedIds).reverse(); // Reverse order
-                    }
+                if (columnIndex == -1) { throw new Error(`stack transform sort field "${sort.field}" not found`); }
+                orderedIds = dataset.all.orderedIds(columnIndex);
+                // Order
+                if (sort.order && sort.order.toLowerCase() == "descending") {
+                    orderedIds = Array.from(orderedIds).reverse(); // Reverse order
                 }
             }
         }
@@ -44,9 +43,8 @@ export class Stack extends Transform {
         let columnValues;
         if (field) {
             const columnIndex = dataset.getColumnIndex(field);
-            if (columnIndex != -1) {
-                columnValues = dataset.all.columnValues(columnIndex, false);
-            }
+            if (columnIndex == -1) { throw new Error(`stack transform field "${field}" not found`); }
+            columnValues = dataset.all.columnValues(columnIndex, false);
         }
 
         const groupby = this._transformJSON.groupby || [];
@@ -56,14 +54,13 @@ export class Stack extends Transform {
         let multiplier = 1;
         for (let i = 0; i < groupby.length; i++) {
             const columnIndex = dataset.getColumnIndex(groupby[i]);
-            if (columnIndex != -1) {
-                groupbyColumnIndices.push(columnIndex);
-                // Force discrete to get count of unique values to allow creation of spatial index
-                groupbyColumnValues.push(dataset.all.columnValues(columnIndex, true));
-                const distinctValues = dataset.all.distinctStrings(columnIndex).length;
-                groupbyMultipliers.push(multiplier);
-                multiplier *= distinctValues;
-            }
+            if (columnIndex == -1) { throw new Error(`stack transform groupby field "${groupby[i]}" not found`); }
+            groupbyColumnIndices.push(columnIndex);
+            // Force discrete to get count of unique values to allow creation of spatial index
+            groupbyColumnValues.push(dataset.all.columnValues(columnIndex, true));
+            const distinctValues = dataset.all.distinctStrings(columnIndex).length;
+            groupbyMultipliers.push(multiplier);
+            multiplier *= distinctValues;
         }
 
         const spatialIndices = new Array(dataset.length);

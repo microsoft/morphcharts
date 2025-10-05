@@ -20,21 +20,20 @@ export class Unit extends Transform {
         // Required parameters
         const field = this._transformJSON.field;
         const columnIndex = dataset.getColumnIndex(field);
-        if (columnIndex != -1) {
-            const start = performance.now();
-            const columnValues = dataset.all.columnValues(columnIndex, false);
-            const rows = [];
-            for (let k = 0; k < dataset.length; k++) {
-                const count = columnValues[k];
-                for (let l = 0; l < count; l++) {
-                    rows.push(dataset.rows[k].slice());
-                }
+        if (columnIndex == -1) { throw new Error(`unit transform field "${field}" not found`); }
+        const start = performance.now();
+        const columnValues = dataset.all.columnValues(columnIndex, false);
+        const rows = [];
+        for (let k = 0; k < dataset.length; k++) {
+            const count = columnValues[k];
+            for (let l = 0; l < count; l++) {
+                rows.push(dataset.rows[k].slice());
             }
-
-            // Create new dataset
-            dataset = new Dataset(dataset.headings.slice(), rows, dataset.columnTypes.slice());
-            console.log(`unit ${rows.length} rows ${Core.Time.formatDuration(performance.now() - start)}`);
         }
+
+        // Create new dataset
+        dataset = new Dataset(dataset.headings.slice(), rows, dataset.columnTypes.slice());
+        console.log(`unit ${rows.length} rows ${Core.Time.formatDuration(performance.now() - start)}`);
         return dataset;
     }
 }

@@ -27,10 +27,9 @@ export class Fold extends Transform {
         for (let i = 0; i < fields.length; i++) {
             const field = fields[i];
             const columnIndex = dataset.getColumnIndex(field);
-            if (columnIndex != -1) {
-                fieldIndices.push(columnIndex);
-                fieldHeadings.push(field);
-            }
+            if (columnIndex == -1) { throw new Error(`fold transform field "${field}" not found`); }
+            fieldIndices.push(columnIndex);
+            fieldHeadings.push(field);
         }
         for (let i = 0; i < dataset.length; i++) {
             for (let j = 0; j < fieldIndices.length; j++) {

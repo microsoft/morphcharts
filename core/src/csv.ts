@@ -34,7 +34,7 @@ export class Csv {
             // Quote
             if (char == this.QUOTE) {
                 // Escaped?
-                if (text.charAt(i + 1) == this.QUOTE) {
+                if (i < text.length - 1 && text.charAt(i + 1) == this.QUOTE) {
                     // Append
                     i++;
                     columnBuffer += this.QUOTE;

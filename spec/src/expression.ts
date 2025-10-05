@@ -35,7 +35,7 @@ export class Expression {
                     }
                     const columnIndex = dataset.getColumnIndex(field);
                     if (columnIndex == -1) {
-                        throw new Error(`field '${field}' not found`);
+                        throw new Error(`expression field "${field}" not found`);
                     }
                     // String columns need to be converted to string values
                     switch (dataset.getColumnType(columnIndex)) {
@@ -56,12 +56,12 @@ export class Expression {
                     // Check for closing bracket
                     const closingBracket = expr.indexOf("']", i);
                     if (closingBracket == -1) {
-                        throw new Error("invalid field name");
+                        throw new Error("expression invalid field name");
                     }
                     const field = expr.slice(i, closingBracket);
                     const columnIndex = dataset.getColumnIndex(field);
                     if (columnIndex == -1) {
-                        throw new Error(`field '${field}' not found`);
+                        throw new Error(`expression field "${field}" not found`);
                     }
                     // String columns need to be converted to string values
                     switch (dataset.getColumnType(columnIndex)) {
@@ -119,14 +119,14 @@ export class Expression {
                 // Find index of next single quote
                 const closingQuote = expr.indexOf("'", i);
                 if (closingQuote == -1) {
-                    throw new Error("string not closed");
+                    throw new Error("expression string not closed");
                 }
                 let string = "";
                 while (i < closingQuote) {
                     // Alphanumeric characters, underscore, space, round brackets only
                     // Note that a query of field names with dates won't work, e.g. datum.date=='2023-03-23', instead use datum.date==1679529600000
                     if (!/[a-zA-Z0-9_ ()]/.test(expr[i])) {
-                        throw new Error("invalid string character");
+                        throw new Error("expression invalid string character");
                     }
                     string += expr[i];
                     i++;
@@ -275,7 +275,7 @@ export class Expression {
                 continue;
             }
 
-            // String
+            // String functions
             if (expr.substring(i, i + 5) == "split") {
                 expression += "split";
                 i += 5;
@@ -369,7 +369,7 @@ export class Expression {
             if (expr.substring(i, i + 9) == "bandwidth") {
                 i += 9;
                 // Get name
-                if (expr[i] != "(") { throw new Error("bandwidth requires name parameter"); }
+                if (expr[i] != "(") { throw new Error("expression bandwidth requires name parameter"); }
                 i++; // Skip opening bracket
                 // Read name until closing bracket
                 let name = "";
@@ -378,25 +378,25 @@ export class Expression {
                         i++; // Skip opening quote
                         // Find index of next single quote
                         const closingQuote = expr.indexOf("'", i);
-                        if (closingQuote == -1) { throw new Error("string not closed"); }
+                        if (closingQuote == -1) { throw new Error("expression string not closed"); }
                         while (i < closingQuote) {
                             // Alphanumeric characters, space only
-                            if (!/[a-zA-Z0-9_ ]/.test(expr[i])) { throw new Error("invalid string character"); }
+                            if (!/[a-zA-Z0-9_ ]/.test(expr[i])) { throw new Error("expression invalid string character"); }
                             name += expr[i];
                             i++;
                         }
                         i++; // Skip closing quote
                     }
-                    else { throw new Error("bandwidth requires name parameter"); }
+                    else { throw new Error("expression bandwidth requires name parameter"); }
                 }
                 if (i >= expr.length || expr[i] != ")") {
-                    throw new Error("bandwidth requires closing bracket");
+                    throw new Error("expression bandwidth requires closing bracket");
                 }
                 i++; // Skip closing bracket
                 // Get bandwidth from group
                 const scale = group.getScale(name);
-                if (!scale) { throw new Error(`scale '${name}' not found`); }
-                if (scale.type != "band") { throw new Error(`scale '${name}' is not a band scale`); }
+                if (!scale) { throw new Error(`expression scale "${name}" not found`); }
+                if (scale.type != "band") { throw new Error(`expression scale "${name}" is not a band scale`); }
                 expression += (scale as Band).bandwidth();
                 continue;
             }
@@ -404,39 +404,39 @@ export class Expression {
             if (expr.substring(i, i + 5) == "scale") {
                 i += 5;
                 // Get name
-                if (expr[i] != "(") { throw new Error("scale requires name, value parameters"); }
+                if (expr[i] != "(") { throw new Error("expression scale requires name, value parameters"); }
                 i++; // Skip opening bracket
                 let name = "";
                 if (expr[i] == "'") {
                     i++; // Skip opening quote
                     // Find index of next single quote
                     const closingQuote = expr.indexOf("'", i);
-                    if (closingQuote == -1) { throw new Error("string not closed"); }
+                    if (closingQuote == -1) { throw new Error("expression string not closed"); }
                     while (i < closingQuote) {
                         // Alphanumeric characters, space only
-                        if (!/[a-zA-Z0-9_ ]/.test(expr[i])) { throw new Error("invalid string character"); }
+                        if (!/[a-zA-Z0-9_ ]/.test(expr[i])) { throw new Error("expression invalid string character"); }
                         name += expr[i];
                         i++;
                     }
                     i++; // Skip closing quote
                 }
-                else { throw new Error("scale requires name parameter"); }
+                else { throw new Error("expression scale requires name parameter"); }
 
                 // Get scale from group
                 const scale = group.getScale(name);
-                if (!scale) { throw new Error(`scale '${name}' not found`); }
+                if (!scale) { throw new Error(`expression scale "${name}" not found`); }
 
                 // Skip spaces
                 while (i < expr.length && expr[i] == " ") { i++; }
 
                 // Find comma
-                if (i >= expr.length || expr[i] != ",") { throw new Error("scale requires value parameter"); }
+                if (i >= expr.length || expr[i] != ",") { throw new Error("expression scale requires value parameter"); }
                 i++; // Skip comma
 
                 // Find index of final closing bracket
                 const openBrackets = 1;
                 const closingBracketIndex = this._finalClosingBracketIndex(expr, i, openBrackets);
-                if (closingBracketIndex == -1) { throw new Error("scale requires closing bracket"); }
+                if (closingBracketIndex == -1) { throw new Error("expression scale requires closing bracket"); }
 
                 // Parse the subexpression
                 const subExpression = this._parseExpression(expr.slice(i, closingBracketIndex), group, dataset);

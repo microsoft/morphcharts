@@ -51,14 +51,14 @@ export class Linear extends Scale {
             else if (typeof (scaleJSON.domain[0]) == "object" && scaleJSON.domain[0].signal) {
                 domain.min = group.parseSignalValue(scaleJSON.domain[0].signal);
             }
-            else { throw new Error("scale domain min signal must be a number"); }
+            else { throw new Error("linear scale domain min signal must be a number"); }
 
             // Max
             if (typeof scaleJSON.domain[1] == "number") { domain.max = scaleJSON.domain[1]; }
             else if (typeof (scaleJSON.domain[1]) == "object" && scaleJSON.domain[1].signal) {
                 domain.max = group.parseSignalValue(scaleJSON.domain[1].signal);
             }
-            else { throw new Error("scale domain max signal must be a number"); }
+            else { throw new Error("linear scale domain max signal must be a number"); }
         }
         else if (typeof scaleJSON.domain == "object" && scaleJSON.domain.signal) {
             const signalValue = group.parseSignalValue(scaleJSON.domain.signal);
@@ -66,19 +66,19 @@ export class Linear extends Scale {
                 domain.min = signalValue[0];
                 domain.max = signalValue[1];
             }
-            else { throw new Error("scale domain signal must be an array of two numbers"); }
+            else { throw new Error("linear scale domain signal must be an array of two numbers"); }
         }
         else if (typeof scaleJSON.domain == "object" && scaleJSON.domain.data) {
             // Data reference
             const data = scaleJSON.domain.data;
             const dataset = group.getDataset(data);
-            if (!dataset) { throw new Error(`dataset "${data}" not found`); }
+            if (!dataset) { throw new Error(`linear scale dataset "${data}" not found`); }
             const field = scaleJSON.domain.field;
-            if (!field) { throw new Error("no field specified for scale domain"); }
+            if (!field) { throw new Error("linear scale domain field not specified"); }
             domain.data = dataset;
             domain.field = field;
             const columnIndex = dataset.getColumnIndex(field);
-            if (columnIndex == -1) { throw new Error(`field "${field}" not found`); }
+            if (columnIndex == -1) { throw new Error(`linear scale field "${field}" not found`); }
 
             // Min, max
             const isDiscrete = false; // Linear scales are always continuous
@@ -87,7 +87,7 @@ export class Linear extends Scale {
             if (scaleJSON.domainMax != undefined) { domain.max = scaleJSON.domainMax; }
             else { domain.max = linear.zero ? Math.max(0, dataset.all.maxValue(columnIndex, isDiscrete)) : dataset.all.maxValue(columnIndex, isDiscrete); }
         }
-        else { console.log(`unknown domain type ${scaleJSON.domain}`); }
+        else { console.log(`linear scale unknown domain type "${scaleJSON.domain}"`); }
 
         // Zero
         if (linear.zero) {

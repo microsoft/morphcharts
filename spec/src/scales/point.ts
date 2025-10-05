@@ -22,7 +22,8 @@ export class Point extends Scale {
         if (this.domain.data) {
             const dataset = this.domain.data;
             const columnIndex = dataset.getColumnIndex(this.domain.field);
-            if (columnIndex != -1) { columnValue = dataset.all.distinctStringValues(columnIndex)[value]; }
+            if (columnIndex == -1) { throw new Error(`point scale field "${this.domain.field}" not found`); }
+            columnValue = dataset.all.distinctStringValues(columnIndex)[value];
 
             // Order
             if (this.domain.orderedLookup) { columnValue = this.domain.orderedLookup[columnValue]; }
@@ -74,15 +75,15 @@ export class Point extends Scale {
         if (typeof scaleJSON.domain == "object") {
             // Data reference
             const data = scaleJSON.domain.data;
-            if (!data) { throw new Error("no data specified for scale domain"); }
+            if (!data) { throw new Error("point scale domain data not specified"); }
             const dataset = group.getDataset(data);
-            if (!dataset) { throw new Error(`dataset "${data}" not found`); }
+            if (!dataset) { throw new Error(`point scale dataset "${data}" not found`); }
             const field = scaleJSON.domain.field;
-            if (!field) { throw new Error("no field specified for scale domain"); }
+            if (!field) { throw new Error("point scale domain field not specified"); }
             domain.data = dataset;
             domain.field = field;
             const columnIndex = dataset.getColumnIndex(field);
-            if (columnIndex == -1) { throw new Error(`field "${field}" not found`); }
+            if (columnIndex == -1) { throw new Error(`point scale field "${field}" not found`); }
 
             // Min, max
             const isDiscrete = true; // Band scales are always discrete
@@ -136,6 +137,7 @@ export class Point extends Scale {
                         // Sort field is different from domain field, aggregate provided operation is specified
                         if (sort.op) {
                             const aggregateColumnIndex = dataset.getColumnIndex(sort.field);
+                            if (aggregateColumnIndex == -1) { throw new Error(`point scale op field "${sort.field}" not found`); }
                             const aggregateColumnType = dataset.getColumnType(aggregateColumnIndex);
                             if (aggregateColumnType == Core.Data.ColumnType.float || aggregateColumnType == Core.Data.ColumnType.integer) {
                                 const groupByColumnValues = dataset.all.columnValues(columnIndex, true); // Discrete
@@ -248,7 +250,7 @@ export class Point extends Scale {
                     break;
                 // TODO: Color scheme defaults
                 default:
-                    console.log(`unknown range type ${rangeJSON}`);
+                    console.log(`point scale unknown range type "${rangeJSON}"`);
                     break;
             }
         }

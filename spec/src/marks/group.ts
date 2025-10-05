@@ -203,8 +203,7 @@ export class Group extends Mark {
                 baseColumnIndex = dataset.getColumnIndex(field);
             }
             if (baseColumnIndex == -1) {
-                console.log(`mark encoding field ${field} not found`);
-                throw new Error(`mark encoding field ${field} not found`);
+                throw new Error(`mark encoding field "${field}" not found`);
             }
             switch (baseDataset.getColumnType(baseColumnIndex)) {
                 case Core.Data.ColumnType.float:
@@ -502,7 +501,7 @@ export class Group extends Mark {
                     if (facet.groupby) {
                         // Create an array of ids for each group
                         const dataset = mark.getDataset(facet.data);
-                        if (!dataset) { throw new Error(`facet data ${facet.data} not found`); }
+                        if (!dataset) { throw new Error(`group mark facet data "${facet.data}" not found`); }
 
                         // Group by columns
                         const groupbyColumnIndices = [];
@@ -512,7 +511,7 @@ export class Group extends Mark {
                         let groupbyArray = Array.isArray(facet.groupby) ? facet.groupby : [facet.groupby];
                         for (let i = 0; i < groupbyArray.length; i++) {
                             const columnIndex = dataset.getColumnIndex(groupbyArray[i]);
-                            if (columnIndex == -1) { throw new Error(`facet groupby column ${groupbyArray[i]} not found`); }
+                            if (columnIndex == -1) { throw new Error(`group mark facet groupby field "${groupbyArray[i]}" not found`); }
                             groupbyColumnIndices.push(columnIndex);
                             // Force discrete to get count of unique values to allow creation of spatial index
                             groupbyColumnValues.push(dataset.all.columnValues(columnIndex, true));
@@ -731,7 +730,7 @@ export class Group extends Mark {
                     let dataset: Dataset;
                     if (mark.from && mark.from.data) {
                         dataset = mark.getDataset(mark.from.data);
-                        if (!dataset) { throw new Error(`dataset ${mark.from.data} not found`); }
+                        if (!dataset) { throw new Error(`group mark encoding dataset "${mark.from.data}" not found`); }
                     }
                     else {
                         // Create empty dataset
