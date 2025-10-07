@@ -15,9 +15,9 @@ There are 2 principal ways to create charts using this library:
 The JSON specification can define data sources and transformations, scales, axes, and visualizations. Data sources can be defined in the following ways:
 
 1.  Using an **inline** JSON definition.
-2.  Linking to an external file in a CSV format via a **URL**.
+2.  Linking to an external file via a **URL**.
 
-The [Try Online](https://microsoft.github.io/morphcharts/client.html) page also supports using **local files** in CSV format.
+The [Try Online](https://microsoft.github.io/morphcharts/client.html) page also supports using **local files**.
 
 ### Rendering
 
