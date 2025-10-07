@@ -111,7 +111,7 @@ export class Dataset extends Core.Data.Dataset {
                                 format = ext;
                                 break;
                             default:
-                                // Unknown orunsupported file extension
+                                // Unknown or unsupported file extension
                                 throw new Error("data format not specified and cannot be inferred from file extension");
                         }
                     }
@@ -176,11 +176,43 @@ export class Dataset extends Core.Data.Dataset {
                     // Load data from input file upload
                     const start = performance.now();
                     const text = datasets[datasetJSON.file];
-                    // TODO: Add format attribute to support TSV, JSON
                     if (text) {
-                        const csv = new Core.Data.Csv();
-                        const headings = csv.readline(text, 0);
-                        const rows = csv.read(text, 1); // Remaining rows
+                        // Determine format: prefer explicit format, else infer from file extension
+                        let format = datasetJSON.format ? datasetJSON.format.type : undefined;
+                        if (!format && datasetJSON.file) {
+                            const ext = datasetJSON.file.split('.').pop().toLowerCase();
+                            switch (ext) {
+                                case "csv":
+                                case "tsv":
+                                case "json":
+                                    format = ext;
+                                    break;
+                                default:
+                                    format = "csv"; // Default fallback
+                                    break;
+                            }
+                        }
+                        let headings: string[];
+                        let rows: string[][];
+                        switch (format) {
+                            case "tsv":
+                                const tsv = new Core.Data.Tsv();
+                                headings = tsv.readline(text, 0);
+                                rows = tsv.read(text, 1);
+                                break;
+                            case "json":
+                                const json = new Core.Data.Json();
+                                const data = json.read(text);
+                                headings = data[0];
+                                rows = data.slice(1);
+                                break;
+                            case "csv":
+                            default:
+                                const csv = new Core.Data.Csv();
+                                headings = csv.readline(text, 0);
+                                rows = csv.read(text, 1);
+                                break;
+                        }
                         const columnTypes = Dataset.inferTypes(rows);
                         dataset = new Dataset(headings, rows, columnTypes);
                         console.log(`loaded data ${name} ${headings.length} columns ${rows.length} rows ${Core.Time.formatDuration(performance.now() - start)}`);
