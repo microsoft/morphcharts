@@ -10,7 +10,6 @@ export { BVHAccel, LinearBVHNode, LinearBVHNodeBufferData } from "./bvh.js";
 export { Color, Colors } from "./color.js";
 export { Config } from './config.js';
 export { Constants } from './constants.js';
-export { Csv } from "./csv.js";
 export { Font } from "./font.js";
 export { GlyphRasterizer, GlyphRasterizerVisual } from "./glyph.js";
 export { Hex } from "./hex.js";
@@ -30,7 +29,6 @@ export { Text } from "./text.js";
 export { Time } from "./time.js";
 export { Tree3D } from "./tree.js";
 export { TreeMap } from "./treemap.js";
-export { Tsv } from "./tsv.js";
 export { UnitVertex } from "./vertex.js";
 
 export type { IAtlasOptions, IAtlasVisual } from "./atlas.js";

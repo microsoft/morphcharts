@@ -107,7 +107,7 @@ export class Expression {
             }
 
             // Single character logical operators
-            if (expr[i] == "!" ) {
+            if (expr[i] == "!") {
                 expression += expr[i];
                 i++;
                 continue;
@@ -279,6 +279,11 @@ export class Expression {
             if (expr.substring(i, i + 5) == "split") {
                 expression += "split";
                 i += 5;
+                continue;
+            }
+            if (expr.substring(i, i + 4) == "trim") {
+                expression += "String.prototype.trim.call";
+                i += 4;
                 continue;
             }
             if (expr.substring(i, i + 5) == "upper") {

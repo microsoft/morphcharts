@@ -66,23 +66,30 @@ export class Dataset {
         let parsedFloat, parsedDate;
         for (let i = 0; i < values.length; i++) {
             const value = values[i];
-            parsedFloat = Number(value); // Use Number rather than parseFloat, e.g. Number("2021-01-01") = NaN, parseFloat = 2021.
-            parsedDate = Date.parse(value);
             let integer = false;
             let type;
-            if (!isNaN(parsedFloat)) {
-                // Possible float column
-                type = ColumnType.float;
-
-                // Possible integer column
-                integer = Number.isSafeInteger(parsedFloat);
-            }
-            else if (!isNaN(parsedDate)) {
-                // Possible date column
-                type = ColumnType.date;
+            // Use Number rather than parseFloat, e.g. Number("2021-01-01") = NaN, parseFloat = 2021.
+            // But Number("") = 0, so check for empty string first.
+            if (value == "") {
+                type = ColumnType.string;
             }
             else {
-                type = ColumnType.string
+                parsedFloat = Number(value);
+                parsedDate = Date.parse(value);
+                if (!isNaN(parsedFloat)) {
+                    // Possible float column
+                    type = ColumnType.float;
+
+                    // Possible integer column
+                    integer = Number.isSafeInteger(parsedFloat);
+                }
+                else if (!isNaN(parsedDate)) {
+                    // Possible date column
+                    type = ColumnType.date;
+                }
+                else {
+                    type = ColumnType.string
+                }
             }
             types.push(type);
             integers.push(integer);
