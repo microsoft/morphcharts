@@ -32,7 +32,7 @@ Render pipelines are provided for:
 *   **Depth** maps.
 *   **Edge** outlines.
 
-The ray tracer supports rendering the following material types, which can be defined in the JSON specification.
+The ray tracer supports rendering the following material types, which can be defined in the JSON specification:
 
 *   **Diffuse** (Lambertian shading).
 *   **Metal**.
