@@ -101,9 +101,22 @@ export class Dataset extends Core.Data.Dataset {
                         format = datasetJSON.format.type;
                     }
                     else {
-                        format = "json";
+                        // Infer from file extension
+                        const url = datasetJSON.url as string;
+                        const ext = url.split('.').pop().toLowerCase();
+                        switch (ext) {
+                            case "json":
+                            case "csv":
+                            case "tsv":
+                                format = ext;
+                                break;
+                            default:
+                                // Unknown orunsupported file extension
+                                throw new Error("data format not specified and cannot be inferred from file extension");
+                        }
                     }
                     switch (format) {
+                        case "json":
                         case "csv":
                         case "tsv":
                             try {
@@ -116,15 +129,23 @@ export class Dataset extends Core.Data.Dataset {
                                     const text = await response.text();
                                     let rows: string[][];
                                     let headings: string[];
-                                    if (format == "csv") {
-                                        const csv = new Core.Csv();
-                                        headings = csv.readline(text, 0);
-                                        rows = csv.read(text, 1); // Remaining rows
-                                    }
-                                    else {
-                                        const tsv = new Core.Tsv();
-                                        headings = tsv.readline(text, 0);
-                                        rows = tsv.read(text, 1); // Remaining rows
+                                    switch (format) {
+                                        case "csv":
+                                            const csv = new Core.Data.Csv();
+                                            headings = csv.readline(text, 0);
+                                            rows = csv.read(text, 1); // Remaining rows
+                                            break;
+                                        case "tsv":
+                                            const tsv = new Core.Data.Tsv();
+                                            headings = tsv.readline(text, 0);
+                                            rows = tsv.read(text, 1); // Remaining rows
+                                            break;
+                                        case "json":
+                                            const json = new Core.Data.Json();
+                                            const data = json.read(text);
+                                            headings = data[0];
+                                            rows = data.slice(1); // Remaining rows
+                                            break;
                                     }
                                     const columnTypes = Dataset.inferTypes(rows);
                                     // Override inferred column types
@@ -155,9 +176,9 @@ export class Dataset extends Core.Data.Dataset {
                     // Load data from input file upload
                     const start = performance.now();
                     const text = datasets[datasetJSON.file];
-                    // TODO: Support JSON
+                    // TODO: Add format attribute to support TSV, JSON
                     if (text) {
-                        const csv = new Core.Csv();
+                        const csv = new Core.Data.Csv();
                         const headings = csv.readline(text, 0);
                         const rows = csv.read(text, 1); // Remaining rows
                         const columnTypes = Dataset.inferTypes(rows);

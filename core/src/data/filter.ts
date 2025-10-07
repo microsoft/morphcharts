@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license. 
 
-import { Csv } from "../csv.js";
+import { Csv } from "./csv.js";
 import { Time } from "../time.js";
 import { ColumnType } from "./dataset.js";
 
