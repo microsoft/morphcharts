@@ -342,7 +342,7 @@ export class Rule extends Mark {
                         if (encodeJSON.strokeWidth) { mark.encode.strokeWidth = MarkEncodingValue.fromJSON(mark, group, encodeJSON.strokeWidth); }
                         if (encodeJSON.strokeDepth) { mark.encode.strokeDepth = MarkEncodingValue.fromJSON(mark, group, encodeJSON.strokeDepth); }
 
-                        // Ofsets
+                        // Offsets
                         if (encodeJSON.offset) { mark.encode.offset = MarkEncodingValue.fromJSON(mark, group, encodeJSON.offset); }
                         if (encodeJSON.offset2) { mark.encode.offset2 = MarkEncodingValue.fromJSON(mark, group, encodeJSON.offset2); }
 
