@@ -27,7 +27,7 @@ export class Area extends Mark {
         }
         else {
             // Create empty dataset
-            dataset = Dataset.CreateEmpty();
+            dataset = Dataset.createEmpty();
         }
 
         // Dimensions

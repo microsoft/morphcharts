@@ -27,7 +27,7 @@ export class Rect extends Mark {
         }
         else {
             // Create empty dataset
-            dataset = Dataset.CreateEmpty();
+            dataset = Dataset.createEmpty();
         }
 
         // Ids

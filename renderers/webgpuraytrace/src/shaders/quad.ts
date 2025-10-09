@@ -61,7 +61,7 @@ fn frag_main(@builtin(position) coord: vec4<f32>) -> @location(0) vec4<f32> {
 fn frag_normal(@builtin(position) coord: vec4<f32>) -> @location(0) vec4<f32> {
     let x = floor(coord.x);
     let y = floor(coord.y);
-    let index = u32(x + y * uniforms.width) * 4u;
+    let index = u32(x + y * uniforms.width) * COLOR_STRIDE;
     // [0,1]
     // TODO: Convert from [-1,1] to [0,1] here instead of in the shader
     var normal = vec3<f32>(colorBuffer.data[index], colorBuffer.data[index + 1u], colorBuffer.data[index + 2u]) / uniforms.samplesPerPixel;
@@ -72,7 +72,7 @@ fn frag_normal(@builtin(position) coord: vec4<f32>) -> @location(0) vec4<f32> {
 fn frag_depth(@builtin(position) coord: vec4<f32>) -> @location(0) vec4<f32> {
     let x = floor(coord.x);
     let y = floor(coord.y);
-    let index = u32(x + y * uniforms.width) * 4u;
+    let index = u32(x + y * uniforms.width) * COLOR_STRIDE;
     let depth = colorBuffer.data[index + 3u] / uniforms.samplesPerPixel;
     let minDepth = uniforms.minDepth;
     let maxDepth = uniforms.maxDepth;
@@ -92,7 +92,7 @@ fn frag_depth(@builtin(position) coord: vec4<f32>) -> @location(0) vec4<f32> {
 fn frag_texture(@builtin(position) coord: vec4<f32>) -> @location(0) vec4<f32> {
     let x = floor(coord.x);
     let y = floor(coord.y);
-    let index = u32(x + y * uniforms.width) * 4u;
+    let index = u32(x + y * uniforms.width) * COLOR_STRIDE;
     var color = vec3<f32>(colorBuffer.data[index], colorBuffer.data[index + 1u], colorBuffer.data[index + 2u]) / uniforms.samplesPerPixel;
     return vec4<f32>(color, 1f);
 }
@@ -110,7 +110,7 @@ fn frag_segment(@builtin(position) coord: vec4<f32>) -> @location(0) vec4<f32> {
 fn frag_edge(@builtin(position) coord: vec4<f32>) -> @location(0) vec4<f32> {
     let x = floor(coord.x);
     let y = floor(coord.y);
-    let index = u32(x + y * (uniforms.width + 1)) * 4u; // Overdispatched by 1
+    let index = u32(x + y * (uniforms.width + 1)) * COLOR_STRIDE; // Overdispatched by 1
     let background = uniforms.edgeBackground;
     let foreground = uniforms.edgeForeground;
     

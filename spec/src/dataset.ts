@@ -11,7 +11,7 @@ export class Dataset extends Core.Data.Dataset {
     public get datum() { return this._parent; }
 
     // Factory method to create empty dataset
-    public static CreateEmpty(): Dataset {
+    public static createEmpty(): Dataset {
         // Single row with single empty string column
         const headings = [""];
         const columnTypes = [Core.Data.ColumnType.string];
