@@ -29,7 +29,7 @@ export class Text extends Mark {
         }
         else {
             // Create empty dataset
-            dataset = new Dataset([""], [[""]], [Core.Data.ColumnType.string]);
+            dataset = Dataset.Create();
         }
 
         // Dimensions

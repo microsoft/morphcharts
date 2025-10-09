@@ -15,6 +15,11 @@ struct ColorBuffer {
     values: array<f32>,
 }
 
+// Min, max depth
+struct DepthMinMaxBuffer {
+    values: array<atomic<u32>>,
+}
+
 struct Ray {
     origin: vec3<f32>,
     direction: vec3<f32>,
@@ -58,46 +63,45 @@ struct Camera {
 // 2    dielectric
 // 3    diffuse light
 // 4    glossy
-// 5    isotropic
-// 6    varnitsh
-                          //         offest   align    size
-struct Material {         // ------------------------------
-    typeId: f32,          //              0       4       4
-    fuzz: f32,            //              4       4       4
-    refractiveIndex: f32, //              8       4       4
-    textureId: f32,       //             12       4       4
-    color: vec3<f32>,     //             16      16      12
-    gloss: f32,           //             28       4       4
-    idColor: vec4<f32>,   //             32      16      16
-    density: f32,         //             48       4       4
-                          // padding     52       4      12
-                          // ------------------------------
+                                   //         offest  align  size
+struct Material {                  // ---------------------------
+    typeId: f32,                   //              0*     4     4
+    fuzz: f32,                     //              4      4     4
+    refractiveIndex: f32,          //              8      4     4
+    textureId: f32,                //             12      4     4
+    color: vec3<f32>,              //             16*    16    12
+    gloss: f32,                    //             28      4     4
+    idColor: vec4<f32>,            //             32*    16    16
+    density: f32,                  //             48*     4     4
+                                   // padding     52      4    12
+                                   // ---------------------------
 }
-                                 // offest  align  size
-struct Uniforms {                // ------  -----  ----
-    position: vec3<f32>,         //      0*    16    12
-    width: f32,                  //     12      4     4
-    right: vec3<f32>,            //     16*    16    12
-    height: f32,                 //     28      4     4
-    up: vec3<f32>,               //     32*    16    12
-    seed: f32,                   //     44      4     4
-    forward: vec3<f32>,          //     48*    16    12
-    fov: f32,                    //     60      4     4
-    backgroundColor: vec4<f32>,  //     64*    16    16
-    ambientColor: vec3<f32>,     //     80*    16    12
-    tilesX : f32,                //     92      4     4
-    tilesY : f32,                //     96*     4     4
-    tileOffsetX : f32,           //    100      4     4
-    tileOffsetY : f32,           //    104      4     4    
-    aperture: f32,               //    108      4     4
-    lookAt: vec3<f32>,           //    112*    16    12
-    focusDistance: f32,          //    124      4     4
-    directionToLight: vec3<f32>, //    128*    16    12
-    multisample: f32,            //    140      4     4
-                                 // ------  -----  ----
-                                 //            16   144
+                                   //         offest  align  size
+struct Uniforms {                  // ---------------------------
+    position: vec3<f32>,           //              0*    16    12
+    width: f32,                    //             12      4     4
+    right: vec3<f32>,              //             16*    16    12
+    height: f32,                   //             28      4     4
+    up: vec3<f32>,                 //             32*    16    12
+    seed: f32,                     //             44      4     4
+    forward: vec3<f32>,            //             48*    16    12
+    fov: f32,                      //             60      4     4
+    backgroundColor: vec4<f32>,    //             64*    16    16
+    ambientColor: vec3<f32>,       //             80*    16    12
+    tilesX : f32,                  //             92      4     4
+    tilesY : f32,                  //             96*     4     4
+    tileOffsetX : f32,             //            100      4     4
+    tileOffsetY : f32,             //            104      4     4    
+    aperture: f32,                 //            108      4     4
+    lookAt: vec3<f32>,             //            112*    16    12
+    focusDistance: f32,            //            124      4     4
+    directionToLight: vec3<f32>,   //            128*    16    12
+    multisample: f32,              //            140      4     4
+    cameraTypeId: f32,             //            144      4     4
+                                   // padding    148      4    12
+                                   // ---------------------------
+                                   //                    16   160
 }
-
 
 // id   type
 // ----------------
@@ -105,22 +109,21 @@ struct Uniforms {                // ------  -----  ----
 // 1    checker
 // 2    image
 // 3    sdfText
-// 4    uv (2d texture coordinate)
-// 5    uvw (3d texture coordinate)
-                       //         offest   align    size
-struct Texture {       // ------------------------------
-    color0: vec3<f32>, //              0      16      12
-    typeId: f32,       //             12       4       4
-    color1: vec3<f32>, //             16      12      12
-                       // padding     28       4      12
-    size0: vec4<f32>,  //             32      16      16
-    size1: vec4<f32>,  //             48      16      16
-    clip:  vec4<f32>,  //             64      16      16
-    offset: vec2<f32>, //             80       8       8
-}                      // padding     88       4       8
-                       // ------------------------------
-                       //                     16      96
-
+// 4    uv (2d texcoord)
+// 5    uvw (3d texcoord)
+                                   //         offest  align  size
+struct Texture {                   // ---------------------------
+    color0: vec3<f32>,             //              0     16    12
+    typeId: f32,                   //             12      4     4
+    color1: vec3<f32>,             //             16*    12    12
+                                   // padding     28      4    12
+    size0: vec4<f32>,              //             32*    16    16
+    size1: vec4<f32>,              //             48*    16    16
+    clip:  vec4<f32>,              //             64*    16    16
+    offset: vec2<f32>,             //             80*     8     8
+}                                  // padding     88      4     8
+                                   // ---------------------------
+                                   //                    16    96
 
 // id   type
 // ----------------
@@ -130,59 +133,59 @@ struct Texture {       // ------------------------------
 // 3    disk
 // 4    cylinder
 // 5    dome
-                         //         offest   align    size
-struct Light {           // ------------------------------
-    rotation: vec4<f32>, //              0      16      16
-    center: vec3<f32>,   //             16      16      12
-    typeId: f32,         //             28       4       4
-    size: vec3<f32>,     //             32      16      12
-    _padding1: f32,      // padding     44       4       4
-    color: vec3<f32>,    //             48      16      12
-    _padding2: f32,      // padding     60       4       4
-}                        // ------------------------------
-                         //                     16      64
+                                   //         offest  align  size
+struct Light {                     // ---------------------------
+    rotation: vec4<f32>,           //              0     16    16
+    center: vec3<f32>,             //             16*    16    12
+    typeId: f32,                   //             28      4     4
+    size: vec3<f32>,               //             32*    16    12
+    _padding1: f32,                // padding     44      4     4
+    color: vec3<f32>,              //             48*    16    12
+    _padding2: f32,                // padding     60      4     4
+}                                  // ---------------------------
+                                   //                    16    64
 
-                                  //         offest   align    size
-struct Hittable {                 // ------------------------------
-    center0: vec3<f32>,           //              0*     16      12
-    typeId: f32,                  //             12       4       4
-    size0: vec3<f32>,             //             16*     16      12
-    rounding: f32,                //             28       4       4
-    rotation0: vec4<f32>,         //             32*     16      16
-    materialTypeId: f32,          //             48*      4       4
-    materialFuzz: f32,            //             52       4       4
-    materialGloss: f32,           //             56       4       4
-    materialDensity: f32,         //             60       4       4
-    materialColor1: vec3<f32>,    //             64*     16      12
-    materialRefractiveIndex: f32, //             76       4       4
-    segmentColor: vec4<f32>,      //             80*     16      16    
-    texCoords: vec4<f32>,         //             96*     16      16
-    texOffset: vec4<f32>,         //            112*     16      12
-    texScale: vec4<f32>,          //            128*     16      12
-    sdfBuffer: f32,               //            144*      4       4
-    sdfHalo: f32,                 //            148       4       4
-    textureTypeId: f32,           //            152       4       4
-    _padding3: f32,               // padding    156       4       4
-    parameter0: f32,              //            160*      4       4
-    parameter1: f32,              //            164       4       4
-    parameter2: f32,              //            168       4       4
-    parameter3: f32,              //            172       4       4
-    materialColor2: vec3<f32>,    //            176*     16      12
-    _padding4: f32,               // padding    188       4       4
-}                                 // ------------------------------
-                                  //                     16     192
+                                   //         offest  align  size
+struct Hittable {                  // ---------------------------
+    center0: vec3<f32>,            //              0*    16    12
+    typeId: f32,                   //             12      4     4
+    size0: vec3<f32>,              //             16*    16    12
+    rounding: f32,                 //             28      4     4
+    rotation0: vec4<f32>,          //             32*    16    16
+    materialTypeId: f32,           //             48*     4     4
+    materialFuzz: f32,             //             52      4     4
+    materialGloss: f32,            //             56      4     4
+    materialDensity: f32,          //             60      4     4
+    materialColor1: vec3<f32>,     //             64*    16    12
+    materialRefractiveIndex: f32,  //             76      4     4
+    segmentColor: vec4<f32>,       //             80*    16    16    
+    texCoords: vec4<f32>,          //             96*    16    16
+    texOffset: vec4<f32>,          //            112*    16    12
+    texScale: vec4<f32>,           //            128*    16    12
+    sdfBuffer: f32,                //            144*     4     4
+    sdfHalo: f32,                  //            148      4     4
+    textureTypeId: f32,            //            152      4     4
+    _padding3: f32,                // padding    156      4     4
+    parameter0: f32,               //            160*     4     4
+    parameter1: f32,               //            164      4     4
+    parameter2: f32,               //            168      4     4
+    parameter3: f32,               //            172      4     4
+    materialColor2: vec3<f32>,     //            176*    16    12
+    _padding4: f32,                // padding    188      4     4
+}                                  // ---------------------------
+                                   //                    16   192
 
-                            //         offest   align    size
-struct LinearBVHNode {      // ------------------------------
-    center: vec3<f32>,      //              0      16      12
-    primitivesOffset: f32,  //             12       4       4
-    size: vec3<f32>,        //             16      16      12
-    secondChildOffset: f32, //             28       4       4
-    nPrimitives: f32,       //             32       4       4
-    axis: f32,              //             36       4       4
-}                           // padding     40       4       8
-                            // ------------------------------
-                            //                     16      48
+                                   //         offest  align  size
+struct LinearBVHNode {             // ---------------------------
+    center: vec3<f32>,             //              0*    16    12
+    primitivesOffset: f32,         //             12      4     4
+    size: vec3<f32>,               //             16*    16    12
+    secondChildOffset: f32,        //             28      4     4
+    nPrimitives: f32,              //             32*     4     4
+    axis: f32,                     //             36      4     4
+}                                  // padding     40      4     8
+                                   // ---------------------------
+                                   //                    16    48
 
 struct HittableBuffer {
     hittables: array<Hittable>,
@@ -264,7 +267,7 @@ fn getCamera(uniforms: Uniforms) -> Camera {
     return camera;
 }
 
-fn getCameraRay(camera: Camera, seed: ptr<function, u32>, texCoord: vec2<f32>) -> Ray {
+fn getPerspectiveRay(camera: Camera, seed: ptr<function, u32>, texCoord: vec2<f32>) -> Ray {
     // Depth of field
     let rd = camera.aperture * randomInUnitDisk(seed);
     let offset = camera.u * rd.x + camera.v * rd.y;
@@ -272,6 +275,17 @@ fn getCameraRay(camera: Camera, seed: ptr<function, u32>, texCoord: vec2<f32>) -
     var ray: Ray;
     ray.origin = camera.origin + offset;
     ray.direction = normalize(camera.lowerLeftCorner + texCoord.x * camera.horizontal - texCoord.y * camera.vertical - ray.origin);
+    return ray;
+}
+
+fn getEqualAreaCylindricalRay(camera: Camera, seed: ptr<function, u32>, texCoord: vec2<f32>) -> Ray {
+    // Equal area cylindrical projection
+    let theta = (texCoord.x - 0.5f) * TWO_PI; // [-pi, pi]
+    let phi = (0.5f - texCoord.y) * PI; // [-pi/2, pi/2], flip y
+    let scale = cos(phi);
+    var ray: Ray;
+    ray.origin = camera.origin;
+    ray.direction = normalize(vec3<f32>(scale * sin(theta), sin(phi), scale * cos(theta)));
     return ray;
 }
 
@@ -1652,22 +1666,19 @@ fn rayColor(ray: ptr<function, Ray>, seed: ptr<function, u32>) -> vec3<f32> {
 @group(0) @binding(6) var backgroundTexture: texture_2d<f32>;
 @group(1) @binding(0) var<storage, read_write> outputColorBuffer: ColorBuffer;
 @group(2) @binding(1) var<uniform> uniforms: Uniforms;
+@group(2) @binding(2) var<storage, read_write> depthMinMaxBuffer: DepthMinMaxBuffer;
 
 // TODO: Move lighting to seperate bind group so I can update it independently
 
 @compute @workgroup_size(256, 1, 1)
 fn clear(@builtin(global_invocation_id) globalId : vec3<u32>) {
-    var index = globalId.x * 3u;
+    let index = globalId.x * 4u;
     outputColorBuffer.values[index] = 0f;
     outputColorBuffer.values[index + 1u] = 0f;
     outputColorBuffer.values[index + 2u] = 0f;
-    index = globalId.x * 4u;
-    // outputNormalDepthBuffer.values[index] = 0f; // Normal x
-    // outputNormalDepthBuffer.values[index + 1u] = 0f; // Normal y
-    // outputNormalDepthBuffer.values[index + 2u] = 0f; // Normal z
-    // outputNormalDepthBuffer.values[index + 3u] = 0f; // Depth
-    // atomicStore(&depthMinMaxBuffer.values[0], 4294967295u);
-    // atomicStore(&depthMinMaxBuffer.values[1], 0u);
+    outputColorBuffer.values[index + 3u] = 0f;
+    atomicStore(&depthMinMaxBuffer.values[0], 4294967295u);
+    atomicStore(&depthMinMaxBuffer.values[1], 0u);
 }
 
 // @builtin(local_invocation_id) localId : vec3<u32>,
@@ -1700,61 +1711,47 @@ fn main(@builtin(global_invocation_id) globalId : vec3<u32>) {
     // Tex coords ([0,1], [0,1])
     let texCoord = vec2<f32>(imagePixelX / imageSize.x, imagePixelY / imageSize.y);
 
-    // Camera
-    var camera = getCamera(uniforms);
-
     // Frame seed
     var frameSeed = u32(uniforms.seed);
     var color = vec3<f32>(0f, 0f, 0f);
     var depth = 0f;
     var normal = vec3<f32>(0f, 0f, 0f);
-    var seed: u32;
-
+    
     // Random number generator
     // TODO: Consider switching to u32 for uniforms and use vec3<u32> arithmetic
-    seed = u32(tilePixelY * tileSize.x + tilePixelX) + frameSeed * u32(tileSize.x * tileSize.y);
+    var seed = u32(tilePixelY * tileSize.x + tilePixelX) + frameSeed * u32(tileSize.x * tileSize.y);
 
     // Sample position (sub-pixel sampling has same seed, but only sampled once per frame)
     let samplePos = vec2<f32>(texCoord) + vec2<f32>(random(&seed), random(&seed)) / imageSize;
 
+    // Camera
+    let camera = getCamera(uniforms);
+
     // Ray
-    var ray = getCameraRay(camera, &seed, samplePos);
+    var ray: Ray;
+    switch u32(uniforms.cameraTypeId) {
+        default: {
+            ray = getPerspectiveRay(camera, &seed, samplePos);
+            break;
+        }
+        case 1u: {
+            ray = getEqualAreaCylindricalRay(camera, &seed, samplePos);
+            break;
+        }
+    }
     
     // Color [0,1]
-    // let color = result.color;
-    // let color = clamp(result.color, vec3<f32>(0f, 0f, 0f), vec3<f32>(1f, 1f, 1f));
-    // let color = clamp(result.color, vec3<f32>(0f, 0f, 0f), vec3<f32>(10f, 10f, 10f)); // Max light
+    // let color = rayColor(&ray, &seed);
+    // let color = clamp(rayColor(&ray, &seed), vec3<f32>(0f, 0f, 0f), vec3<f32>(1f, 1f, 1f));
     color += clamp(rayColor(&ray, &seed), vec3<f32>(0f, 0f, 0f), vec3<f32>(10f, 10f, 10f)); // Max light
-
-    // Depth
-    // let depth = 1f / rayColor(&ray, &seed).depth;
-    // color = vec3<f32>(depth, depth, depth);
-    // depth += result.depth; // Debug
-
-    // Normal
-    // normal += result.normal * 0.5f + vec3<f32>(0.5f, 0.5f, 0.5f); // Debug
 
     // Next frame
     frameSeed++;
 
-    // color.x = texCoord.x;
-    // color.y = texCoord.y;
-    // color.z = 0f; // Debug
-
-    // color.x = samplePos.x;
-    // color.y = samplePos.y;
-    // color.z = 0f; // Debug
-
-    // color += ray.direction * 0.5f + vec3<f32>(0.5f, 0.5f, 0.5f); // Debug
-    
-    let index = globalId.x * 3u;
+    let index = globalId.x * 4u;
     outputColorBuffer.values[index + 0u] += color.x;
     outputColorBuffer.values[index + 1u] += color.y;
     outputColorBuffer.values[index + 2u] += color.z;
-    // outputDepthBuffer.values[globalId.x] += depth;
-    // outputNormalBuffer.values[index + 0u] += + normal.x;
-    // outputNormalBuffer.values[index + 1u] += + normal.y;
-    // outputNormalBuffer.values[index + 2u] += + normal.z;
 }
 
 @compute @workgroup_size(256, 1, 1)
@@ -1784,7 +1781,17 @@ fn color(@builtin(global_invocation_id) globalId : vec3<u32>) {
             let texCoord = vec2<f32>(u, v);
 
             // Ray
-            var ray = getCameraRay(camera, &seed, texCoord);
+            var ray: Ray;
+            switch u32(uniforms.cameraTypeId) {
+                default: {
+                    ray = getPerspectiveRay(camera, &seed, texCoord);
+                    break;
+                }
+                case 1u: {
+                    ray = getEqualAreaCylindricalRay(camera, &seed, texCoord);
+                    break;
+                }
+            }
 
             // Color
             var hitRecord: HitRecord;
@@ -1806,7 +1813,7 @@ fn color(@builtin(global_invocation_id) globalId : vec3<u32>) {
             }
         }
     }
-    let index = globalId.x * 3u;
+    let index = globalId.x * 4u;
     color /= (AA * AA); // Average color over samples
     outputColorBuffer.values[index + 0u] += color.x;
     outputColorBuffer.values[index + 1u] += color.y;
@@ -1814,7 +1821,7 @@ fn color(@builtin(global_invocation_id) globalId : vec3<u32>) {
 }
     
 @compute @workgroup_size(256, 1, 1)
-fn normal(@builtin(global_invocation_id) globalId : vec3<u32>) {
+fn normalDepth(@builtin(global_invocation_id) globalId : vec3<u32>) {
     let imageSize = vec2<f32>(uniforms.width * uniforms.tilesX, uniforms.height * uniforms.tilesY);
     let tileSize = vec2<f32>(uniforms.width, uniforms.height);
 
@@ -1833,19 +1840,53 @@ fn normal(@builtin(global_invocation_id) globalId : vec3<u32>) {
 
     // Ray
     var seed = 0u;
-    var ray = getCameraRay(camera, &seed, texCoord);
+    var ray: Ray;
+    switch u32(uniforms.cameraTypeId) {
+        default: {
+            ray = getPerspectiveRay(camera, &seed, texCoord);
+            break;
+        }
+        case 1u: {
+            ray = getEqualAreaCylindricalRay(camera, &seed, texCoord);
+            break;
+        }
+    }
 
     // Normal
     var normal = vec3<f32>(0f, 0f, 0f);
+    var depth = 0f;
     var hitRecord: HitRecord;
     if (hitBVH(ray, 0.00001f, 100f, &hitRecord, &seed)) {
         normal = hitRecord.normal * 0.5f + vec3<f32>(0.5f, 0.5f, 0.5f);
+
+        // Linear depth
+        switch u32(uniforms.cameraTypeId) {
+            default: {
+                // Perspective, projected depth
+                depth = dot(ray.origin - hitRecord.position, uniforms.forward);
+                break;
+            }
+            case 1u: {
+                // Cylindrical, actual distance
+                depth = length(hitRecord.position - ray.origin);
+                break;
+            }
+        }
     }
     
-    let index = globalId.x * 3u;
+    let index = globalId.x * 4u;
     outputColorBuffer.values[index + 0u] += normal.x;
     outputColorBuffer.values[index + 1u] += normal.y;
     outputColorBuffer.values[index + 2u] += normal.z;
+    outputColorBuffer.values[index + 3u] += depth;
+
+    // Min, max depth
+    // When depth is 0, it means no hit, so ignore
+    // Emulate float atomicMin/Max by storing as int (x1000) to preserve some precision
+    if (depth > 0f) {
+        atomicMin(&depthMinMaxBuffer.values[0], u32(depth * 1000f));
+        atomicMax(&depthMinMaxBuffer.values[1], u32(depth * 1000f));
+    }
 }
 
 @compute @workgroup_size(256, 1, 1)
@@ -1868,7 +1909,17 @@ fn segment(@builtin(global_invocation_id) globalId : vec3<u32>) {
 
     // Ray
     var seed = 0u;
-    var ray = getCameraRay(camera, &seed, texCoord);
+    var ray: Ray;
+    switch u32(uniforms.cameraTypeId) {
+        default: {
+            ray = getPerspectiveRay(camera, &seed, texCoord);
+            break;
+        }
+        case 1u: {
+            ray = getEqualAreaCylindricalRay(camera, &seed, texCoord);
+            break;
+        }
+    }
 
     // Segment
     var segment = vec4<f32>(0f, 0f, 0f, 0f);
@@ -1878,7 +1929,7 @@ fn segment(@builtin(global_invocation_id) globalId : vec3<u32>) {
         segment = hittable.segmentColor;
     }
     
-    let index = globalId.x * 3u;
+    let index = globalId.x * 4u;
     outputColorBuffer.values[index + 0u] += segment.x;
     outputColorBuffer.values[index + 1u] += segment.y;
     outputColorBuffer.values[index + 2u] += segment.z;
@@ -1904,7 +1955,17 @@ fn texture(@builtin(global_invocation_id) globalId : vec3<u32>) {
 
     // Ray
     var seed = 0u;
-    var ray = getCameraRay(camera, &seed, texCoord);
+    var ray: Ray;
+    switch u32(uniforms.cameraTypeId) {
+        default: {
+            ray = getPerspectiveRay(camera, &seed, texCoord);
+            break;
+        }
+        case 1u: {
+            ray = getEqualAreaCylindricalRay(camera, &seed, texCoord);
+            break;
+        }
+    }
 
     // Texture
     var texture = vec2<f32>(0f, 0f);
@@ -1913,14 +1974,14 @@ fn texture(@builtin(global_invocation_id) globalId : vec3<u32>) {
         texture = hitRecord.uv;
     }
     
-    let index = globalId.x * 3u;
+    let index = globalId.x * 4u;
     outputColorBuffer.values[index + 0u] += texture.x;
     outputColorBuffer.values[index + 1u] += texture.y;
 }
 `;
 
 export class ComputeUniformBufferData extends Float32Array {
-    public static readonly SIZE = 144 / 4;
+    public static readonly SIZE = 160 / 4;
 
     public readonly POSITION_OFFSET = 0 / 4;
     public readonly WIDTH_OFFSET = 12 / 4;
@@ -1941,6 +2002,7 @@ export class ComputeUniformBufferData extends Float32Array {
     public readonly FOCUS_DISTANCE_OFFSET = 124 / 4;
     public readonly DIRECTION_TO_LIGHT_OFFSET = 128 / 4;
     public readonly MULTISAMPLE_OFFSET = 140 / 4;
+    public readonly CAMERA_TYPE_ID_OFFSET = 144 / 4;
 
     constructor() {
         super(ComputeUniformBufferData.SIZE)
@@ -2084,4 +2146,7 @@ export class ComputeUniformBufferData extends Float32Array {
 
     public getMultisample() { return this[this.MULTISAMPLE_OFFSET]; }
     public setMultisample(value: number) { this[this.MULTISAMPLE_OFFSET] = value; }
+
+    public getCameraTypeId() { return this[this.CAMERA_TYPE_ID_OFFSET]; }
+    public setCameraTypeId(value: number) { this[this.CAMERA_TYPE_ID_OFFSET] = value; }
 }

@@ -24,6 +24,11 @@ export class Config {
     public static readonly cameraAperture: number = 0;
     public static readonly cameraFocusDistance: number = 0;
 
+    // Depth
+    public static readonly depthAuto: boolean = true;
+    public static readonly depthMin: number = 1;
+    public static readonly depthMax: number = 10;
+
     // Lighting
     public static readonly backgroundColor: ColorRGBA = [0, 0, 0, 1];
     public static readonly ambientColor: ColorRGB = [1, 1, 1];
@@ -33,6 +38,9 @@ export class Config {
 
     // Render mode
     public static readonly renderMode: string = "color";
+
+    // Camera mode
+    public static readonly cameraMode: string = "perspective";
 
     // Edge
     public static readonly edgeForeground: ColorRGBA = [0, 0, 0, 1];

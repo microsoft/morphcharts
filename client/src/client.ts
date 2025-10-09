@@ -46,6 +46,13 @@ export class Main {
     private _captureButton: HTMLButtonElement;
     private _includeCameraCheckbox: HTMLInputElement;
 
+    // Depth
+    private _depthAutoCheckbox: HTMLInputElement;
+    private _depthMinRange: HTMLInputElement;
+    private _depthMinLabel: HTMLLabelElement;
+    private _depthMaxRange: HTMLInputElement;
+    private _depthMaxLabel: HTMLLabelElement;
+
     // Renderer
     private _widthText: HTMLInputElement;
     private _heightText: HTMLInputElement;
@@ -270,9 +277,9 @@ export class Main {
                         console.log("invalid size");
                         return;
                     }
-                    const maxBufferSize = Math.pow(2, 20) * 128 / 12;
-                    if (width * height > maxBufferSize) {
-                        console.log(`max buffer size is ${maxBufferSize}`);
+                    const maxBufferSize = Math.pow(2, 20) * 128 / 16; // 128MB buffer, 4 bytes/channel, 4 channels (3840x2160px 16:9, or 2,896px² square)
+                    if ((width + 1) * (height + 1) > maxBufferSize) { // Overdispatching for correct edge handling
+                        console.log(`${width}x${height}px buffer size ${(width + 1) * (height + 1)}bytes exceeds max ${maxBufferSize}bytes`);
                         return;
                     }
             }
@@ -344,6 +351,11 @@ export class Main {
             this._focusLabel.innerText = focusDistance.toFixed(3);
             this._camera.focusDistance = focusDistance;
         }
+        const focusResetButton = document.getElementById("focusResetButton") as HTMLInputElement;
+        focusResetButton.onclick = () => {
+            this._camera.focusDistance = 0;
+            this._updateUI();
+        }
 
         // Multisample
         const antialiasSelect = document.getElementById("antialiasSelect") as HTMLInputElement;
@@ -352,15 +364,41 @@ export class Main {
             this._renderer.multisample = parseInt(antialiasSelect.value);
         }
 
+        // Depth
+        this._depthAutoCheckbox = document.getElementById("depthAuto") as HTMLInputElement;
+        this._depthMinRange = document.getElementById("depthMinRange") as HTMLInputElement;
+        this._depthMinLabel = document.getElementById("depthMinRangeLabel") as HTMLLabelElement;
+        this._depthMaxRange = document.getElementById("depthMaxRange") as HTMLInputElement;
+        this._depthMaxLabel = document.getElementById("depthMaxRangeLabel") as HTMLLabelElement;
+        this._renderer.depthAuto = Core.Config.depthAuto;
+        this._renderer.depthMin = Core.Config.depthMin;
+        this._renderer.depthMax = Core.Config.depthMax;
+        this._depthAutoCheckbox.onchange = () => {
+            this._renderer.depthAuto = this._depthAutoCheckbox.checked;
+            this._updateUI();
+        }
+        this._depthMinRange.oninput = () => {
+            const depthMin = parseFloat(this._depthMinRange.value);
+            this._renderer.depthMin = depthMin;
+            this._updateUI();
+        }
+        this._depthMaxRange.oninput = () => {
+            const depthMax = parseFloat(this._depthMaxRange.value);
+            this._renderer.depthMax = depthMax;
+            this._updateUI();
+        }
+
         // Render mode options
         const raytraceOptions = document.getElementById("raytraceOptions") as HTMLDivElement;
         const colorOptions = document.getElementById("colorOptions") as HTMLDivElement;
         const edgeOptions = document.getElementById("edgeOptions") as HTMLDivElement;
+        const depthOptions = document.getElementById("depthOptions") as HTMLDivElement;
         const renderModeChanged = () => {
             // Hide all options
             raytraceOptions.style.display = "none";
             colorOptions.style.display = "none";
             edgeOptions.style.display = "none";
+            depthOptions.style.display = "none";
             // Show options for selected render mode
             switch (this._renderer.renderMode) {
                 case "raytrace":
@@ -371,6 +409,9 @@ export class Main {
                     break;
                 case "edge":
                     edgeOptions.style.display = "flex";
+                    break;
+                case "depth":
+                    depthOptions.style.display = "flex";
                     break;
             }
         };
@@ -388,6 +429,38 @@ export class Main {
             if (radio.checked) { this._renderer.renderMode = radio.value; }
         }
         renderModeChanged();
+
+        // Camera mode options
+        const perspectiveOptions = document.getElementById("perspectiveOptions") as HTMLDivElement;
+        const equalAreaCylindricalOptions = document.getElementById("equalAreaCylindricalOptions") as HTMLDivElement;
+        const cameraModeChanged = () => {
+            // Hide all options
+            perspectiveOptions.style.display = "none";
+            equalAreaCylindricalOptions.style.display = "none";
+            // Show options for selected camera mode
+            switch (this._renderer.cameraMode) {
+                case "perspective":
+                    perspectiveOptions.style.display = "flex";
+                    break;
+                case "equalAreaCylindrical":
+                    equalAreaCylindricalOptions.style.display = "flex";
+                    break;
+            }
+        };
+
+        // Camera mode
+        const cameraModeRadioGroup = document.getElementsByName("cameraMode") as NodeListOf<HTMLInputElement>;
+        for (let i = 0; i < cameraModeRadioGroup.length; i++) {
+            const radio = cameraModeRadioGroup[i] as HTMLInputElement;
+            radio.addEventListener("change", () => {
+                this._renderer.cameraMode = radio.value;
+                cameraModeChanged();
+            });
+
+            // Default
+            if (radio.checked) { this._renderer.cameraMode = radio.value; }
+        }
+        cameraModeChanged();
     }
 
     private _initializeTiles(): void {
@@ -439,7 +512,7 @@ export class Main {
             console.log("spec changed");
             this._hasSpecChanged = true;
             this._updateDebug(0);
-            
+
             // Disable start button if no spec
             if (!this._isRunning) {
                 this._startStopButton.disabled = this._editor.content.trim().length == 0;
@@ -572,6 +645,18 @@ export class Main {
         this._focusRange.value = focusDistance.toString();
         this._focusLabel.innerText = focusDistance.toFixed(3);
 
+        // Depth
+        const depthAuto = this._renderer.depthAuto;
+        const depthMin = this._renderer.depthMin;
+        const depthMax = this._renderer.depthMax;
+        this._depthAutoCheckbox.checked = depthAuto;
+        this._depthMinRange.disabled = depthAuto;
+        this._depthMaxRange.disabled = depthAuto;
+        this._depthMinRange.value = depthMin.toString();
+        this._depthMinLabel.innerText = depthMin.toFixed(2);
+        this._depthMaxRange.value = depthMax.toString();
+        this._depthMaxLabel.innerText = depthMax.toFixed(2);
+
         // Debug
         this._updateDebug(0);
     }
@@ -587,6 +672,10 @@ export class Main {
             this._debug.cameraFov = this._camera.fov;
             this._debug.cameraAperture = this._camera.aperture;
             this._debug.cameraFocusDistance = this._camera.focusDistance;
+
+            // Depth
+            this._debug.depthMin = this._renderer.depthMin;
+            this._debug.depthMax = this._renderer.depthMax;
 
             // Editor
             this._debug.editorLineCount = this._editor.currentLines;
@@ -1018,6 +1107,12 @@ class Debug {
     private _cameraFocus: HTMLSpanElement;
     public cameraFocusDistance: number;
 
+    // Depth
+    private _depthMin: HTMLSpanElement;
+    private _depthMax: HTMLSpanElement;
+    public depthMin: number;
+    public depthMax: number;
+
     constructor() {
         // Renderer
         this._renderFrameCount = document.getElementById("debugRenderFrameCount") as HTMLSpanElement;
@@ -1029,6 +1124,10 @@ class Debug {
         this._cameraFov = document.getElementById("debugCameraFov") as HTMLSpanElement;
         this._cameraAperture = document.getElementById("debugCameraAperture") as HTMLSpanElement;
         this._cameraFocus = document.getElementById("debugCameraFocus") as HTMLSpanElement;
+
+        // Depth
+        this._depthMin = document.getElementById("debugDepthMin") as HTMLSpanElement;
+        this._depthMax = document.getElementById("debugDepthMax") as HTMLSpanElement;
 
         // Editor
         this._editorLineCount = document.getElementById("debugEditorLineCount") as HTMLSpanElement;
@@ -1046,6 +1145,10 @@ class Debug {
         this._cameraFov.innerText = `${Math.round(this.cameraFov * Core.Constants.DEGREES_PER_RADIAN)}°`;
         this._cameraAperture.innerText = `${(this.cameraAperture * 1000).toFixed(1)}mm`;
         this._cameraFocus.innerText = `${(this.cameraFocusDistance).toFixed(3)}`;
+
+        // Depth
+        this._depthMin.innerText = `${this.depthMin.toFixed(2).padStart(5, " ")}`;
+        this._depthMax.innerText = `${this.depthMax.toFixed(2).padStart(5, " ")}`;
 
         // Editor
         this._editorLineCount.innerText = this.editorLineCount.toString();

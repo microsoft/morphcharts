@@ -32,6 +32,17 @@ export abstract class Renderer {
     }
     public get renderMode(): string { return this._renderMode; }
 
+    // Camera mode (perspective, equalAreaCylindrical)
+    protected _hasCameraModeChanged: boolean;
+    protected _cameraMode: string;
+    public set cameraMode(value: string) {
+        if (this._cameraMode !== value) {
+            this._cameraMode = value;
+            this._hasCameraModeChanged = true;
+        }
+    }
+    public get cameraMode(): string { return this._cameraMode; }
+
     // Multisample
     protected _hasMultisampleChanged: boolean;
     protected _multisample: number;
@@ -149,6 +160,33 @@ export abstract class Renderer {
         }
     }
 
+    // Depth
+    protected _depthAuto: boolean;
+    protected _depthMin: number;
+    protected _depthMax: number;
+    protected _hasDepthChanged: boolean;
+    public set depthAuto(value: boolean) {
+        if (this._depthAuto != value) {
+            this._hasDepthChanged = true;
+            this._depthAuto = value;
+        }
+    }
+    public get depthAuto(): boolean { return this._depthAuto; }
+    public set depthMin(value: number) {
+        if (Math.abs(this._depthMin - value) > Constants.EPSILON) {
+            this._hasDepthChanged = true;
+            this._depthMin = value;
+        }
+    }
+    public get depthMin(): number { return this._depthMin; }
+    public set depthMax(value: number) {
+        if (Math.abs(this._depthMax - value) > Constants.EPSILON) {
+            this._hasDepthChanged = true;
+            this._depthMax = value;
+        }
+    }
+    public get depthMax(): number { return this._depthMax; }
+
     constructor() {
         // Visual collections
         this.atlasVisuals = [];
@@ -174,6 +212,9 @@ export abstract class Renderer {
         // Render mode
         this._renderMode = Config.renderMode;
 
+        // Camera mode
+        this._cameraMode = Config.cameraMode;
+
         // Multisample
         this._multisample = Config.multisample;
 
@@ -187,6 +228,11 @@ export abstract class Renderer {
         this._cameraRight = [0, 0, 0];
         this._cameraUp = [0, 0, 0];
         this._cameraChanged = true; // Force camera update on first render
+
+        // Depth
+        this._depthAuto = Config.depthAuto;
+        this._depthMin = Config.depthMin;
+        this._depthMax = Config.depthMax;
 
         // Tiles
         this._tilesX = 1;
@@ -242,5 +288,5 @@ export abstract class Renderer {
         }
     }
 
-    public capture(callback: (dataURL: string) => void) { throw new Error("not implemented"); }
+    public capture(callback: (dataURL: string) => void) { throw new Error("capture not implemented"); }
 }

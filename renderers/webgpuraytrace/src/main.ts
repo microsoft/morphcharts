@@ -31,12 +31,14 @@ export class Main extends Core.Renderer {
     // Compute
     private _computeUniformBuffer: GPUBuffer;
     private _computeUniformBufferData: ComputeUniformBufferData;
+    private _depthMinMaxBuffer: GPUBuffer;
+    private _depthMinMaxResultBuffer: GPUBuffer;
     private _computeBindGroup1: GPUBindGroup;
     private _computeBindGroup2: GPUBindGroup;
     private _computeBindGroup3: GPUBindGroup;
     private _computePipeline: GPUComputePipeline;
     private _computeColorPipeline: GPUComputePipeline;
-    private _computeNormalPipeline: GPUComputePipeline;
+    private _computeNormalDepthPipeline: GPUComputePipeline;
     private _computeSegmentPipeline: GPUComputePipeline;
     private _computeTexturePipeline: GPUComputePipeline;
     private _computeBindGroup1Layout: GPUBindGroupLayout
@@ -48,6 +50,8 @@ export class Main extends Core.Renderer {
     private _quadUniformBuffer: GPUBuffer;
     private _quadUniformBufferData: QuadUniformBufferData;
     private _quadPipeline: GPURenderPipeline;
+    private _quadNormalPipeline: GPURenderPipeline;
+    private _quadDepthPipeline: GPURenderPipeline;
     private _quadSegmentPipeline: GPURenderPipeline;
     private _quadTexturePipeline: GPURenderPipeline;
     private _quadEdgePipeline: GPURenderPipeline;
@@ -154,6 +158,20 @@ export class Main extends Core.Renderer {
                 this._computeUniformBuffer = this._device.createBuffer(computeUniformBufferDescriptor);
                 this._computeUniformBufferData = new ComputeUniformBufferData();
 
+                // Depth
+                const depthMinMaxBufferDescriptor: GPUBufferDescriptor = {
+                    label: "Depth min max buffer",
+                    size: 2 * 4,
+                    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+                };
+                this._depthMinMaxBuffer = this._device.createBuffer(depthMinMaxBufferDescriptor);
+                const depthMinMaxBufferResultDescriptor: GPUBufferDescriptor = {
+                    label: "Depth min max result buffer",
+                    size: 2 * 4,
+                    usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+                };
+                this._depthMinMaxResultBuffer = this._device.createBuffer(depthMinMaxBufferResultDescriptor);
+
                 // Quad
                 const quadUniformBufferDescriptor: GPUBufferDescriptor = {
                     label: "Full screen quad uniform buffer",
@@ -205,6 +223,7 @@ export class Main extends Core.Renderer {
                 const computeBindGroup3LayoutDescriptor: GPUBindGroupLayoutDescriptor = {
                     entries: [
                         { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: "uniform" } }, // Uniforms
+                        { binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: { type: "storage" } }, // Depth min max buffer
                     ]
                 };
                 this._computeBindGroup1Layout = this._device.createBindGroupLayout(computeBindGroup1LayoutDescriptor);
@@ -242,17 +261,17 @@ export class Main extends Core.Renderer {
                 };
                 this._computeColorPipeline = this._device.createComputePipeline(computeColorPipelineDescriptor);
 
-                // Normal pipeline
-                const computeNormal: GPUProgrammableStage = {
+                // Normal, depth pipeline
+                const computeNormalDepth: GPUProgrammableStage = {
                     module: computeModule,
-                    entryPoint: "normal",
+                    entryPoint: "normalDepth",
                 }
-                const computeNormalPipelineDescriptor: GPUComputePipelineDescriptor = {
-                    label: "Normal pipeline descriptor",
+                const computeNormalDepthPipelineDescriptor: GPUComputePipelineDescriptor = {
+                    label: "Normal, depth pipeline descriptor",
                     layout: this._computePipelineLayout,
-                    compute: computeNormal,
+                    compute: computeNormalDepth,
                 };
-                this._computeNormalPipeline = this._device.createComputePipeline(computeNormalPipelineDescriptor);
+                this._computeNormalDepthPipeline = this._device.createComputePipeline(computeNormalDepthPipelineDescriptor);
 
                 // Segment pipeline
                 const computeSegment: GPUProgrammableStage = {
@@ -284,6 +303,7 @@ export class Main extends Core.Renderer {
                     bindGroupLayouts: [
                         null, // @group(0)
                         this._computeBindGroup2Layout, // @group(1)
+                        this._computeBindGroup3Layout, // @group(2)
                     ]
                 };
                 const clearPipelineLayout: GPUPipelineLayout = this._device.createPipelineLayout(clearPipelineLayoutDescriptor);
@@ -349,6 +369,36 @@ export class Main extends Core.Renderer {
                     primitive: primitive
                 };
                 this._quadPipeline = this._device.createRenderPipeline(quadPiplelineDescriptor);
+
+                // Quad Normal
+                const fragmentNormal: GPUFragmentState = {
+                    module: quadModule,
+                    entryPoint: "frag_normal",
+                    targets: [colorState]
+                };
+                const quadNormalPipelineDescriptor: GPURenderPipelineDescriptor = {
+                    label: "Quad normal pipeline descriptor",
+                    layout: quadPipelineLayout,
+                    vertex: vertex,
+                    fragment: fragmentNormal,
+                    primitive: primitive,
+                };
+                this._quadNormalPipeline = this._device.createRenderPipeline(quadNormalPipelineDescriptor);
+
+                // Quad Depth
+                const fragmentDepth: GPUFragmentState = {
+                    module: quadModule,
+                    entryPoint: "frag_depth",
+                    targets: [colorState]
+                };
+                const quadDepthPipelineDescriptor: GPURenderPipelineDescriptor = {
+                    label: "Quad depth pipeline descriptor",
+                    layout: quadPipelineLayout,
+                    vertex: vertex,
+                    fragment: fragmentDepth,
+                    primitive: primitive,
+                };
+                this._quadDepthPipeline = this._device.createRenderPipeline(quadDepthPipelineDescriptor);
 
                 // Quad segment
                 const fragmentSegment: GPUFragmentState = {
@@ -474,6 +524,23 @@ export class Main extends Core.Renderer {
             this.frameCount = 0; // Reset frame count on render mode change
         }
 
+        // Camera mode
+        if (this._hasCameraModeChanged) {
+            this._hasCameraModeChanged = false;
+            this.frameCount = 0; // Reset frame count on camera mode change
+            let cameraType: Core.Cameras.CameraType;
+            switch (this._cameraMode) {
+                case "perspective":
+                default:
+                    cameraType = Core.Cameras.CameraType.perspective;
+                    break;
+                case "equalareacylindrical":
+                    cameraType = Core.Cameras.CameraType.equalAreaCylindrical;
+                    break;
+            }
+            this._computeUniformBufferData.setCameraTypeId(cameraType);
+        }
+
         // Multisample mode
         if (this._hasMultisampleChanged) {
             this._hasMultisampleChanged = false;
@@ -539,8 +606,11 @@ export class Main extends Core.Renderer {
                 this._quadUniformBufferData.setEdgeForeground(Config.edgeForeground);
                 this._quadUniformBufferData.setEdgeBackground(Config.edgeBackground);
                 break;
-            case "raytrace":
             case "depth":
+                this._quadUniformBufferData.setMinDepth(this._depthMin);
+                this._quadUniformBufferData.setMaxDepth(this._depthMax);
+                break;
+            case "raytrace":
             case "normal":
             case "segment":
                 break;
@@ -601,6 +671,7 @@ export class Main extends Core.Renderer {
             layout: this._computeBindGroup3Layout,
             entries: [
                 { binding: 1, resource: { buffer: this._computeUniformBuffer } },
+                { binding: 2, resource: { buffer: this._depthMinMaxBuffer } },
             ]
         };
         this._computeBindGroup1 = this._device.createBindGroup(computeBindGroup1Descriptor);
@@ -622,7 +693,7 @@ export class Main extends Core.Renderer {
         let start = performance.now();
 
         // Output color buffer
-        const colorChannels = 3;
+        const colorChannels = 4;
         // const outputColorBufferSizeBytes = Uint32Array.BYTES_PER_ELEMENT * this._width * this._height * colorChannels;
         const outputColorBufferSizeBytes = Uint32Array.BYTES_PER_ELEMENT * (this._width + 1) * (this._height + 1) * colorChannels; // Overdispatch by 1 to allow edge detection to work at the edges
         const outputColorBufferDescriptor: GPUBufferDescriptor = {
@@ -807,32 +878,50 @@ export class Main extends Core.Renderer {
             computePassEncoder.dispatchWorkgroups(computeDispatchCount, 1, 1);
         }
 
-        // Raytrace
+        // Render mode
         switch (this._renderMode) {
             case "color":
                 computePassEncoder.setPipeline(this._computeColorPipeline);
                 computePassEncoder.dispatchWorkgroups(computeDispatchCount, 1, 1);
+                computePassEncoder.end();
                 break;
             case "normal":
-                computePassEncoder.setPipeline(this._computeNormalPipeline);
+            case "depth":
+                computePassEncoder.setPipeline(this._computeNormalDepthPipeline);
                 computePassEncoder.dispatchWorkgroups(computeDispatchCount, 1, 1);
+                computePassEncoder.end();
+                commandEncoder.copyBufferToBuffer(this._depthMinMaxBuffer, 0, this._depthMinMaxResultBuffer, 0, this._depthMinMaxResultBuffer.size);
+
+                // Read depth and set automatically
+                if (this._depthAuto) {
+                    await this._depthMinMaxResultBuffer.mapAsync(GPUMapMode.READ);
+                    const depthMinMax = new Uint32Array(this._depthMinMaxResultBuffer.getMappedRange());
+                    const depthMin = depthMinMax[0] / 1000;
+                    const depthMax = depthMinMax[1] / 1000;
+                    this.depthMin = depthMin;
+                    this.depthMax = depthMax;
+                    this._depthMinMaxResultBuffer.unmap();
+                }
                 break;
             case "segment":
             case "edge":
                 computePassEncoder.setPipeline(this._computeSegmentPipeline);
                 computePassEncoder.dispatchWorkgroups(computeDispatchCount, 1, 1);
+                computePassEncoder.end();
                 break;
             // TODO: Remove texture render mode and pipeline, and add a textureType="uv" to the color/raytrace pipeline
             case "texture":
                 computePassEncoder.setPipeline(this._computeTexturePipeline);
                 computePassEncoder.dispatchWorkgroups(computeDispatchCount, 1, 1);
+                computePassEncoder.end();
                 break;
             default:
+                // Raytrace
                 computePassEncoder.setPipeline(this._computePipeline);
                 computePassEncoder.dispatchWorkgroups(computeDispatchCount, 1, 1);
+                computePassEncoder.end();
                 break;
         }
-        computePassEncoder.end();
 
         // Render
         const colorAttachment: GPURenderPassColorAttachment = {
@@ -849,10 +938,14 @@ export class Main extends Core.Renderer {
             case "raytrace":
             case "color":
             case "hdr":
-            case "depth":
-            case "normal":
             default:
                 renderPassEncoder.setPipeline(this._quadPipeline);
+                break;
+            case "normal":
+                renderPassEncoder.setPipeline(this._quadNormalPipeline);
+                break;
+            case "depth":
+                renderPassEncoder.setPipeline(this._quadDepthPipeline);
                 break;
             case "segment":
                 renderPassEncoder.setPipeline(this._quadSegmentPipeline);

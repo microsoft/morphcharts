@@ -10,6 +10,16 @@ export class Dataset extends Core.Data.Dataset {
     protected _parent: Dataset;
     public get datum() { return this._parent; }
 
+    // Factory method to create empty dataset
+    public static Create(): Dataset {
+        // Single row with single empty string column
+        const headings = [""];
+        const columnTypes = [Core.Data.ColumnType.string];
+        const columns = [""];
+        const rows = [columns];
+        return new Dataset(headings, rows, columnTypes);
+    }
+
     public clone() {
         const headings = this._headings.slice();
         const rows = this._rows.map(row => row.slice());
