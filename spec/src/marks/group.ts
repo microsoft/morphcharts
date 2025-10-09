@@ -734,7 +734,7 @@ export class Group extends Mark {
                     }
                     else {
                         // Create empty dataset
-                        dataset = Dataset.Create();
+                        dataset = Dataset.CreateEmpty();
                     }
 
                     // Combine enter and update

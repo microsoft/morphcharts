@@ -279,7 +279,7 @@ export class Main {
                     }
                     const maxBufferSize = Math.pow(2, 20) * 128 / 16; // 128MB buffer, 4 bytes/channel, 4 channels (3840x2160px 16:9, or 2,896px² square)
                     if ((width + 1) * (height + 1) > maxBufferSize) { // Overdispatching for correct edge handling
-                        console.log(`${width}x${height}px buffer size ${(width + 1) * (height + 1)}bytes exceeds max ${maxBufferSize}bytes`);
+                        console.log(`${width}x${height}px buffer size ${(width + 1) * (height + 1)} bytes exceeds max ${maxBufferSize} bytes`);
                         return;
                     }
             }

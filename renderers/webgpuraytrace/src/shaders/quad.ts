@@ -5,6 +5,7 @@ import * as Core from "core";
 
 export const QuadWgsl = `
 const GAMMA = vec3<f32>(0.45454545f); // 1÷2.2
+const COLOR_STRIDE = 4u; // Number of floats per color (RGBA)
 
 struct ColorData {
     data : array<f32>,
@@ -44,7 +45,7 @@ fn vert_main(@builtin(vertex_index) vertexIndex : u32) -> VertexOutput {
 fn frag_main(@builtin(position) coord: vec4<f32>) -> @location(0) vec4<f32> {
     let x = floor(coord.x);
     let y = floor(coord.y);
-    let index = u32(x + y * uniforms.width) * 4u;
+    let index = u32(x + y * uniforms.width) * COLOR_STRIDE;
     // [0,1]
     var color = vec3<f32>(colorBuffer.data[index], colorBuffer.data[index + 1u], colorBuffer.data[index + 2u]) / uniforms.samplesPerPixel;
     // return vec4<f32>(color, 1f);
@@ -100,7 +101,7 @@ fn frag_texture(@builtin(position) coord: vec4<f32>) -> @location(0) vec4<f32> {
 fn frag_segment(@builtin(position) coord: vec4<f32>) -> @location(0) vec4<f32> {
     let x = floor(coord.x);
     let y = floor(coord.y);
-    let index = u32(x + y * (uniforms.width + 1)) * 4u; // Overdispatched by 1
+    let index = u32(x + y * (uniforms.width + 1)) * COLOR_STRIDE; // Overdispatched by 1
     var color = vec3<f32>(colorBuffer.data[index], colorBuffer.data[index + 1u], colorBuffer.data[index + 2u]) / uniforms.samplesPerPixel;
     return vec4<f32>(color, 1f);
 }
@@ -115,9 +116,9 @@ fn frag_edge(@builtin(position) coord: vec4<f32>) -> @location(0) vec4<f32> {
     
     // Segment derivatives
     // TODO: Use a Sobel filter
-    let yOffset = index + u32(uniforms.width + 1) * 4u; // Overdispatched by 1
+    let yOffset = index + u32(uniforms.width + 1) * COLOR_STRIDE; // Overdispatched by 1
     let p = vec3<f32>(colorBuffer.data[index], colorBuffer.data[index + 1u], colorBuffer.data[index + 2u]);
-    let px = vec3<f32>(colorBuffer.data[index + 4u], colorBuffer.data[index + 5u], colorBuffer.data[index + 6u]);
+    let px = vec3<f32>(colorBuffer.data[index + COLOR_STRIDE], colorBuffer.data[index + COLOR_STRIDE + 1u], colorBuffer.data[index + COLOR_STRIDE + 2u]);
     let py = vec3<f32>(colorBuffer.data[yOffset], colorBuffer.data[yOffset + 1u], colorBuffer.data[yOffset + 2u]);
     let dpdx = px - p;
     let dpdy = py - p;

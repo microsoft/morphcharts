@@ -27,7 +27,7 @@ export class Rule extends Mark {
         }
         else {
             // Create empty dataset
-            dataset = Dataset.Create();
+            dataset = Dataset.CreateEmpty();
         }
 
         // Ids

@@ -27,7 +27,7 @@ export class Arc extends Mark {
         }
         else {
             // Create empty dataset
-            dataset = Dataset.Create();
+            dataset = Dataset.CreateEmpty();
         }
 
         // Ids

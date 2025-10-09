@@ -29,7 +29,7 @@ export class Text extends Mark {
         }
         else {
             // Create empty dataset
-            dataset = Dataset.Create();
+            dataset = Dataset.CreateEmpty();
         }
 
         // Dimensions
@@ -60,33 +60,33 @@ export class Text extends Mark {
         // MarkEncodingStrings? Only needed for alignments and other categorical encodings
         const align = this.encode.align;
         const baseline = this.encode.baseline;
-        let horizontalALignment: string;
+        let horizontalAlignment: string;
         switch (align) {
             case "left":
-                horizontalALignment = "left";
+                horizontalAlignment = "left";
                 break;
             case "center":
             default:
-                horizontalALignment = "center";
+                horizontalAlignment = "center";
                 break;
             case "right":
-                horizontalALignment = "right";
+                horizontalAlignment = "right";
                 break;
         }
-        let verticalALignment: string;
+        let verticalAlignment: string;
         switch (baseline) {
             case "alphabetic":
             case "middle":
             default:
-                verticalALignment = "center";
+                verticalAlignment = "center";
                 break;
             case "bottom":
             case "line-bottom":
-                verticalALignment = "bottom";
+                verticalAlignment = "bottom";
                 break;
             case "line-top":
             case "top":
-                verticalALignment = "top";
+                verticalAlignment = "top";
                 break;
         }
 
@@ -294,8 +294,8 @@ export class Text extends Mark {
             rotations: rotations,
 
             // Alignment
-            horizontalAlignment: horizontalALignment,
-            verticalAlignment: verticalALignment,
+            horizontalAlignment: horizontalAlignment,
+            verticalAlignment: verticalAlignment,
 
             // Positions
             positionsX: positionsX,
