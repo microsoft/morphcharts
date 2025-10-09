@@ -5,6 +5,12 @@ import { Config } from "../config.js";
 import { Constants } from "../constants.js";
 import { matrix4x4, Matrix4x4, quaternion, Quaternion, vector3, Vector3 } from "../matrix.js";
 
+export const CameraType = {
+    perspective: 0, // Default
+    equalAreaCylindrical: 1,
+} as const;
+export type CameraType = (typeof CameraType)[keyof typeof CameraType];
+
 export interface ICameraOptions {
     position?: Vector3;
     target?: Vector3;

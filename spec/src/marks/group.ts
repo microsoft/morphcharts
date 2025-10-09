@@ -734,7 +734,7 @@ export class Group extends Mark {
                     }
                     else {
                         // Create empty dataset
-                        dataset = new Dataset([""], [[""]], [Core.Data.ColumnType.string]);
+                        dataset = Dataset.createEmpty();
                     }
 
                     // Combine enter and update

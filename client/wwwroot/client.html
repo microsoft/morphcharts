@@ -316,6 +316,7 @@
             opacity: 0.8;
             margin: 8px;
             padding: 4px;
+            border-radius: 4px;
             /* ignore all events */
             pointer-events: none;
             /* allow select, copy */
@@ -457,7 +458,7 @@
                         </div>
                         <!-- render mode -->
                         <div style="display: flex; flex-direction: column; gap: 4px;">
-                            <label class="heading">Mode</label>
+                            <label class="heading">Render Mode</label>
                             <div
                                 style="display: flex; flex-direction: row; align-items: baseline; gap: 8px; flex-wrap: wrap;">
                                 <div><input type="radio" name="renderMode" id="modeRaytrace" value="raytrace"
@@ -468,18 +469,16 @@
                                         for="modeNormal" class="radioLabel">Normal</label></div>
                                 <div><input type="radio" name="renderMode" id="modeEdge" value="edge" /><label
                                         for="modeEdge" class="radioLabel">Edge</label></div>
+                                <div><input type="radio" name="renderMode" id="modeDepth" value="depth" /><label
+                                        for="modeDepth" class="radioLabel">Depth</label></div>
                                 <div><input type="radio" name="renderMode" id="modeSegment" value="segment" /><label
                                         for="modeSegment" class="radioLabel">Segment</label></div>
                                 <div><input type="radio" name="renderMode" id="modeTexture" value="texture" /><label
                                         for="modeTexture" class="radioLabel">Texture</label></div>
-                                <div><input type="radio" name="renderMode" id="modeDepth" value="depth"
-                                        disabled /><label for="modeDepth" class="radioLabel disabled">Depth</label>
-                                </div>
                             </div>
                         </div>
                         <!-- render options -->
                         <div style="display: flex; flex-direction: column; gap: 4px;">
-                            <label class="heading">Options</label>
                             <!-- samples -->
                             <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
                                 <label class="textboxLabel" style="width: 104px;">Max frames</label>
@@ -490,7 +489,8 @@
                             <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
                                 <label class="rangeLabel" style="width: 104px;">Field of view</label>
                                 <input type="range" min="0" max="100" step="0.1" id="fovRange" />
-                                <div><label class="rangeValue" id="fovLabel"></label><label class="rangeValue">°</label>
+                                <div style="width: 48px"><label class="rangeValue" id="fovLabel"></label><label
+                                        class="rangeValue">°</label>
                                 </div>
                             </div>
                             <!-- raytrace options -->
@@ -499,15 +499,15 @@
                                 <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
                                     <label class="rangeLabel" style="width: 104px;">Aperture</label>
                                     <input type="range" min="0" max="100" step="0.1" id="apertureRange" />
-                                    <div><label class="rangeValue" id="apertureLabel"></label><label
-                                            class="rangeValue">mm</label></div>
+                                    <div style="width: 48px;"><label class="rangeValue"
+                                            id="apertureLabel"></label><label class="rangeValue">mm</label></div>
                                 </div>
-                                <!-- focus distance -->
+                                <!-- focus offset -->
                                 <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
-                                    <label class="rangeLabel" style="width: 104px;">Focus distance</label>
+                                    <label class="rangeLabel" style="width: 104px;">Focus offset</label>
                                     <input type="range" min="-2" max="2" step="0.01" id="focusRange" />
-                                    <div><label class="rangeValue" id="focusLabel"></label>
-                                    </div>
+                                    <div style="width: 48px;"><label class="rangeValue" id="focusLabel"></label></div>
+                                    <input type="button" id="focusResetButton" value="Reset" />
                                 </div>
                             </div>
                             <!-- color options -->
@@ -533,6 +533,48 @@
                                     <label for="edgeDark" class="radioLabel disabled">Dark</label>
                                 </div>
                             </div>
+                            <!-- depth options -->
+                            <div id="depthOptions" class="renderOptions">
+                                <div style="display: flex; flex-direction: column; gap: 4px; align-items: baseline;">
+                                    <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
+                                        <label for="depthAuto" class="checkboxLabel" style="width: 104px;">Auto
+                                            depth</label>
+                                        <input type="checkbox" id="depthAuto" checked />
+                                    </div>
+                                    <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
+                                        <label for="depthMinRange" class="rangeLabel" style="width: 104px;">Min
+                                            depth</label>
+                                        <input type="range" min="0" max="25" step="0.01" id="depthMinRange" />
+                                        <label style="width: 48px;" class="rangeValue" id="depthMinRangeLabel"></label>
+                                    </div>
+                                    <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
+                                        <label for="depthMaxRange" class="rangeLabel" style="width: 104px;">Max
+                                            depth</label>
+                                        <input type="range" min="0" max="25" step="0.01" id="depthMaxRange" />
+                                        <label style="width: 48px;" class="rangeValue" id="depthMaxRangeLabel"></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- camera mode -->
+                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                            <label class="heading">Camera Mode</label>
+                            <div
+                                style="display: flex; flex-direction: row; align-items: baseline; gap: 8px; flex-wrap: wrap;">
+                                <div><input type="radio" name="cameraMode" id="modePerspective" value="perspective"
+                                        checked /><label for="modePerspective" class="radioLabel">Perspective</label>
+                                </div>
+                                <div><input type="radio" name="cameraMode" id="modeEqualAreaCylindrical"
+                                        value="equalareacylindrical" /><label for="modeEqualAreaCylindrical"
+                                        class="radioLabel">Cylindrical</label></div>
+                            </div>
+                        </div>
+                        <!-- camera options -->
+                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                            <!-- perspective options -->
+                            <div id="perspectiveOptions" class="cameraOptions"></div>
+                            <!-- equal area cylindrical options -->
+                            <div id="equalAreaCylindricalOptions" class="cameraOptions"></div>
                         </div>
                     </div>
                 </div>
@@ -656,11 +698,14 @@
         <div><label for="debugCameraFov">CAM FOV</label><span id="debugCameraFov"></span></div>
         <div><label for="debugCameraAperture">CAM DOF</label><span id="debugCameraAperture"></span></div>
         <div><label for="debugCameraFocus">CAM FOC</label><span id="debugCameraFocus"></span></div>
+        <!-- depth -->
+        <div><label for="debugDepthMin">DEP MIN</label><span id="debugDepthMin"></span></div>
+        <div><label for="debugDepthMax">DEP MAX</label><span id="debugDepthMax"></span></div>
         <!-- editor -->
         <div><label for="debugEditorLineCount">EDT LIN</label><span id="debugEditorLineCount"></span></div>
         <div><label for="debugEditorLineNumber">EDT ROW</label><span id="debugEditorLineNumber"></span></div>
     </div>
-    <!--  samples -->
+    <!-- samples -->
     <div id="samplesPopup" class="samplesPopup">
         <div id="samplesContainer" class="samplesContainer">
             <div style="display: flex; flex-direction: row;">
