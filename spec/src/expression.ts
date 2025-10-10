@@ -125,7 +125,7 @@ export class Expression {
                 while (i < closingQuote) {
                     // Alphanumeric characters, underscore, space, round brackets only
                     // Note that a query of field names with dates won't work, e.g. datum.date=='2023-03-23', instead use datum.date==1679529600000
-                    if (!/[a-zA-Z0-9_ ()]/.test(expr[i])) {
+                    if (!/[a-zA-Z0-9-_ ()]/.test(expr[i])) {
                         throw new Error("expression invalid string character");
                     }
                     string += expr[i];
@@ -341,6 +341,21 @@ export class Expression {
             }
 
             // Date
+            if (expr.substring(i, i + 3) == "now") {
+                expression += "Date.now()";
+                i += 3;
+                continue;
+            }
+            // Datetime with timestamp in ticks, e.g. datetime(1679529600000)
+            if (expr.substring(i, i + 8) == "datetime") {
+                i += 8;
+                // Parse sub-expression between brackets
+                const subExpression = this._subExpression(expr, i, group, dataset);
+                i += subExpression.length + 1;
+                // Add to expression
+                expression += `new Date(${subExpression.expr})`;
+                continue;
+            }
             if (expr.substring(i, i + 4) == "year") {
                 i += 4;
                 // Parse sub-expression between brackets
@@ -357,6 +372,16 @@ export class Expression {
                 i += subExpression.length + 1;
                 // Add to expression
                 expression += `new Date(${subExpression.expr}).getMonth()`;
+                continue;
+            }
+            // Day of month
+            if (expr.substring(i, i + 4) == "date") {
+                i += 4;
+                // Parse sub-expression between brackets
+                const subExpression = this._subExpression(expr, i, group, dataset);
+                i += subExpression.length + 1;
+                // Add to expression
+                expression += `new Date(${subExpression.expr}).getDate()`;
                 continue;
             }
             if (expr.substring(i, i + 9) == "dayofyear") {
