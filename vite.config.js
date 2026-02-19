@@ -9,8 +9,8 @@ export default defineConfig({
         open: 'client.html',
     },
     build: {
-        outDir: resolve(__dirname, 'dist/client'),
-        emptyOutDir: true,
+        outDir: resolve(__dirname, 'dist'),
+        emptyOutDir: false,
         rollupOptions: {
             input: './client/wwwroot/client.html'
         }
