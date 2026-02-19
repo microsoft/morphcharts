@@ -8,8 +8,7 @@
   },
   "devDependencies": {
     "typescript": "^5.8.2",
-    "@webgpu/types": "^0.1.61",
-    "vite": "^6.4.1"
+    "@webgpu/types": "^0.1.61"
   },
   "type": "module"
 }

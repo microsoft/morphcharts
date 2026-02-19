@@ -4,8 +4,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "devDependencies": {
-    "typescript": "^5.8.2",
-    "vite": "^6.4.1"
+    "typescript": "^5.8.2"
   },
   "type": "module"
 }
