@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite'
+import { resolve } from 'path'
 
 export default defineConfig({
     base: './', // Relative paths
@@ -8,6 +9,7 @@ export default defineConfig({
         open: 'client.html',
     },
     build: {
+        outDir: resolve(__dirname, 'dist/client'),
         emptyOutDir: true,
         rollupOptions: {
             input: './client/wwwroot/client.html'
