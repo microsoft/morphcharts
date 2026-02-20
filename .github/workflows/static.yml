@@ -31,11 +31,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Install dependencies
+      - name: Build
         run: |
           npm ci
-          npm run dev:client
-          npm run dist:all
+          npm run dev-client
+          npm run dist-all
+          cp -r dist/client/* dist/
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact

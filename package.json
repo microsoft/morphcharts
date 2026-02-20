@@ -1,23 +1,25 @@
 {
   "scripts": {
-    "dev:core": "tsc -p ./core/tsconfig.json",
-    "dev:spec": "tsc -p ./core/tsconfig.json && tsc -p ./spec/tsconfig.json",
-    "dev:webgpuraytrace": "tsc -p ./core/tsconfig.json && tsc -p ./renderers/webgpuraytrace/tsconfig.json",
-    "dev:nodecpuraytrace": "tsc -p ./core/tsconfig.json && tsc -p ./renderers/nodecpuraytrace/tsconfig.json",
-    "dev:client": "tsc -p ./core/tsconfig.json && tsc -p ./spec/tsconfig.json && tsc -p ./renderers/webgpuraytrace/tsconfig.json && tsc -p ./client/tsconfig.json",
-    "dev:server": "tsc -p ./core/tsconfig.json && tsc -p ./spec/tsconfig.json && tsc -p ./renderers/nodecpuraytrace/tsconfig.json && tsc -p ./server/tsconfig.json",
-    "dev:all": "tsc -p ./core/tsconfig.json && tsc -p ./spec/tsconfig.json && tsc -p ./renderers/webgpuraytrace/tsconfig.json && tsc -p ./renderers/nodecpuraytrace/tsconfig.json && tsc -p ./client/tsconfig.json && tsc -p ./server/tsconfig.json",
-    
-    "dist:core": "vite build -c ./core/vite.config.ts",
-    "dist:spec": "vite build -c ./spec/vite.config.ts",
-    "dist:webgpuraytrace": "vite build -c ./renderers/webgpuraytrace/vite.config.ts",
-    "dist:libs": "npm run dist:core && npm run dist:spec && npm run dist:webgpuraytrace",
-    "dist:client": "vite build",
-    "dist:all": "npm run dist:libs && npm run dist:client",
-
-    "start:client": "vite",
-    "start:server": "node ./server/dist/app.js",
-    "preview": "vite preview"
+    "dev-core": "tsc -p ./core/tsconfig.json",
+    "dev-spec": "tsc -p ./core/tsconfig.json && tsc -p ./spec/tsconfig.json",
+    "dev-webgpuraytrace": "tsc -p ./core/tsconfig.json && tsc -p ./renderers/webgpuraytrace/tsconfig.json",
+    "dev-nodecpuraytrace": "tsc -p ./core/tsconfig.json",
+    "dev-client": "tsc -p ./core/tsconfig.json && tsc -p ./spec/tsconfig.json && tsc -p ./renderers/webgpuraytrace/tsconfig.json && tsc -p ./client/tsconfig.json",
+    "dev-server": "tsc -p ./core/tsconfig.json && tsc -p ./spec/tsconfig.json",
+    "dev-all": "tsc -p ./core/tsconfig.json && tsc -p ./spec/tsconfig.json && tsc -p ./renderers/webgpuraytrace/tsconfig.json && tsc -p ./client/tsconfig.json",
+    "dist-core": "vite build --config ./core/vite.config.ts",
+    "dist-spec": "vite build --config ./spec/vite.config.ts",
+    "dist-webgpuraytrace": "vite build --config ./renderers/webgpuraytrace/vite.config.ts",
+    "dist-libs": "npm run dist-core && npm run dist-spec && npm run dist-webgpuraytrace",
+    "dist-client": "vite build",
+    "dist-server": "npm run dev-server",
+    "dist-all": "npm run dist-libs && npm run dist-client && npm run dist-server",
+    "start-client": "vite",
+    "start-server": "node ./server/dist/app.js"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.2",
+    "vite": "^6.4.1"
   },
   "workspaces": [
     "core",

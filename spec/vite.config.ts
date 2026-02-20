@@ -8,8 +8,9 @@ export default defineConfig({
             formats: ['es'],
             fileName: () => 'morphcharts-spec.js',
         },
-        outDir: resolve(__dirname, '../dist'),
+        outDir: resolve(__dirname, '../dist/lib'),
         emptyOutDir: false,
+        sourcemap: true,
         rollupOptions: {
             external: ['core'],
         },
