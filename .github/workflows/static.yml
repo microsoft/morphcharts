@@ -34,15 +34,15 @@ jobs:
       - name: Install dependencies
         run: |
           npm ci
-          npm run build_client
-          npm run build_client_vite
+          npm run dev:client
+          npm run dist:all
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload app
-          path: 'client/wwwroot/dist'
+          # Upload app and library bundles
+          path: 'dist'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
