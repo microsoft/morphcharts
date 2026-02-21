@@ -527,7 +527,7 @@ export class Main {
             const value = sample.toLowerCase().endsWith(".json") ? sample : `${sample}.json`;
             // Try to fetch sample and add to editor
             try {
-                const text = await fetch(value).then(response => response.text());
+                const text = await fetch(`samples/${value}`).then(response => response.text());
                 this._sampleLoaded(text);
             }
             catch (error) {
@@ -543,47 +543,14 @@ export class Main {
         samplesCloseButton.onclick = () => { this._samplesPopup.style.display = "none"; };
         const samplesContainer = document.getElementById("samples") as HTMLDivElement;
 
-        // Load index
-        const specFolder = "samples";
-        const imageFolder = "gallery";
-        const samples = await Common.loadSampleIndex(`${specFolder}/index.json`);
+        const categories = await Common.loadSampleIndex("samples/index.json");
+        Common.renderGalleryGrid(samplesContainer, categories, async (plot) => {
+            this._samplesPopup.style.display = "none";
+            await this._loadSampleAsync(`samples/${plot.plot}`);
+        });
+
         const samplesButton = document.getElementById("samplesButton") as HTMLAnchorElement;
         samplesButton.onclick = () => { this._samplesPopup.style.display = "flex"; };
-        const loadSample = async (path: string): Promise<void> => {
-            this._samplesPopup.style.display = "none";
-            await this._loadSampleAsync(path);
-        };
-        for (let i = 0; i < samples.length; i++) {
-            // Build sample element
-            const sample = samples[i];
-            const sampleContainer = document.createElement("div");
-            sampleContainer.className = "sampleContainer";
-            sampleContainer.tabIndex = 0; // Make focusable
-            const div = document.createElement("div");
-            div.className = "sampleTitle";
-            div.innerText = sample.title;
-            sampleContainer.appendChild(div);
-            const img = document.createElement("img");
-            img.className = "sampleImage";
-            img.src = `${imageFolder}/${sample.image}`;
-            img.alt = sample.title;
-            img.title = sample.description;
-            sampleContainer.appendChild(img);
-            samplesContainer.appendChild(sampleContainer);
-
-            // Load sample on click
-            sampleContainer.onclick = async () => {
-                await loadSample(`${specFolder}/${sample.plot}`);
-            };
-
-            // Load sample on enter or space
-            sampleContainer.onkeydown = async (e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    await loadSample(`${specFolder}/${sample.plot}`);
-                }
-            };
-        }
 
         // Start, stop
         this._startStopButton.onclick = async () => {

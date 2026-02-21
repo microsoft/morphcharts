@@ -19,6 +19,10 @@ The JSON specification can define data sources and transformations, scales, axes
 
 The [Try Online](https://microsoft.github.io/morphcharts/client.html) page also supports using **local files**.
 
+### Gallery
+
+Check out the [Gallery](https://microsoft.github.io/morphcharts/gallery.html) to see more examples.
+
 ### Rendering
 
 Charts are principally rendered using procedural geometry and path tracing. Supported geometric primitives include **rectangles**, **cuboids**, **spheres**, **cylinders**, **hex prisms**, **ring segments**, and **torus segments**.
@@ -60,5 +64,5 @@ The project can be installed and run locally using the following steps:
 
 1.  Clone the repo.
 2.  `npm install` to install any required dependencies.
-3.  Build the project using `npm run build_client`.
-4.  Start the web site using `npm run start_client`, which also opens the `client.html` page in the default web browser.
+3.  Build the project using `npm run dev-client`.
+4.  Start the web site using `npm run start-client`, which also opens the `client.html` page in the default web browser.

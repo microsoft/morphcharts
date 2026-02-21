@@ -1,0 +1,46 @@
+.galleryGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.galleryContainer {
+    width: 320px;
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    border: 1px solid gainsboro;
+    border-radius: 4px;
+}
+
+.galleryContainer:hover {
+    text-decoration: none;
+    border-color: gray;
+}
+
+.galleryImage {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 4px;
+}
+
+.galleryTitle {
+    padding: 4px 0;
+    text-align: center;
+}
+
+.galleryHeading {
+    margin-top: 24px;
+    margin-bottom: 4px;
+}
+
+.galleryHeading:first-child {
+    margin-top: 0;
+}
+
+.galleryDescription {
+    margin-top: 0;
+    margin-bottom: 12px;
+}

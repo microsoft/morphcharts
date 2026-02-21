@@ -12,7 +12,10 @@ export default defineConfig({
         outDir: resolve(__dirname, 'dist/client'),
         emptyOutDir: true,
         rollupOptions: {
-            input: './client/wwwroot/client.html'
+            input: {
+                client: './client/wwwroot/client.html',
+                gallery: './client/wwwroot/gallery.html'
+            }
         }
     },
     preview: {
