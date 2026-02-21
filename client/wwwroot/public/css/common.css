@@ -1,8 +1,13 @@
+html {
+    scrollbar-gutter: stable;
+}
+
 body {
     background-color: white;
     font-family: sans-serif;
     max-width: 1024px;
     margin: 0 auto;
+    padding: 8px;
 }
 
 a {

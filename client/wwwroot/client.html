@@ -5,6 +5,7 @@
     <title>MorphCharts Client</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./css/gallery.css">
     <script type="module" src="./js/client.js"></script>
     <style type="text/css">
         html,
@@ -252,12 +253,12 @@
         }
 
         .samplesContainer {
-            width: 100%;
+            position: absolute;
+            inset: 24px;
             background-color: white;
             display: flex;
             flex-direction: column;
             gap: 12px;
-            margin: 24px;
             border-radius: 4px;
             border: 1px solid gray;
             padding: 12px;
@@ -266,41 +267,7 @@
         /* .samplesCloseButton {} */
 
         .samples {
-            display: flex;
-            flex-direction: row;
-            flex-wrap: wrap;
-            gap: 12px;
             overflow: auto;
-        }
-
-        .sampleContainer {
-            width: 320px;
-            display: flex;
-            flex-direction: column-reverse;
-            gap: 4px;
-            box-sizing: border-box;
-            border: 1px solid gainsboro;
-            border-radius: 4px;
-            background-color: white;
-            cursor: pointer;
-        }
-
-        .sampleContainer:hover {
-            border: 1px solid gray;
-        }
-
-        .sampleTitle {
-            text-align: center;
-            padding: 4px;
-            text-wrap: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .sampleImage {
-            max-width: 100%;
-            border-radius: 4px;
-            height: auto;
         }
 
         /* debug */
