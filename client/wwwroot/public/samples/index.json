@@ -90,8 +90,8 @@
         "plot": "treemap6.json",
         "thumbnail": "treemap6_raytrace_640x360.jpg",
         "image": "treemap6_raytrace_3840x2160.jpg",
-        "title": "3D Flat Facetted Treemaps",
-        "description": "3D flat, facetted treemaps"
+        "title": "3D Flat Faceted Treemaps",
+        "description": "3D flat, faceted treemaps"
       },
       {
         "plot": "treemap1.json",
@@ -111,8 +111,8 @@
         "plot": "treemap5.json",
         "thumbnail": "treemap5_raytrace_640x360.jpg",
         "image": "treemap5_raytrace_3840x2160.jpg",
-        "title": "2D Flat Facetted Treemaps",
-        "description": "2D flat, facetted treemaps"
+        "title": "2D Flat Faceted Treemaps",
+        "description": "2D flat, faceted treemaps"
       }
     ]
   },
@@ -152,8 +152,8 @@
         "plot": "line3.json",
         "thumbnail": "line3_raytrace_640x360.jpg",
         "image": "line3_raytrace_3840x2160.jpg",
-        "title": "Multi Series Facetted 2D Line Chart",
-        "description": "A multi series facetted 2D line chart"
+        "title": "Multi Series Faceted 2D Line Chart",
+        "description": "A multi series faceted 2D line chart"
       }
     ]
   },
@@ -206,8 +206,8 @@
         "plot": "donut3.json",
         "thumbnail": "donut3_raytrace_640x360.jpg",
         "image": "donut3_raytrace_3840x2160.jpg",
-        "title": "Facetted Pie Charts",
-        "description": "Facetted pie charts"
+        "title": "Faceted Pie Charts",
+        "description": "Faceted pie charts"
       },
       {
         "plot": "sunburst1.json",

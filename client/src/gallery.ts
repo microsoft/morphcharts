@@ -42,7 +42,7 @@ async function renderDetail(content: HTMLDivElement, categories: ISampleCategory
     if (!plot) {
         content.textContent = "Sample not found";
         return;
-    };
+    }
 
     const detail = document.createElement("div");
     detail.className = "detail";
