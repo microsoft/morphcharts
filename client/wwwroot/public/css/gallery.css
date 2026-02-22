@@ -1,12 +1,11 @@
 .galleryGrid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 12px;
-    margin-bottom: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 8px;
+    margin-bottom: 24px;
 }
 
 .galleryContainer {
-    width: 320px;
     display: block;
     text-decoration: none;
     color: inherit;
@@ -20,7 +19,7 @@
 }
 
 .galleryImage {
-    max-width: 100%;
+    width: 100%;
     height: auto;
     display: block;
     border-radius: 4px;
@@ -32,8 +31,8 @@
 }
 
 .galleryHeading {
-    margin-top: 24px;
-    margin-bottom: 4px;
+    margin-top: 0px;
+    margin-bottom: 8px;
 }
 
 .galleryHeading:first-child {
@@ -41,6 +40,21 @@
 }
 
 .galleryDescription {
-    margin-top: 0;
     margin-bottom: 12px;
+}
+
+.galleryNotes {
+    margin-top: 12px;
+}
+
+.galleryNotes p:first-child {
+    margin-top: 0;
+}
+
+.galleryNotes p {
+    margin: 8px 0;
+}
+
+.galleryNotes p:last-child {
+    margin-bottom: 0;
 }
