@@ -4,13 +4,6 @@
     "description": "Bar chart visualizations in 2D and 3D",
     "plots": [
       {
-        "plot": "bar1.json",
-        "thumbnail": "bar1_raytrace_640x360.jpg",
-        "image": "bar1_raytrace_3840x2160.jpg",
-        "title": "2D Bar Chart",
-        "description": "A 2D bar chart"
-      },
-      {
         "plot": "bar2.json",
         "thumbnail": "bar2_raytrace_640x360.jpg",
         "image": "bar2_raytrace_3840x2160.jpg",
@@ -18,11 +11,11 @@
         "description": "A 3D bar chart"
       },
       {
-        "plot": "bar3.json",
-        "thumbnail": "bar3_raytrace_640x360.jpg",
-        "image": "bar3_raytrace_3840x2160.jpg",
-        "title": "2D Stacked Bar Chart",
-        "description": "A 2D stacked bar chart"
+        "plot": "bar7.json",
+        "thumbnail": "bar7_raytrace_640x360.jpg",
+        "image": "bar7_raytrace_3840x2160.jpg",
+        "title": "3D Bar Chart",
+        "description": "A 3D bar chart"
       },
       {
         "plot": "bar4.json",
@@ -32,32 +25,11 @@
         "description": "A 3D stacked bar chart"
       },
       {
-        "plot": "bar5.json",
-        "thumbnail": "bar5_raytrace_640x360.jpg",
-        "image": "bar5_raytrace_3840x2160.jpg",
-        "title": "2D Grouped Bar Chart",
-        "description": "A 2D grouped bar chart"
-      },
-      {
         "plot": "bar6.json",
         "thumbnail": "bar6_raytrace_640x360.jpg",
         "image": "bar6_raytrace_3840x2160.jpg",
         "title": "3D Grouped Bar Chart",
         "description": "A 3D grouped bar chart"
-      },
-      {
-        "plot": "bar7.json",
-        "thumbnail": "bar7_raytrace_640x360.jpg",
-        "image": "bar7_raytrace_3840x2160.jpg",
-        "title": "3D Stacked Bar Chart",
-        "description": "A 3D stacked bar chart"
-      },
-      {
-        "plot": "bar8.json",
-        "thumbnail": "bar8_raytrace_640x360.jpg",
-        "image": "bar8_raytrace_3840x2160.jpg",
-        "title": "2D Faceted Bar Chart",
-        "description": "A faceted 2D bar chart"
       },
       {
         "plot": "bar9.json",
@@ -67,11 +39,32 @@
         "description": "A faceted 3D bar chart"
       },
       {
-        "plot": "bar10.json",
-        "thumbnail": "bar10_raytrace_640x360.jpg",
-        "image": "bar10_raytrace_3840x2160.jpg",
-        "title": "2D Unit Bar Chart",
-        "description": "A 2D unit bar chart"
+        "plot": "bar1.json",
+        "thumbnail": "bar1_raytrace_640x360.jpg",
+        "image": "bar1_raytrace_3840x2160.jpg",
+        "title": "2D Bar Chart",
+        "description": "A 2D bar chart"
+      },
+      {
+        "plot": "bar3.json",
+        "thumbnail": "bar3_raytrace_640x360.jpg",
+        "image": "bar3_raytrace_3840x2160.jpg",
+        "title": "2D Stacked Bar Chart",
+        "description": "A 2D stacked bar chart"
+      },
+      {
+        "plot": "bar5.json",
+        "thumbnail": "bar5_raytrace_640x360.jpg",
+        "image": "bar5_raytrace_3840x2160.jpg",
+        "title": "2D Grouped Bar Chart",
+        "description": "A 2D grouped bar chart"
+      },
+      {
+        "plot": "bar8.json",
+        "thumbnail": "bar8_raytrace_640x360.jpg",
+        "image": "bar8_raytrace_3840x2160.jpg",
+        "title": "2D Faceted Bar Chart",
+        "description": "A faceted 2D bar chart"
       }
     ]
   },
@@ -80,25 +73,11 @@
     "description": "Treemap visualizations, flat and hierarchical",
     "plots": [
       {
-        "plot": "treemap1.json",
-        "thumbnail": "treemap1_raytrace_640x360.jpg",
-        "image": "treemap1_raytrace_3840x2160.jpg",
-        "title": "2D Flat Treemap",
-        "description": "A 2D non-hierarchical treemap"
-      },
-      {
         "plot": "treemap2.json",
         "thumbnail": "treemap2_raytrace_640x360.jpg",
         "image": "treemap2_raytrace_3840x2160.jpg",
         "title": "3D Flat Treemap",
         "description": "A 3D non-hierarchical treemap"
-      },
-      {
-        "plot": "treemap3.json",
-        "thumbnail": "treemap3_raytrace_640x360.jpg",
-        "image": "treemap3_raytrace_3840x2160.jpg",
-        "title": "2D Hierarchical Treemap",
-        "description": "A 2D hierarchical treemap"
       },
       {
         "plot": "treemap4.json",
@@ -108,18 +87,32 @@
         "description": "A 3D hierarchical treemap"
       },
       {
-        "plot": "treemap5.json",
-        "thumbnail": "treemap5_raytrace_640x360.jpg",
-        "image": "treemap5_raytrace_3840x2160.jpg",
-        "title": "2D Non-Hierarchical Facetted Treemaps",
-        "description": "2D non-hierarchical, facetted treemaps"
-      },
-      {
         "plot": "treemap6.json",
         "thumbnail": "treemap6_raytrace_640x360.jpg",
         "image": "treemap6_raytrace_3840x2160.jpg",
-        "title": "3D Non-Hierarchical Facetted Treemaps",
-        "description": "3D non-hierarchical, facetted treemaps"
+        "title": "3D Flat Faceted Treemaps",
+        "description": "3D flat, faceted treemaps"
+      },
+      {
+        "plot": "treemap1.json",
+        "thumbnail": "treemap1_raytrace_640x360.jpg",
+        "image": "treemap1_raytrace_3840x2160.jpg",
+        "title": "2D Flat Treemap",
+        "description": "A 2D non-hierarchical treemap"
+      },
+      {
+        "plot": "treemap3.json",
+        "thumbnail": "treemap3_raytrace_640x360.jpg",
+        "image": "treemap3_raytrace_3840x2160.jpg",
+        "title": "2D Hierarchical Treemap",
+        "description": "A 2D hierarchical treemap"
+      },
+      {
+        "plot": "treemap5.json",
+        "thumbnail": "treemap5_raytrace_640x360.jpg",
+        "image": "treemap5_raytrace_3840x2160.jpg",
+        "title": "2D Flat Faceted Treemaps",
+        "description": "2D flat, faceted treemaps"
       }
     ]
   },
@@ -127,27 +120,6 @@
     "title": "Line Charts",
     "description": "Line chart visualizations",
     "plots": [
-      {
-        "plot": "line1.json",
-        "thumbnail": "line1_raytrace_640x360.jpg",
-        "image": "line1_raytrace_3840x2160.jpg",
-        "title": "Single Series Line Chart",
-        "description": "A single series line chart"
-      },
-      {
-        "plot": "line2.json",
-        "thumbnail": "line2_raytrace_640x360.jpg",
-        "image": "line2_raytrace_3840x2160.jpg",
-        "title": "Multi Series 3D Line Chart",
-        "description": "A multi series 3D line chart"
-      },
-      {
-        "plot": "line3.json",
-        "thumbnail": "line3_raytrace_640x360.jpg",
-        "image": "line3_raytrace_3840x2160.jpg",
-        "title": "Multi Series Facetted 2D Line Chart",
-        "description": "A multi series facetted 2D line chart"
-      },
       {
         "plot": "line4.json",
         "thumbnail": "line4_raytrace_640x360.jpg",
@@ -161,6 +133,27 @@
         "image": "line5_raytrace_3840x2160.jpg",
         "title": "3D Line Chart Lissajous Generator",
         "description": "A 3D line chart Lissajou generator"
+      },
+      {
+        "plot": "line2.json",
+        "thumbnail": "line2_raytrace_640x360.jpg",
+        "image": "line2_raytrace_3840x2160.jpg",
+        "title": "Multi Series 3D Line Chart",
+        "description": "A multi series 3D line chart"
+      },
+      {
+        "plot": "line1.json",
+        "thumbnail": "line1_raytrace_640x360.jpg",
+        "image": "line1_raytrace_3840x2160.jpg",
+        "title": "Single Series Line Chart",
+        "description": "A single series line chart"
+      },
+      {
+        "plot": "line3.json",
+        "thumbnail": "line3_raytrace_640x360.jpg",
+        "image": "line3_raytrace_3840x2160.jpg",
+        "title": "Multi Series Faceted 2D Line Chart",
+        "description": "A multi series faceted 2D line chart"
       }
     ]
   },
@@ -169,16 +162,16 @@
     "description": "Area chart visualizations",
     "plots": [
       {
-        "plot": "area1.json",
-        "thumbnail": "area1_raytrace_640x360.jpg",
-        "image": "area1_raytrace_3840x2160.jpg",
+        "plot": "area2.json",
+        "thumbnail": "area2_raytrace_640x360.jpg",
+        "image": "area2_raytrace_3840x2160.jpg",
         "title": "Multi Series 3D Area Chart",
         "description": "A multi series 3D area chart"
       },
       {
-        "plot": "area2.json",
-        "thumbnail": "area2_raytrace_640x360.jpg",
-        "image": "area2_raytrace_3840x2160.jpg",
+        "plot": "area1.json",
+        "thumbnail": "area1_raytrace_640x360.jpg",
+        "image": "area1_raytrace_3840x2160.jpg",
         "title": "Multi Series 3D Area Chart",
         "description": "A multi series 3D area chart"
       },
@@ -213,8 +206,8 @@
         "plot": "donut3.json",
         "thumbnail": "donut3_raytrace_640x360.jpg",
         "image": "donut3_raytrace_3840x2160.jpg",
-        "title": "Facetted Pie Charts",
-        "description": "Facetted pie charts"
+        "title": "Faceted Pie Charts",
+        "description": "Faceted pie charts"
       },
       {
         "plot": "sunburst1.json",
@@ -222,6 +215,14 @@
         "image": "sunburst1_raytrace_3840x2160.jpg",
         "title": "3D Sunburst Chart",
         "description": "3D Sunburst chart with rotated labels"
+      },
+      {
+        "plot": "sunburst2.json",
+        "thumbnail": "sunburst2_raytrace_640x360.jpg",
+        "image": "sunburst2_raytrace_3840x2160.jpg",
+        "title": "3D Sunburst Chart",
+        "description": "3D Sunburst chart with rotated labels showing the Flare visualization library.",
+        "notes": "Data linked from <a href=\"https://github.com/vega/vega-datasets\">vega-datasets</a>."
       }
     ]
   },
@@ -249,6 +250,13 @@
         "image": "histogram2_raytrace_3840x2160.jpg",
         "title": "2D Normal Distribution Histogram",
         "description": "2D normal distribution histogram using Box-Muller transform, showing standard deviations as color"
+      },
+      {
+        "plot": "bar10.json",
+        "thumbnail": "bar10_raytrace_640x360.jpg",
+        "image": "bar10_raytrace_3840x2160.jpg",
+        "title": "2D Unit Histogram",
+        "description": "A 2D unit histogram"
       }
     ]
   },
@@ -307,7 +315,7 @@
         "plot": "bar12.json",
         "thumbnail": "bar12_raytrace_640x360.jpg",
         "image": "bar12_raytrace_3840x2160.jpg",
-        "title": "3D Bar Chart Textured",
+        "title": "Textured 3D Bar Chart",
         "description": "A 3D bar chart with aligned checker textures"
       }
     ]

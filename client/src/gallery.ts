@@ -19,6 +19,7 @@ async function init(): Promise<void> {
         Common.renderGalleryGrid(content, categories);
     }
 
+    // Show content and footer to avoid reflow
     content.style.visibility = "visible";
     const footer = document.querySelector("footer") as HTMLElement;
     if (footer) footer.style.visibility = "visible";
@@ -39,7 +40,7 @@ async function renderDetail(content: HTMLDivElement, categories: ISampleCategory
     }
 
     if (!plot) {
-        content.innerHTML = `<h1>Sample not found</h1><p><a href="gallery.html">Back to Gallery</a></p>`;
+        content.textContent = "Sample not found";
         return;
     }
 
@@ -51,9 +52,9 @@ async function renderDetail(content: HTMLDivElement, categories: ISampleCategory
     h2.textContent = plot.title;
     detail.appendChild(h2);
 
-    const desc = document.createElement("p");
+    const desc = document.createElement("div");
     desc.className = "galleryDescription";
-    desc.innerHTML = plot.description;
+    desc.innerText = plot.description;
     detail.appendChild(desc);
 
     const img = document.createElement("img");
@@ -61,10 +62,17 @@ async function renderDetail(content: HTMLDivElement, categories: ISampleCategory
     img.alt = plot.title;
     detail.appendChild(img);
 
+    if (plot.notes) {
+        const notes = document.createElement("div");
+        notes.className = "galleryNotes";
+        notes.innerHTML = plot.notes;
+        detail.appendChild(notes);
+    }
+
     const tryLink = document.createElement("a");
     tryLink.href = `client.html?plot=${sampleName}`;
     tryLink.textContent = "View in Online Editor";
-    tryLink.style.marginBottom = "12px";
+    tryLink.style.margin = "12px 0";
     tryLink.style.display = "inline-block";
     detail.appendChild(tryLink);
 
@@ -88,7 +96,7 @@ async function renderDetail(content: HTMLDivElement, categories: ISampleCategory
         copyBtn.textContent = "Copy";
         copyBtn.onclick = async () => {
             await navigator.clipboard.writeText(specText);
-            copyBtn.textContent = "Copied!";
+            copyBtn.textContent = "Copied";
             setTimeout(() => copyBtn.textContent = "Copy", 2000);
         };
         specHeader.appendChild(copyBtn);

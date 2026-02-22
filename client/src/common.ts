@@ -7,6 +7,7 @@ export interface ISamplePlot {
     description: string;
     thumbnail: string;
     image: string;
+    notes?: string;
 }
 
 export interface ISampleCategory {
@@ -30,14 +31,17 @@ export class Common {
     static renderGalleryGrid(container: HTMLElement, categories: ISampleCategory[], onPlotClick?: (plot: ISamplePlot) => void): void {
         const imageFolder = "gallery";
         for (const category of categories) {
-            const h3 = document.createElement("h2");
-            h3.className = "galleryHeading";
-            h3.textContent = category.title;
-            container.appendChild(h3);
+            // Add an id for deep linking to the category
+            const categoryId = category.title.toLowerCase().replace(/\s+/g, "-");
+            const h2 = document.createElement("h2");
+            h2.className = "galleryHeading";
+            h2.id = categoryId;
+            h2.textContent = category.title;
+            container.appendChild(h2);
 
-            const desc = document.createElement("p");
+            const desc = document.createElement("div");
             desc.className = "galleryDescription";
-            desc.innerHTML = category.description;
+            desc.innerText = category.description;
             container.appendChild(desc);
 
             const grid = document.createElement("div");

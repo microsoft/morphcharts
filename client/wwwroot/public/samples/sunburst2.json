@@ -1,0 +1,112 @@
+{
+  "title": "3D Sunburst Chart", 
+  "description": "3D Sunburst chart with rotated labels",
+
+  "width": 640,
+  "depth": 640,
+  "height": 90,
+  
+  "camera": {
+    "sphericalPosition": [1.5, 60, 0],
+    "worldTarget": [320, 0, 320]
+  },
+
+  "data": [
+    {
+      "name": "raw",
+      "url": "https://raw.githubusercontent.com/vega/vega-datasets/refs/heads/main/data/flare.json",
+      "format": {"type": "json"}
+    },
+    {
+      "name": "raw2",
+      "source": "raw", 
+      "transform": [
+        {"type": "formula", "expr": "datum.parent==''?datum.id:datum.parent", "as": "parent2"},
+        {"type": "formula", "expr": "datum.size==''?0:datum.size", "as": "size2"},
+        {"type": "collect", "fields": ["id","name","parent2","size2"], "as": ["id","name","parent","size"]}
+      ]
+    },
+    {
+      "name": "table",
+      "source": "raw2", 
+      "transform": [
+        {"type": "stratify", "key": "id", "parentKey": "parent"},
+        {"type": "partition", "field": "size", "size": [{"signal": "2*PI"},{"signal": "width/2"}], "as": ["x0", "y0", "x1", "y1", "depth", "children", "size0", "descendents"]},
+        {"type": "formula", "expr": "(datum.x0+datum.x1)/2", "as": "xc"},
+        {"type": "formula", "expr": "(datum.y0+datum.y1)/2", "as": "yc"}
+      ]
+    }
+  ],
+
+  "scales": [
+    {"name": "size", "type": "linear", "domain": {"data": "table", "field": "size0"}, "range": "height"},
+    {"name": "hue", "type": "linear", "domain": {"data": "table", "field": "xc"}, "range": [0,360]},
+    {"name": "saturation", "type": "linear", "domain": {"data": "table", "field": "y0"}, "range": [0,1]},
+    {"name": "radiansToDegrees", "domain": [0,{"signal": "2*PI"}], "range": [0,360]}
+  ],
+
+  "marks": [
+    {
+      "type": "rect",
+      "geometry": "xzrect",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "zc": {"signal": "depth/2"},
+          "yc": {"value": -0.1},
+          "width": {"signal": "width*2"},
+          "depth": {"signal": "depth*2"},
+          "fill": {"value": "white"}
+        }
+      }
+    },
+    {
+      "type": "arc",
+      "material": "metal",
+      "from": {"data": "table"},
+      "encode": {
+        "enter": {
+          "x": {"signal": "width/2"},
+          "z": {"signal": "depth/2"},
+          "y": {"scale": "size", "field": "size0", "mult": 0.5},
+          "depth": {"scale": "size", "field": "size0"},
+          "startAngle": {"field": "x0"},
+          "endAngle": {"field": "x1"},
+          "innerRadius": {"field": "y0"},
+          "outerRadius": {"field": "y1", "offset": -1},
+          "padding": {"signal": "datum.depth>0?0.01:0"},
+          "fuzz": {"value": 1},
+          "angleX": {"value": 90},
+          "fill": {
+            "color": {
+              "h": {"scale": "hue", "field": "xc"},
+              "s": {"scale": "saturation", "field": "y0"},
+              "l": {"value": 1}
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": {"data": "table"},
+      "encode": {
+        "enter": {
+          "x": {"signal": "width/2"},
+          "z": {"signal": "depth/2"},
+          "y": {"scale": "size", "field": "size0", "offset": 0.01},
+          "align": {"value": "center"},
+          "baseline": {"value": "center"},
+          "radius": {"signal": "datum.depth==0?0:datum.yc"},
+          "theta": {"field": "xc"},
+          "text": {"field": "name"},
+          "angleX": {"value": 90},
+          "angleY": {"field": "xc", "scale": "radiansToDegrees", "offset": {"signal": "datum.depth==0?180:datum.xc<PI?-90:90"}},
+          "fontSize": {"signal": "datum.depth==0?3*datum.y1/length(datum.name):min(1.5*(datum.y1-datum.y0)/length(datum.name),(datum.y0+datum.y1)*(datum.x1-datum.x0)/2)"},
+          "fill": {"value": "black"},
+          "angleX2": {"value": 90}
+        }
+      }
+    }
+  ]
+}

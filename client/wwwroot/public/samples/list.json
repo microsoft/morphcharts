@@ -10,6 +10,7 @@
   "samples/bar9.json",
   "samples/bar10.json",
   "samples/bar11.json",
+  "samples/bar12.json",
   "samples/treemap1.json",
   "samples/treemap2.json",
   "samples/treemap3.json",
@@ -28,6 +29,7 @@
   "samples/donut2.json",
   "samples/donut3.json",
   "samples/sunburst1.json",
+  "samples/sunburst2.json",
   "samples/nodelink1.json",
   "samples/histogram1.json",
   "samples/histogram2.json",
@@ -35,6 +37,5 @@
   "samples/primitives1.json",
   "samples/primitives2.json",
   "samples/primitives3.json",
-  "samples/primitives4.json",
-  "samples/bar12.json"
+  "samples/primitives4.json"
 ]
