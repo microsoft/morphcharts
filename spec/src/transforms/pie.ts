@@ -22,7 +22,7 @@ export class Pie extends Transform {
         let total = 0;
         const field = this._transformJSON.field;
         const columnIndex = dataset.getColumnIndex(field);
-        if (columnIndex == -1) { throw new Error(`pie transform field "${field}" not found`); }
+        if (columnIndex == -1) { throw new Error(`pie transform field ${field} not found`); }
         const columnValues = dataset.all.columnValues(columnIndex, false);
         for (let k = 0; k < columnValues.length; k++) { total += columnValues[k]; }
 

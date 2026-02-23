@@ -40,11 +40,15 @@ export class Treemap extends Transform {
         if (readonly) { dataset = dataset.clone(); }
         let sizeValues: Float64Array;
         const field = this._transformJSON.field;
-        let sizeColumnIndex = -1; // Default to -1 for no size field
+        let sizeColumnIndex;
         if (field) {
             sizeColumnIndex = dataset.getColumnIndex(field);
-            if (sizeColumnIndex == -1) { throw new Error(`treemap transform field "${field}" not found`); }
+            if (sizeColumnIndex == -1) { throw new Error(`treemap transform field ${field} not found`); }
             sizeValues = dataset.all.columnValues(sizeColumnIndex, false);
+        }
+        else {
+            // No size
+            sizeColumnIndex = -1;
         }
         const method = this._transformJSON.method;
         const paddingOuter = this._transformJSON.paddingOuter;

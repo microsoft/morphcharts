@@ -23,7 +23,7 @@ export class Rect extends Mark {
         let dataset: Dataset;
         if (this.from && this.from.data) {
             dataset = group.getDataset(this.from.data);
-            if (!dataset) { throw new Error(`rect mark dataset "${this.from.data}" not found`); }
+            if (!dataset) { throw new Error(`dataset ${this.from.data} not found`); }
         }
         else {
             // Create empty dataset
@@ -74,6 +74,12 @@ export class Rect extends Mark {
         let positionsX2: Float32Array, positionsY2: Float32Array, positionsZ2: Float32Array;
         let positionsXc: Float32Array, positionsYc: Float32Array, positionsZc: Float32Array;
         let sizesX: Float32Array, sizesY: Float32Array, sizesZ: Float32Array;
+
+        // dx, dy, dz (before rotation)
+        let offsetsX: Float32Array, offsetsY: Float32Array, offsetsZ: Float32Array;
+        if (this.encode.dx) { offsetsX = group.values(this.encode.dx, dataset); }
+        if (this.encode.dy) { offsetsY = group.values(this.encode.dy, dataset); }
+        if (this.encode.dz) { offsetsZ = group.values(this.encode.dz, dataset); }
 
         // x
         if (this.encode.x && this.encode.x2) {
@@ -216,6 +222,11 @@ export class Rect extends Mark {
             sizesZ = group.values(this.encode.depth, dataset);
         }
 
+        // Ensure positionsXc, positionsYc, positionsZc are defined
+        if (!positionsXc) { positionsXc = new Float32Array(dataset.length); }
+        if (!positionsYc) { positionsYc = new Float32Array(dataset.length); }
+        if (!positionsZc) { positionsZc = new Float32Array(dataset.length); }
+
         // Rotations
         let angles: Float32Array, anglesX: Float32Array, anglesY: Float32Array, anglesZ: Float32Array;
         if (this.encode.angle) { angles = group.values(this.encode.angle, dataset); }
@@ -245,6 +256,16 @@ export class Rect extends Mark {
             rotations[i * 4 + 1] = rotation[1];
             rotations[i * 4 + 2] = rotation[2];
             rotations[i * 4 + 3] = rotation[3];
+
+            // Update position from dx, dy, dz
+            const dx = offsetsX ? offsetsX[i] : 0;
+            const dy = offsetsY ? offsetsY[i] : 0;
+            const dz = offsetsZ ? offsetsZ[i] : 0;
+            const d: Core.Vector3 = [dx, dy, dz];
+            Core.vector3.transformQuaternion(d, rotation, d);
+            positionsXc[i] += d[0];
+            positionsYc[i] += d[1];
+            positionsZc[i] += d[2];
         }
 
         // Segment
@@ -342,7 +363,6 @@ export class Rect extends Mark {
             rotations: rotations,
             roundingScaling: scaling,
             roundings: roundings,
-
         }
         scatter.layout(buffer, ids, layoutOptions);
         const vertexOptions: Core.Layouts.IScatterVertexOptions = {
@@ -387,8 +407,8 @@ export class Rect extends Mark {
         let refractiveIndices: Float32Array;
         let densities: Float32Array;
         let texCoords: Float32Array; // [x (left), y (bottom), x2 (right), y2 (top)]
-        let texOffsets: Float32Array; // [u, v, w]
-        let texScales: Float32Array; // [u, v, w]
+        let texOffsets: Float32Array;
+        let texScales: Float32Array;
         let textureType: Core.TextureType;
 
         // Fill
@@ -549,6 +569,9 @@ export class Rect extends Mark {
                         if (encodeJSON.width) { mark.encode.width = MarkEncodingValue.fromJSON(mark, group, encodeJSON.width); }
                         if (encodeJSON.height) { mark.encode.height = MarkEncodingValue.fromJSON(mark, group, encodeJSON.height); }
                         if (encodeJSON.depth) { mark.encode.depth = MarkEncodingValue.fromJSON(mark, group, encodeJSON.depth); }
+                        if (encodeJSON.dx) { mark.encode.dx = MarkEncodingValue.fromJSON(mark, group, encodeJSON.dx); }
+                        if (encodeJSON.dy) { mark.encode.dy = MarkEncodingValue.fromJSON(mark, group, encodeJSON.dy); }
+                        if (encodeJSON.dz) { mark.encode.dz = MarkEncodingValue.fromJSON(mark, group, encodeJSON.dz); }
 
                         // Rounding
                         if (encodeJSON.rounding) { mark.encode.rounding = MarkEncodingValue.fromJSON(mark, group, encodeJSON.rounding); }

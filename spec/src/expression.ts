@@ -35,7 +35,7 @@ export class Expression {
                     }
                     const columnIndex = dataset.getColumnIndex(field);
                     if (columnIndex == -1) {
-                        throw new Error(`expression field "${field}" not found`);
+                        throw new Error(`expression field ${field} not found`);
                     }
                     // String columns need to be converted to string values
                     switch (dataset.getColumnType(columnIndex)) {
@@ -61,7 +61,7 @@ export class Expression {
                     const field = expr.slice(i, closingBracket);
                     const columnIndex = dataset.getColumnIndex(field);
                     if (columnIndex == -1) {
-                        throw new Error(`expression field "${field}" not found`);
+                        throw new Error(`expression field ${field} not found`);
                     }
                     // String columns need to be converted to string values
                     switch (dataset.getColumnType(columnIndex)) {
@@ -123,9 +123,9 @@ export class Expression {
                 }
                 let string = "";
                 while (i < closingQuote) {
-                    // Alphanumeric characters, underscore, space, round brackets only
+                    // Alphanumeric characters, underscore, space, round brackets, dash only
                     // Note that a query of field names with dates won't work, e.g. datum.date=='2023-03-23', instead use datum.date==1679529600000
-                    if (!/[a-zA-Z0-9-_ ()]/.test(expr[i])) {
+                    if (!/[a-zA-Z0-9_ ()-]/.test(expr[i])) {
                         throw new Error("expression invalid string character");
                     }
                     string += expr[i];
@@ -264,6 +264,11 @@ export class Expression {
             }
             if (expr.substring(i, i + 3) == "sin") {
                 expression += "Math.sin";
+                i += 3;
+                continue;
+            }
+            if (expr.substring(i, i + 3) == "tan") {
+                expression += "Math.tan";
                 i += 3;
                 continue;
             }
@@ -425,8 +430,8 @@ export class Expression {
                 i++; // Skip closing bracket
                 // Get bandwidth from group
                 const scale = group.getScale(name);
-                if (!scale) { throw new Error(`expression scale "${name}" not found`); }
-                if (scale.type != "band") { throw new Error(`expression scale "${name}" is not a band scale`); }
+                if (!scale) { throw new Error(`expression scale ${name} not found`); }
+                if (scale.type != "band") { throw new Error(`expression scale ${name} is not a band scale`); }
                 expression += (scale as Band).bandwidth();
                 continue;
             }
@@ -454,7 +459,7 @@ export class Expression {
 
                 // Get scale from group
                 const scale = group.getScale(name);
-                if (!scale) { throw new Error(`expression scale "${name}" not found`); }
+                if (!scale) { throw new Error(`expression scale ${name} not found`); }
 
                 // Skip spaces
                 while (i < expr.length && expr[i] == " ") { i++; }
@@ -480,7 +485,7 @@ export class Expression {
             }
 
             // Unknown token
-            throw new Error(`unable to parse expression '${expr.slice(i, i + 8)}...'`);
+            throw new Error(`unable to parse expression ${expr.slice(i, i + 8)}...`);
         }
 
         // Return expression

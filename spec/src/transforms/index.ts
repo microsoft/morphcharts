@@ -15,6 +15,7 @@ export { Grid } from './grid.js';
 export { Hexbin } from './hexbin.js';
 export { Identifier } from './identifier.js';
 export { Lookup } from './lookup.js';
+export { Pack } from './pack.js';
 export { Partition } from './partition.js';
 export { Pie } from './pie.js';
 export { Sequence } from './sequence.js';

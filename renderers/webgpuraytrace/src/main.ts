@@ -10,6 +10,7 @@ import { ComputeShaderWgsl, ComputeUniformBufferData } from "./shaders/pathtrace
 import { QuadUniformBufferData, QuadWgsl } from "./shaders/quad.js";
 import { LabelSetVisual } from "./labels.js";
 import { ImageVisual } from "./image.js";
+import { LightBufferData } from "core/dist/light.js";
 
 export class Main extends Core.Renderer {
     // DOM
@@ -80,6 +81,11 @@ export class Main extends Core.Renderer {
     // Textures
     private _atlasTexture: GPUTexture;
     private _backgroundTexture: GPUTexture;
+
+    // Lights
+    private _lightBuffer: GPUBuffer;
+    private _emptyLightBuffer: GPUBuffer;
+    private _lightBufferData: LightBufferData;
 
     constructor(canvas: HTMLCanvasElement) {
         super();
@@ -199,6 +205,14 @@ export class Main extends Core.Renderer {
                 };
                 this._texture = this._device.createTexture(textureDescriptor);
 
+                // Placeholder light buffer
+                const emptyLightBufferDescriptor: GPUBufferDescriptor = {
+                    label: "Placeholder light buffer",
+                    size: LightBufferData.SIZE * 4, // Single light
+                    usage: GPUBufferUsage.STORAGE,
+                };
+                this._emptyLightBuffer = this._device.createBuffer(emptyLightBufferDescriptor);
+
                 // Compute module
                 const computeShaderModuleDescriptor: GPUShaderModuleDescriptor = {
                     code: ComputeShaderWgsl,
@@ -224,6 +238,7 @@ export class Main extends Core.Renderer {
                     entries: [
                         { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: "uniform" } }, // Uniforms
                         { binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: { type: "storage" } }, // Depth min max buffer
+                        { binding: 3, visibility: GPUShaderStage.COMPUTE, buffer: { type: "read-only-storage" } }, // Light buffer
                     ]
                 };
                 this._computeBindGroup1Layout = this._device.createBindGroupLayout(computeBindGroup1LayoutDescriptor);
@@ -498,6 +513,15 @@ export class Main extends Core.Renderer {
             this.frameCount = 0;
         }
 
+        // Create lights
+        if (this._haveLightsChanged) {
+            this._haveLightsChanged = false;
+            await this._createLightsAsync();
+
+            // Reset
+            this.frameCount = 0;
+        }
+
         // Create world
         if (this._hasWorldChanged) {
             this._hasWorldChanged = false;
@@ -534,8 +558,8 @@ export class Main extends Core.Renderer {
                 default:
                     cameraType = Core.Cameras.CameraType.perspective;
                     break;
-                case "equalareacylindrical":
-                    cameraType = Core.Cameras.CameraType.equalAreaCylindrical;
+                case "cylindrical":
+                    cameraType = Core.Cameras.CameraType.cylindrical;
                     break;
             }
             this._computeUniformBufferData.setCameraTypeId(cameraType);
@@ -549,27 +573,16 @@ export class Main extends Core.Renderer {
 
         // Camera
         // TODO: Move change events to update
-        if (this._cameraChanged) {
-            this._cameraChanged = false;
+        if (this._hasCameraChanged) {
+            this._hasCameraChanged = false;
             this.frameCount = 0; // Reset frame count on camera change
             this._computeUniformBufferData.setPosition(this._cameraPosition);
-            this._computeUniformBufferData.setLookAt(this._cameraTarget);
-            this._computeUniformBufferData.setFieldOfView(this._cameraFov);
-            this._computeUniformBufferData.setAperture(this._cameraAperture);
-            this._computeUniformBufferData.setFocusDistance(this._cameraFocusDistance);
-
-            // Camera vectors
-            this._cameraForward[0] = this._cameraPosition[0] - this._cameraTarget[0];
-            this._cameraForward[1] = this._cameraPosition[1] - this._cameraTarget[1];
-            this._cameraForward[2] = this._cameraPosition[2] - this._cameraTarget[2];
-            Core.vector3.normalize(this._cameraForward, this._cameraForward);
-            Core.vector3.cross(Core.Constants.VECTOR3_UNITY, this._cameraForward, this._cameraRight);
-            Core.vector3.normalize(this._cameraRight, this._cameraRight);
-            Core.vector3.cross(this._cameraForward, this._cameraRight, this._cameraUp);
-            Core.vector3.normalize(this._cameraUp, this._cameraUp);
             this._computeUniformBufferData.setRight(this._cameraRight);
             this._computeUniformBufferData.setUp(this._cameraUp);
             this._computeUniformBufferData.setForward(this._cameraForward);
+            this._computeUniformBufferData.setFieldOfView(this._cameraFov);
+            this._computeUniformBufferData.setAperture(this._cameraAperture);
+            this._computeUniformBufferData.setFocusDistance(this._cameraFocusDistance);
         }
 
         // Tiles
@@ -591,7 +604,6 @@ export class Main extends Core.Renderer {
             case "color":
                 this._computeUniformBufferData.setAperture(0); // Disable aperture for color render mode
                 this._computeUniformBufferData.setMultisample(this._multisample);
-                this._computeUniformBufferData.setDirectionToLight(this.directionToLight);
                 break;
         }
         this._device.queue.writeBuffer(this._computeUniformBuffer, 0, this._computeUniformBufferData.buffer, this._computeUniformBufferData.byteOffset, this._computeUniformBufferData.byteLength);
@@ -663,7 +675,7 @@ export class Main extends Core.Renderer {
                 { binding: 3, resource: { buffer: this._linearBVHNodeBuffer } },
                 { binding: 4, resource: this._sampler },
                 { binding: 5, resource: (this._atlasTexture || this._texture).createView() },
-                { binding: 6, resource: (this._backgroundTexture || this._texture).createView() }
+                { binding: 6, resource: (this._backgroundTexture || this._texture).createView() },
             ]
         };
         const computeBindGroup3Descriptor: GPUBindGroupDescriptor = {
@@ -672,6 +684,10 @@ export class Main extends Core.Renderer {
             entries: [
                 { binding: 1, resource: { buffer: this._computeUniformBuffer } },
                 { binding: 2, resource: { buffer: this._depthMinMaxBuffer } },
+                // As long as the number of lights doesn't change, I don't need to create this again
+                // If the number of lights changes, the world will be recreated, and so will this
+                // As light properties change, I simply update the buffer
+                { binding: 3, resource: { buffer: this._lightBuffer || this._emptyLightBuffer } },
             ]
         };
         this._computeBindGroup1 = this._device.createBindGroup(computeBindGroup1Descriptor);
@@ -846,6 +862,40 @@ export class Main extends Core.Renderer {
         this._device.queue.writeBuffer(this._hittableBuffer, 0, this._hittableBufferData.buffer, this._hittableBufferData.byteOffset, this._hittableBufferData.byteLength);
         this._device.queue.writeBuffer(this._linearBVHNodeBuffer, 0, this._linearBVHNodeBufferData.buffer, this._linearBVHNodeBufferData.byteOffset, this._linearBVHNodeBufferData.byteLength);
         console.log(`create world ${Core.Time.formatDuration(Math.round(window.performance.now() - start))}`);
+    }
+
+    private async _createLightsAsync(): Promise<void> {
+        if (!this._lights || this._lights.length == 0) {
+            // Clear previous light buffer if it exists
+            this._lightBuffer = null;
+            console.log("No lights found");
+            return;
+        }
+
+        // Create buffers
+        const lightBufferSizeBytes = this._lights.length * LightBufferData.SIZE * 4;
+        const lightBufferDescriptor: GPUBufferDescriptor = {
+            label: "Light buffer",
+            size: lightBufferSizeBytes,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+        };
+        if (!this._lightBuffer || this._lightBuffer.size != lightBufferSizeBytes) {
+            this._lightBuffer = this._device.createBuffer(lightBufferDescriptor);
+            this._lightBufferData = new LightBufferData(this._lights.length);
+
+            // Need to recreate size independent resources as the light buffer is bound there
+            // TODO: Optimize by only recreating the compute bind group 3
+            this._hasWorldChanged = true;
+        }
+
+        // Fill buffer
+        for (let i = 0; i < this._lights.length; i++) {
+            this._lights[i].toBuffer(this._lightBufferData, i);
+        }
+
+        // Write buffers
+        this._device.queue.writeBuffer(this._lightBuffer, 0, this._lightBufferData.buffer, this._lightBufferData.byteOffset, this._lightBufferData.byteLength);
+        console.log(`lights ${this._lights.length} created`);
     }
 
     private async _encodeCommandsAsync(clear: boolean) {

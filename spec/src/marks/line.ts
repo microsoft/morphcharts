@@ -23,7 +23,7 @@ export class Line extends Mark {
         let dataset: Dataset;
         if (this.from && this.from.data) {
             dataset = group.getDataset(this.from.data);
-            if (!dataset) { throw new Error(`line mark dataset "${this.from.data}" not found`); }
+            if (!dataset) { throw new Error(`dataset ${this.from.data} not found`); }
         }
         else {
             // Create empty dataset
@@ -50,7 +50,7 @@ export class Line extends Mark {
         else { strokeDepths = strokeWidths; }
 
         // Join lines in data order
-        // For a given line, line segments = number of points - 1
+        // TODO: Use arrays, since lineIds.length will be less than dataset.length
         let positionsXc: Float32Array, positionsYc: Float32Array, positionsZc: Float32Array;
         if (positionsX) { positionsXc = new Float32Array(dataset.length); }
         if (positionsY) { positionsYc = new Float32Array(dataset.length); }

@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license. 
 
-import { Atlas, ColorRGB, ColorRGBA, Config, Constants, GlyphRasterizer, IAtlasVisual, IBuffer, IBufferVisual, IGlyphRasterizerVisual, IImageVisual, ILabelSetVisual, Image, ITransitionBuffer, ITransitionBufferVisual, LabelSet, vector3, Vector3 } from "./index.js";
+import { Atlas, ColorRGB, ColorRGBA, Config, Constants, GlyphRasterizer, IAtlasVisual, IBuffer, IBufferVisual, IGlyphRasterizerVisual, IImageVisual, ILabelSetVisual, Image, ITransitionBuffer, ITransitionBufferVisual, LabelSet, Light, vector3, Vector3 } from "./index.js";
 
 export abstract class Renderer {
     protected _isInitialized: boolean; // Ready to call render()
@@ -17,9 +17,21 @@ export abstract class Renderer {
     // Lighting
     public ambientColor: ColorRGB;
     public backgroundColor: ColorRGBA;
-    public diffuseColor: ColorRGB;
-    public specularIntensity: number;
-    public directionToLight: Vector3;
+    protected _haveLightsChanged: boolean;
+    protected _lights: Light[];
+    public set lights(value: Light[]) {
+        if (value != this._lights) {
+            this._lights = value;
+            this._haveLightsChanged = true;
+        }
+    }
+    public get lights() { return this._lights; }
+    public updateLight(index: number, light: Light) {
+        if (this._lights[index] != light) {
+            this._lights[index] = light;
+            this._haveLightsChanged = true;
+        }
+    }
 
     // Render mode (raytrace, color, edge, depth, normal, segment)
     protected _hasRenderModeChanged: boolean;
@@ -31,17 +43,6 @@ export abstract class Renderer {
         }
     }
     public get renderMode(): string { return this._renderMode; }
-
-    // Camera mode (perspective, equalAreaCylindrical)
-    protected _hasCameraModeChanged: boolean;
-    protected _cameraMode: string;
-    public set cameraMode(value: string) {
-        if (this._cameraMode !== value) {
-            this._cameraMode = value;
-            this._hasCameraModeChanged = true;
-        }
-    }
-    public get cameraMode(): string { return this._cameraMode; }
 
     // Multisample
     protected _hasMultisampleChanged: boolean;
@@ -116,46 +117,80 @@ export abstract class Renderer {
     public get tileOffsetY(): number { return this._tileOffsetY; }
 
     // Camera
-    protected _cameraTarget: Vector3;
+    protected _hasCameraModeChanged: boolean;
+    protected _hasCameraChanged: boolean;
+    protected _cameraMode: string;
     protected _cameraPosition: Vector3;
-    protected _cameraFov: number;
     protected _cameraRight: Vector3;
     protected _cameraUp: Vector3;
     protected _cameraForward: Vector3;
-    protected _cameraChanged: boolean;
+    protected _cameraManipulationOrigin: Vector3;
+    protected _cameraFov: number;
     protected _cameraAperture: number;
     protected _cameraFocusDistance: number;
-    public set cameraTarget(value: Vector3) {
-        if (Math.abs(this._cameraTarget[0] - value[0]) > Constants.EPSILON || Math.abs(this._cameraTarget[1] - value[1]) > Constants.EPSILON || Math.abs(this._cameraTarget[2] - value[2]) > Constants.EPSILON) {
-            this._cameraChanged = true;
-            this._cameraTarget[0] = value[0];
-            this._cameraTarget[1] = value[1];
-            this._cameraTarget[2] = value[2];
+    // Camera mode (perspective, cylindrical)
+    public set cameraMode(value: string) {
+        if (this._cameraMode !== value) {
+            this._cameraMode = value;
+            this._hasCameraModeChanged = true;
         }
     }
+    public get cameraMode(): string { return this._cameraMode; }
     public set cameraPosition(value: Vector3) {
         if (Math.abs(this._cameraPosition[0] - value[0]) > Constants.EPSILON || Math.abs(this._cameraPosition[1] - value[1]) > Constants.EPSILON || Math.abs(this._cameraPosition[2] - value[2]) > Constants.EPSILON) {
-            this._cameraChanged = true;
+            this._hasCameraChanged = true;
             this._cameraPosition[0] = value[0];
             this._cameraPosition[1] = value[1];
             this._cameraPosition[2] = value[2];
         }
     }
+    public set cameraForward(value: Vector3) {
+        if (Math.abs(this._cameraForward[0] - value[0]) > Constants.EPSILON || Math.abs(this._cameraForward[1] - value[1]) > Constants.EPSILON || Math.abs(this._cameraForward[2] - value[2]) > Constants.EPSILON) {
+            this._hasCameraChanged = true;
+            this._cameraForward[0] = value[0];
+            this._cameraForward[1] = value[1];
+            this._cameraForward[2] = value[2];
+        }
+    }
+    public set cameraRight(value: Vector3) {
+        if (Math.abs(this._cameraRight[0] - value[0]) > Constants.EPSILON || Math.abs(this._cameraRight[1] - value[1]) > Constants.EPSILON || Math.abs(this._cameraRight[2] - value[2]) > Constants.EPSILON) {
+            this._hasCameraChanged = true;
+            this._cameraRight[0] = value[0];
+            this._cameraRight[1] = value[1];
+            this._cameraRight[2] = value[2];
+        }
+    }
+    public set cameraUp(value: Vector3) {
+        if (Math.abs(this._cameraUp[0] - value[0]) > Constants.EPSILON || Math.abs(this._cameraUp[1] - value[1]) > Constants.EPSILON || Math.abs(this._cameraUp[2] - value[2]) > Constants.EPSILON) {
+            this._hasCameraChanged = true;
+            this._cameraUp[0] = value[0];
+            this._cameraUp[1] = value[1];
+            this._cameraUp[2] = value[2];
+        }
+    }
+    public set cameraManipulationOrigin(value: Vector3) {
+        if (Math.abs(this._cameraManipulationOrigin[0] - value[0]) > Constants.EPSILON || Math.abs(this._cameraManipulationOrigin[1] - value[1]) > Constants.EPSILON || Math.abs(this._cameraManipulationOrigin[2] - value[2]) > Constants.EPSILON) {
+            this._hasCameraChanged = true;
+            this._cameraManipulationOrigin[0] = value[0];
+            this._cameraManipulationOrigin[1] = value[1];
+            this._cameraManipulationOrigin[2] = value[2];
+        }
+    }
     public set cameraFov(value: number) {
         if (Math.abs(this._cameraFov - value) > Constants.EPSILON) {
-            this._cameraChanged = true;
+            this._hasCameraChanged = true;
             this._cameraFov = value;
         }
     }
     public set cameraAperture(value: number) {
         if (Math.abs(this._cameraAperture - value) > Constants.EPSILON) {
-            this._cameraChanged = true;
+            this._hasCameraChanged = true;
             this._cameraAperture = value;
         }
     }
     public set cameraFocusDistance(value: number) {
         if (Math.abs(this._cameraFocusDistance - value) > Constants.EPSILON) {
-            this._cameraChanged = true;
+            this._hasCameraChanged = true;
             this._cameraFocusDistance = value;
         }
     }
@@ -205,29 +240,24 @@ export abstract class Renderer {
         // Lighting
         this.ambientColor = [Config.ambientColor[0], Config.ambientColor[1], Config.ambientColor[2]];
         this.backgroundColor = [Config.backgroundColor[0], Config.backgroundColor[1], Config.backgroundColor[2], Config.backgroundColor[3]];
-        this.diffuseColor = [Config.diffuseColor[0], Config.diffuseColor[1], Config.diffuseColor[2]];
-        this.specularIntensity = Config.specularIntensity;
-        this.directionToLight = [Config.directionToLight[0], Config.directionToLight[1], Config.directionToLight[2]];
-
+        
         // Render mode
         this._renderMode = Config.renderMode;
-
-        // Camera mode
-        this._cameraMode = Config.cameraMode;
 
         // Multisample
         this._multisample = Config.multisample;
 
         // Camera
+        this._cameraMode = Config.cameraMode;
         this._cameraPosition = vector3.clone(Config.cameraPosition);
-        this._cameraTarget = vector3.clone(Config.cameraTarget);
+        this._cameraRight = vector3.clone(Config.cameraRight);
+        this._cameraUp = vector3.clone(Config.cameraUp);
+        this._cameraForward = vector3.clone(Config.cameraForward);
+        this._cameraManipulationOrigin = vector3.clone(Config.cameraManipulationOrigin);
         this._cameraFov = Config.cameraFov;
         this._cameraAperture = Config.cameraAperture;
         this._cameraFocusDistance = Config.cameraFocusDistance;
-        this._cameraForward = [0, 0, 0];
-        this._cameraRight = [0, 0, 0];
-        this._cameraUp = [0, 0, 0];
-        this._cameraChanged = true; // Force camera update on first render
+        this._hasCameraChanged = true; // Force camera update on first render
 
         // Depth
         this._depthAuto = Config.depthAuto;

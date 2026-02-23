@@ -118,6 +118,7 @@ export class BufferVisual extends Core.BufferVisual implements Core.IBufferVisua
                             texCoords: texCoords,
                             texScale: texScale,
                             texOffset: texOffset,
+                            rotation: rotation,
                         };
                         hittable = new Core.HittableBoxFrameSdf(hittableBoxFrameOptions);
                         break;

@@ -63,6 +63,7 @@ export class Common {
                 img.className = "galleryImage";
                 img.src = `${imageFolder}/${plot.thumbnail}`;
                 img.alt = plot.title;
+                img.loading = "lazy";
                 a.appendChild(img);
 
                 const title = document.createElement("div");

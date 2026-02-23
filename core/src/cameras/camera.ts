@@ -7,53 +7,61 @@ import { matrix4x4, Matrix4x4, quaternion, Quaternion, vector3, Vector3 } from "
 
 export const CameraType = {
     perspective: 0, // Default
-    equalAreaCylindrical: 1,
+    cylindrical: 1,
 } as const;
 export type CameraType = (typeof CameraType)[keyof typeof CameraType];
 
 export interface ICameraOptions {
     position?: Vector3;
-    target?: Vector3;
+    right?: Vector3;
+    up?: Vector3;
+    forward?: Vector3;
+    manipulationOrigin?: Vector3;
+    worldUp?: Vector3;
 }
 
 export class Camera {
     protected _position: Vector3;
-    protected _target: Vector3;
-    protected _forward: Vector3;
+    protected _manipulationOrigin: Vector3;
+    protected _forward: Vector3; // Unit vector pointing the opposite direction to the view direction (right-hand coordinates)
     protected _right: Vector3;
     protected _up: Vector3;
+    protected _worldUp: Vector3;
+    public get forward(): Vector3 { return this._forward; }
+    public set forward(value: Vector3) { this._forward = value; }
+    public get up(): Vector3 { return this._up; }
+    public set up(value: Vector3) { this._up = value; }
+    public get right(): Vector3 { return this._right; }
+    public set right(value: Vector3) { this._right = value; }
+    public get manipulationOrigin(): Vector3 { return this._manipulationOrigin; }
+    public set manipulationOrigin(value: Vector3) { this._manipulationOrigin = value; }
+    public get worldUp(): Vector3 { return this._worldUp; }
+    public set worldUp(value: Vector3) { this._worldUp = value; }
     public get position(): Vector3 { return this._position; }
     public set position(value: Vector3) { this._position = value; }
-    public get target(): Vector3 { return this._target; }
-    public set target(value: Vector3) { this._target = value; }
 
     constructor(options: ICameraOptions) {
+        this._manipulationOrigin = options.manipulationOrigin || vector3.clone(Config.cameraManipulationOrigin);
+        this._worldUp = options.worldUp || vector3.clone(Config.cameraWorldUp);
         this._position = options.position || vector3.clone(Config.cameraPosition);
-        this._target = options.target || vector3.clone(Config.cameraTarget);
-        this._forward = [0, 0, 0];
-        this._right = [0, 0, 0];
-        this._up = [0, 0, 0];
+        this._forward = options.forward || vector3.clone(Config.cameraForward);
+        this._right = options.right || vector3.clone(Config.cameraRight);
+        this._up = options.up || vector3.clone(Config.cameraUp);
     }
 
-    public update(elapsedTime: number): void {
-        // TODO: Only calculate forward, right, up when position or target changes
-        // Forward vector
-        this._forward[0] = this._position[0] - this._target[0];
-        this._forward[1] = this._position[1] - this._target[1];
-        this._forward[2] = this._position[2] - this._target[2];
-        vector3.normalize(this._forward, this._forward);
-
-        // Right vector
-        vector3.cross(Constants.VECTOR3_UNITY, this._forward, this._right);
-        vector3.normalize(this._right, this._right);
-
-        // Up vector
-        vector3.cross(this._forward, this._right, this._up);
-        vector3.normalize(this._up, this._up);
-    }
+    public update(elapsedTime: number): void { }
 
     public getViewMatrix(out: Matrix4x4): void {
-        matrix4x4.lookAt(this._position, this._target, Constants.VECTOR3_UNITY, out);
+        matrix4x4.lookAt(
+            this._position,
+            // Target
+            [
+                this._position[0] + this._forward[0],
+                this._position[1] + this._forward[1],
+                this._position[2] + this._forward[2]
+            ],
+            this._up,
+            out);
     }
 }
 
@@ -102,10 +110,8 @@ export class PerspectiveCamera extends Camera {
     }
 
     public translate(x: number, y: number): void {
-        // Distance to target
-        // const distance  = vector3.distance(this._position, this._target);
-        // Distance to origin
-        const distance = vector3.length(this._position);
+        // Distance to manipulation origin
+        const distance = vector3.distance(this._position, this._manipulationOrigin);
         const height = 2 * distance * Math.tan(this._fov / 2) / this._height;
         x *= height;
         y *= height;
@@ -117,67 +123,47 @@ export class PerspectiveCamera extends Camera {
         this._position[0] += dx;
         this._position[1] += dy;
         this._position[2] += dz;
-        this._target[0] += dx;
-        this._target[1] += dy;
-        this._target[2] += dz;
     }
 
     public zoom(scale: number, x: number, y: number): void {
         // Get ray from hover position
         const viewportHeight = 2 * Math.tan(this._fov * 0.5);
-        const viewportWidth = viewportHeight * this._width / this._height;;
-        const ot: Vector3 = [
-            this._target[0] - this._position[0],
-            this._target[1] - this._position[1],
-            this._target[2] - this._position[2]
-        ];
-        const focusDistance = Math.abs(vector3.dot(this._forward, ot)); // + this._focusDistance;
+        const viewportWidth = viewportHeight * this._width / this._height;
+        const distanceToOrigin = vector3.distance(this._position, this._manipulationOrigin);
         const horizontal: Vector3 = [
-            this._right[0] * viewportWidth * focusDistance,
-            this._right[1] * viewportWidth * focusDistance,
-            this._right[2] * viewportWidth * focusDistance
+            this._right[0] * viewportWidth * distanceToOrigin,
+            this._right[1] * viewportWidth * distanceToOrigin,
+            this._right[2] * viewportWidth * distanceToOrigin
         ];
         const vertical: Vector3 = [
-            this._up[0] * viewportHeight * focusDistance,
-            this._up[1] * viewportHeight * focusDistance,
-            this._up[2] * viewportHeight * focusDistance
+            -this._up[0] * viewportHeight * distanceToOrigin,
+            -this._up[1] * viewportHeight * distanceToOrigin,
+            -this._up[2] * viewportHeight * distanceToOrigin
         ];
-        const lowerLeftCorner: Vector3 = [
-            this._position[0] - horizontal[0] * 0.5 + vertical[0] * 0.5 - this._forward[0] * focusDistance,
-            this._position[1] - horizontal[1] * 0.5 + vertical[1] * 0.5 - this._forward[1] * focusDistance,
-            this._position[2] - horizontal[2] * 0.5 + vertical[2] * 0.5 - this._forward[2] * focusDistance
+        const upperLeft: Vector3 = [
+            this._position[0] - horizontal[0] * 0.5 - vertical[0] * 0.5 - this._forward[0] * distanceToOrigin,
+            this._position[1] - horizontal[1] * 0.5 - vertical[1] * 0.5 - this._forward[1] * distanceToOrigin,
+            this._position[2] - horizontal[2] * 0.5 - vertical[2] * 0.5 - this._forward[2] * distanceToOrigin
         ];
         x /= this.width;
         y /= this.height;
         const direction: Vector3 = [
-            lowerLeftCorner[0] + x * horizontal[0] - y * vertical[0] - this._position[0],
-            lowerLeftCorner[1] + x * horizontal[1] - y * vertical[1] - this._position[1],
-            lowerLeftCorner[2] + x * horizontal[2] - y * vertical[2] - this._position[2]
+            upperLeft[0] + x * horizontal[0] + y * vertical[0] - this._position[0],
+            upperLeft[1] + x * horizontal[1] + y * vertical[1] - this._position[1],
+            upperLeft[2] + x * horizontal[2] + y * vertical[2] - this._position[2]
         ];
         vector3.normalize(direction, direction);
 
-        // Distance to target
-        // const distance = vector3.distance(this._position, this._target);
         // Distance to origin
-        const distance = vector3.length(this._position);
-        scale *= distance;
-        // this._position[0] += this._forward[0] * scale;
-        // this._position[1] += this._forward[1] * scale;
-        // this._position[2] += this._forward[2] * scale;
-        // this._target[0] += this._forward[0] * scale;
-        // this._target[1] += this._forward[1] * scale;
-        // this._target[2] += this._forward[2] * scale;
+        scale *= distanceToOrigin;
         const delta: Vector3 = [
             direction[0] * scale,
             direction[1] * scale,
             direction[2] * scale
         ];
-        this._position[0] -= delta[0];
-        this._position[1] -= delta[1];
-        this._position[2] -= delta[2];
-        this._target[0] -= delta[0];
-        this._target[1] -= delta[1];
-        this._target[2] -= delta[2];
+        this._position[0] += delta[0];
+        this._position[1] += delta[1];
+        this._position[2] += delta[2];
     }
 }
 
@@ -217,7 +203,12 @@ export class AltAzimuthPerspectiveCamera extends PerspectiveCamera {
         // Apply to position
         vector3.transformQuaternion(this._position, this._quat1, this._position);
 
-        // Apply to target
-        vector3.transformQuaternion(this._target, this._quat1, this._target);
+        // Update basis vectors
+        vector3.transformQuaternion(this._forward, this._quat1, this._forward);
+        vector3.normalize(this._forward, this._forward);
+        vector3.transformQuaternion(this._right, this._quat1, this._right);
+        vector3.normalize(this._right, this._right);
+        vector3.transformQuaternion(this._up, this._quat1, this._up);
+        vector3.normalize(this._up, this._up);
     }
 }

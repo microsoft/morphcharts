@@ -26,7 +26,7 @@ export class Collect extends Transform {
                 if (typeof fields == "string") {
                     const fieldColumnIndex = dataset.getColumnIndex(fields);
                     if (fieldColumnIndex == -1) {
-                        throw new Error(`collect transform field "${fields}" not found`);
+                        throw new Error(`collect transform field ${fields} not found`);
                     }
                     sortFieldColumnIndices.push(fieldColumnIndex);
                 }
@@ -35,13 +35,14 @@ export class Collect extends Transform {
                         const field = fields[i];
                         const fieldColumnIndex = dataset.getColumnIndex(field);
                         if (fieldColumnIndex == -1) {
-                            throw new Error(`collect transform field "${field}" not found`);
+                            throw new Error(`collect transform field ${field} not found`);
                         }
                         sortFieldColumnIndices.push(fieldColumnIndex);
                     }
                 }
                 for (let i = 0; i < sortFieldColumnIndices.length; i++) {
                     const columnIndex = sortFieldColumnIndices[i];
+                    if (columnIndex == -1) { throw new Error(`collect transform sort field ${fields} not found`); }
                     const columnType = dataset.columnTypes[columnIndex];
                     const sortColumnLookup = new Uint32Array(dataset.length);
                     switch (columnType) {
@@ -120,7 +121,7 @@ export class Collect extends Transform {
                 const field = fields[i];
                 const fieldColumnIndex = dataset.getColumnIndex(field);
                 if (fieldColumnIndex == -1) {
-                    throw new Error(`collect transform field "${field}" not found`);
+                    throw new Error(`collect transform field ${field} not found`);
                 }
                 fieldColumnIndices.push(fieldColumnIndex);
             }

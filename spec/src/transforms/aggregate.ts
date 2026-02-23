@@ -71,7 +71,7 @@ export class Aggregate extends Transform {
         for (let i = 0; i < groupby.length; i++) {
             const columnIndex = dataset.getColumnIndex(groupby[i]);
             if (columnIndex == -1) {
-                throw new Error(`aggregate transform groupby column "${groupby[i]}" not found`);
+                throw new Error(`aggregate transform groupby column ${groupby[i]} not found`);
             }
             groupbyColumnIndices.push(columnIndex);
             // Force discrete to get count of unique values to allow creation of spatial index
@@ -89,7 +89,7 @@ export class Aggregate extends Transform {
                 const columnName = this._transformJSON.fields[i];
                 const columnIndex = dataset.getColumnIndex(columnName);
                 if (columnIndex == -1) {
-                    throw new Error(`aggregate transform field column "${columnName}" not found`);
+                    throw new Error(`aggregate transform field column ${columnName} not found`);
                 }
                 fieldColumnNames.push(columnName);
                 fieldColumnValues.push(dataset.all.columnValues(columnIndex, false));

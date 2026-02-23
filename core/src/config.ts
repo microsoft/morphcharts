@@ -19,10 +19,13 @@ export class Config {
     public static readonly cameraNearPlane: number = 0.01;
     public static readonly cameraFarPlane: number = 100;
     public static readonly cameraPosition: Vector3 = [0, 0, 0.5 / Math.tan(this.cameraFov / 2)]; // 0.5/tan(fov/2), 1.866 for fov=30deg
-    public static readonly cameraTarget: Vector3 = [0, 0, 0];
+    public static readonly cameraManipulationOrigin: Vector3 = [0, 0, 0];
+    public static readonly cameraWorldUp: Vector3 = [0, 1, 0];
+    public static readonly cameraRight: Vector3 = [1, 0, 0];
+    public static readonly cameraForward: Vector3 = [0, 0, 1]; // Unit vector pointing in opposite direction to view direction (right-hand coordinates)
     public static readonly cameraUp: Vector3 = [0, 1, 0];
     public static readonly cameraAperture: number = 0;
-    public static readonly cameraFocusDistance: number = 0;
+    public static readonly cameraFocusDistance: number = 1; // Focus distance in camera space
 
     // Depth
     public static readonly depthAuto: boolean = true;
@@ -32,9 +35,6 @@ export class Config {
     // Lighting
     public static readonly backgroundColor: ColorRGBA = [0, 0, 0, 1];
     public static readonly ambientColor: ColorRGB = [1, 1, 1];
-    public static readonly directionToLight: Vector3 = [-0.4083, -0.4083, 0.8165]; // Normalized
-    public static readonly diffuseColor: ColorRGB = [1, 1, 1];
-    public static readonly specularIntensity: number = 0.1;
 
     // Render mode
     public static readonly renderMode: string = "color";

@@ -22,7 +22,7 @@ export class Tree3D extends Transform {
         const field = this._transformJSON.field;
         if (field) {
             const sizeColumnIndex = dataset.getColumnIndex(field);
-            if (sizeColumnIndex == -1) { throw new Error(`tree3d transform field "${field}" not found`); }
+            if (sizeColumnIndex == -1) { throw new Error(`tree3d transform field ${field} not found`); }
             sizeValues = dataset.all.columnValues(sizeColumnIndex, false);
         }
         const method = this._transformJSON.method;
@@ -72,7 +72,7 @@ export class Tree3D extends Transform {
                 const edgeLengthScaling = this._transformJSON.lengthScaling == undefined ? 1 : this._transformJSON.lengthScaling;
                 const branchAngle = this._transformJSON.angle == undefined ? 0 : this._transformJSON.angle * Core.Constants.RADIANS_PER_DEGREE;
                 const twistAngle = this._transformJSON.twist == undefined ? 0 : this._transformJSON.twist * Core.Constants.RADIANS_PER_DEGREE;
-                const minEdgeLength = this._transformJSON.minEdgeLength == undefined ? 0.01 : this._transformJSON.minEdgeLength;
+                const minEdgeLength = this._transformJSON.minLength == undefined ? 0.01 : this._transformJSON.minLength;
                 const randomBranchAngle = this._transformJSON.randomAngle == undefined ? 0 : this._transformJSON.randomAngle * Core.Constants.RADIANS_PER_DEGREE;
                 const randomTwistAngle = this._transformJSON.randomTwist == undefined ? 0 : this._transformJSON.randomTwist * Core.Constants.RADIANS_PER_DEGREE;
                 const randomSplitAngle = this._transformJSON.randomSplit == undefined ? 0 : this._transformJSON.randomSplit * Core.Constants.RADIANS_PER_DEGREE;
@@ -87,18 +87,37 @@ export class Tree3D extends Transform {
                 let edgeLengthValues;
                 if (edgeLengths) {
                     columnIndex = dataset.getColumnIndex(edgeLengths);
-                    if (columnIndex == -1) { throw new Error(`tree3d transform field "${edgeLengths}" not found`); }
+                    if (columnIndex == -1) { throw new Error(`tree3d transform field ${edgeLengths} not found`); }
                     edgeLengthValues = dataset.all.columnValues(columnIndex, false);
+                }
+                const edgeLengthScalings = this._transformJSON.lengthScalings;
+                let edgeLengthScalingValues;
+                if (edgeLengthScalings) {
+                    columnIndex = dataset.getColumnIndex(edgeLengthScalings);
+                    if (columnIndex == -1) { throw new Error(`tree3d transform field ${edgeLengthScalings} not found`); }
+                    edgeLengthScalingValues = dataset.all.columnValues(columnIndex, false);
                 }
                 const splitAngles = this._transformJSON.splits;
                 let splitAngleValues;
                 if (splitAngles) {
                     columnIndex = dataset.getColumnIndex(splitAngles);
-                    if (columnIndex == -1) { throw new Error(`tree3d transform field "${splitAngles}" not found`); }
+                    if (columnIndex == -1) { throw new Error(`tree3d transform field ${splitAngles} not found`); }
                     splitAngleValues = dataset.all.columnValues(columnIndex, false);
                 }
                 const branchAngles = this._transformJSON.angles;
+                let branchAngleValues;
+                if (branchAngles) {
+                    columnIndex = dataset.getColumnIndex(branchAngles);
+                    if (columnIndex == -1) { throw new Error(`tree3d transform field ${branchAngles} not found`); }
+                    branchAngleValues = dataset.all.columnValues(columnIndex, false);
+                }
                 const twistAngles = this._transformJSON.twists;
+                let twistAngleValues;
+                if (twistAngles) {
+                    columnIndex = dataset.getColumnIndex(twistAngles);
+                    if (columnIndex == -1) { throw new Error(`tree3d transform field ${twistAngles} not found`); }
+                    twistAngleValues = dataset.all.columnValues(columnIndex, false);
+                }
 
                 // Build tree
                 const options: Core.ITree3DOptions = {
@@ -112,15 +131,16 @@ export class Tree3D extends Transform {
                     edgeLengthScaling: edgeLengthScaling,
                     branchAngle: branchAngle,
                     twistAngle: twistAngle,
-                    minEdgeLength: minEdgeLength,
                     randomBranchAngle: randomBranchAngle,
                     randomTwistAngle: randomTwistAngle,
                     randomSplitAngle: randomSplitAngle,
                     randomEdgeLengthScaling: randomEdgeLengthScaling,
+                    minEdgeLength: minEdgeLength,
                     edgeLengths: edgeLengthValues,
-                    branchAngles: branchAngles,
+                    edgeLengthScalings: edgeLengthScalingValues,
+                    branchAngles: branchAngleValues,
                     splitAngles: splitAngleValues,
-                    twistAngles: twistAngles
+                    twistAngles: twistAngleValues
                 };
                 Core.Tree3D.layout(options);
 

@@ -16,8 +16,7 @@ export class Color {
     public l: MarkEncodingValue; // [0,1]
 
     public static parse(value: any): Core.ColorRGB {
-        // Parse rbg [0,255] from #rrggbb
-        let color: Core.ColorRGB;
+        // Parse rgb [0,255] from #rrggbb
         if (value[0] == "#") {
             // 3 or 6 digit hex color?
             if (value.length == 4) {
@@ -25,18 +24,21 @@ export class Color {
                 const r = parseInt(value[1], 16) * 0x11;
                 const g = parseInt(value[2], 16) * 0x11;
                 const b = parseInt(value[3], 16) * 0x11;
-                color = [r / 0xff, g / 0xff, b / 0xff];
+                return [r / 0xff, g / 0xff, b / 0xff];
             }
             else if (value.length == 7) {
                 // 6-digit hex: #rrggbb
                 const r = parseInt(value.substring(1, 3), 16);
                 const g = parseInt(value.substring(3, 5), 16);
                 const b = parseInt(value.substring(5, 7), 16);
-                color = [r / 0xff, g / 0xff, b / 0xff];
+                return [r / 0xff, g / 0xff, b / 0xff];
             }
-            else { console.log(`invalid hex color ${value}`); }
+            else { throw new Error(`invalid hex color ${value}`); }
         }
-        else { color = Core.Colors[value.toLowerCase()]; }
-        return color || [0, 0, 0]; // Default to black if not found
+        else {
+            const color = Core.Colors[value.toLowerCase()];
+            if (color) { return [color[0], color[1], color[2]]; }
+        }
+        throw new Error(`invalid color ${value}`);
     }
 }

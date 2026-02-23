@@ -25,6 +25,7 @@ export interface ITree3DOptions {
     randomTwistAngle?: number; // radians
     randomSplitAngle?: number; // radians
     randomEdgeLengthScaling?: number;
+    edgeLengthScalings?: ArrayLike<number>; // Length scalings from node to parent
     edgeLengths?: ArrayLike<number>; // Lengths from node to parent
     branchAngles?: ArrayLike<number>;
     splitAngles?: ArrayLike<number>;
@@ -50,6 +51,7 @@ export class Tree3D {
         const randomTwistAngle = options.randomTwistAngle;
         const randomSplitAngle = options.randomSplitAngle;
         const randomEdgeLengthScaling = options.randomEdgeLengthScaling;
+        const edgeLengthScalings = options.edgeLengthScalings;
         const edgeLengths = options.edgeLengths;
         const branchAngles = options.branchAngles;
         const splitAngles = options.splitAngles;
@@ -126,7 +128,7 @@ export class Tree3D {
                 rotation3[3] = twists[parentIndex * 4 + 3];
 
                 // Edge length
-                let edgeLength = edgeLengths ? edgeLengths[childIndex] : parentEdgeLength * edgeLengthScaling;
+                let edgeLength = edgeLengths ? edgeLengths[childIndex] : edgeLengthScalings ? parentEdgeLength * edgeLengthScalings[childIndex] : parentEdgeLength * edgeLengthScaling;
                 edgeLength = Math.max(edgeLength + (Math.random() * 2 - 1) * randomEdgeLengthScaling, minEdgeLength);
                 lengths[childIndex] = edgeLength;
 

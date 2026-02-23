@@ -27,6 +27,16 @@ export class MathUtils {
     }
 
     /**
+     * Smoothstep interpolation
+     * @param t interpolation amount [0,1]
+     * @returns smoothed value
+     */
+    public static smoothstep(t: number) {
+        t = this.clamp(t, 0, 1);
+        return t * t * (3 - 2 * t);
+    }
+
+    /**
      * Normalize value from [min,max] to [from,to]
      * @param value value to normalize
      * @param min min from value

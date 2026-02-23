@@ -17,9 +17,10 @@ export { Hittable, HittableBufferData, TextureType, HittableType, HittableSphere
 export { HittableBoxSdf, HittableTubeSdf, HittableBoxFrameSdf, HittableCylinderSdf, HittableHexPrismSdf, HittableQuadSdf, HittableRingSdf, HittableCappedTorusSdf } from "./hittablesdf.js";
 export { Image, ImageVisual } from "./image.js";
 export { LabelSet, LabelSetVisual } from "./labels.js";
+export { Light, RectLight, DiskLight, SphereLight, DirectionalLight, HemisphereLight, SpotLight, ProjectorLight, PointLight } from "./light.js";
 export { Material, MaterialType } from "./material.js";
 export { MathUtils as Math } from "./math.js";
-export { vector2, vector3, vector4, quaternion, matrix4x4 } from "./matrix.js";
+export { vector2, vector3, vector4, quaternion, matrix3x3, matrix4x4 } from "./matrix.js";
 export { Palette, Palettes } from "./palette.js";
 export { PseudoRandom } from "./random.js";
 export { Ray } from "./ray.js";
@@ -41,6 +42,7 @@ export type { IHittableOptions, IHittableGlyphOptions, IHittableBoxOptions, IHit
 export type { IHittableBoxFrameSdfOptions, IHittableTubeSdfOptions, IHittableBoxSdfOptions, IHittableCappedTorusSdfOptions, IHittableCylinderSdfOptions, IHittableHexPrismSdfOptions, IHittableQuadSdfOptions, IHittableRingSdfOptions } from "./hittablesdf.js";
 export type { IImageOptions, IImageVisual } from "./image.js";
 export type { ILabelSetOptions, ILabelSetVisual } from "./labels.js";
+export type { ILightOptions, IRectLightOptions, IDiskLightOptions, ISphereLightOptions, IDirectionalLightOptions, IHemisphereLightOptions, ISpotLightOptions, IProjectorLightOptions, IPointLightOptions } from "./light.js";
 export type { IMaterialOptions } from "./material.js";
 export type { Vector2, Vector3, Vector4, Quaternion, Matrix2x2, Matrix3x3, Matrix4x4 } from "./matrix.js";
 export type { ITree3DOptions } from "./tree.js";

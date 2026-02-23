@@ -50,7 +50,7 @@ export class Window extends Transform {
             for (let i = 0; i < groupby.length; i++) {
                 const columnIndex = dataset.getColumnIndex(groupby[i]);
                 if (columnIndex == -1) {
-                    throw new Error(`window transform groupby field "${groupby[i]}" not found`);
+                    throw new Error(`window transform groupby column ${groupby[i]} not found`);
                 }
                 groupbyColumnIndices.push(columnIndex);
                 // Force discrete to get count of unique values to allow creation of spatial index
@@ -96,12 +96,10 @@ export class Window extends Transform {
                 const columnName = this._transformJSON.fields[i];
                 const columnIndex = dataset.getColumnIndex(columnName);
                 if (columnIndex == -1) {
-                    throw new Error(`window transform field "${columnName}" not found`);
+                    throw new Error(`window transform field ${columnName} not found`);
                 }
-                else {
-                    fieldColumnNames.push(columnName);
-                    fieldColumnValues.push(dataset.all.columnValues(columnIndex, false));
-                }
+                fieldColumnNames.push(columnName);
+                fieldColumnValues.push(dataset.all.columnValues(columnIndex, false));
             }
         }
 
@@ -122,12 +120,11 @@ export class Window extends Transform {
 
             // Add to as if not enough names specified
             for (let i = 0; i < ops.length - as.length; i++) {
-                as.push(`${ops[as.length + i]}_${fieldColumnNames[as.length + i]}`);
+                as.push(`${ops[i]}_${fieldColumnNames[i]}`);
             }
         }
 
         // TODO: Support frame
-        // TODO: Process one op at a time to reduce number of passes over data, e.g. can use running total for count, sum, mean
         // const frame = this._transformJSON.frame;
         for (let i = 0; i < dataset.length; i++) {
             const row = dataset.rows[i];

@@ -30,11 +30,12 @@ export class Editor {
     }
     public get content(): string { return this._content.value; }
 
-    constructor() {
+    constructor(lines: HTMLDivElement, content: HTMLTextAreaElement) {
         this._tabLength = 2;
-        this._numbers = document.getElementById("lines") as HTMLDivElement;
-        this._content = document.getElementById("content") as HTMLTextAreaElement;
+        this._numbers = lines;
+        this._content = content;
 
+        // Event listeners
         this._content.addEventListener("input", () => {
             this._updateLineNumbers(false);
             if (this.changedCallback) { this.changedCallback(); }
@@ -48,6 +49,32 @@ export class Editor {
             setTimeout(() => {
                 this._updateLineNumbers(false);
             }, 0);
+        });
+
+        // Allow drag & drop of text files
+        this._content.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            e.dataTransfer!.dropEffect = "copy";
+        });
+        this._content.addEventListener("drop", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const files = e.dataTransfer!.files;
+            if (files.length > 0) {
+                const validTypes = [".txt", ".json"];
+                const file = files[0];
+                const fileType = file.name.substring(file.name.lastIndexOf("."));
+                if (!validTypes.includes(fileType)) {
+                    console.log("only .txt and .json files are supported");
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const text = e.target!.result as string;
+                    this.content = text;
+                }
+                reader.readAsText(file);
+            }
         });
 
         // Catch tabbing into textarea

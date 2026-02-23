@@ -84,7 +84,7 @@ export class HittableBoxFrameSdf extends HittableBox {
 
     public toBuffer(buffer: HittableBufferData, index: number) {
         super.toBuffer(buffer, index);
-        buffer.setUnitType(index, HittableType.boxFrameSdf);
+        buffer.setUnitType(index, this._rotation[3] == 1 ? HittableType.boxFrameSdf : HittableType.boxFrameRotatedSdf);
         buffer.setRounding(index, Math.min(this._rounding, this._thickness * this._size[0] / 2));
         buffer.setParam(index, this._thickness, 0);
     }

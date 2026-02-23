@@ -10,7 +10,7 @@ export class Facet {
     public field: string; // TODO: Convert to Field
 
     // Required for data-driven facets
-    public groupby: string; // TODO: Field | Field[]
+    public groupby: string; // TODO: Field | Field[ ]
     // Optional aggregate transform parameters for data-driven facets
     public aggregate: string; // TODO: Convert to aggregate transform parameters object with fields, ops, as, and cross properties
 

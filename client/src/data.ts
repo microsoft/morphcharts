@@ -8,6 +8,10 @@ export class Data {
     public get datasets(): { [key: string]: string } { return this._datasets; }
     private _pageSize;
 
+    // Images
+    private _images: { [key: string]: string };
+    public get images(): { [key: string]: string } { return this._images; }
+
     // Files
     private _fileContainer: HTMLDivElement;
     private _fileSelect: HTMLSelectElement;
@@ -32,6 +36,7 @@ export class Data {
 
     constructor(container: HTMLDivElement, pageSize?: number) {
         this._datasets = {};
+        this._images = {};
         this._pageSize = pageSize || 20;
 
         // Files
@@ -43,18 +48,15 @@ export class Data {
             const files = fileInput.files;
             if (files && files[0]) {
                 const file = files[0];
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    if (e.target) {
-                        this._addFile(file.name, e.target.result as string);
-                    }
-                }
-                reader.readAsText(file);
+                // Add file (dataset or image)
+                this._addFile(file);
             }
         };
         deleteButton.onclick = () => {
             const filename = this._fileSelect.value;
+            // Remove either dataset or image
             delete this._datasets[filename];
+            delete this._images[filename];
             this._fileSelect.remove(this._fileSelect.selectedIndex);
 
             // Hide if no files left
@@ -89,21 +91,14 @@ export class Data {
             const dataTransfer = e.dataTransfer;
             if (!dataTransfer) return;
             const files = dataTransfer.files;
-            // Only allow csv files, and only one file at a time (for now)
-            if (files.length == 1 && files[0].type == "text/csv") {
-                const file = files[0];
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    if (e.target) {
-                        this._addFile(file.name, e.target.result as string);
-                    }
-                };
-                reader.readAsText(file);
+            // Only allow csv files, png and jpg images, and only one file at a time (for now)
+            if (files.length == 1 && (files[0].type == "text/csv" || files[0].type == "image/png" || files[0].type == "image/jpeg")) {
+                this._addFile(files[0]);
             }
         };
     }
 
-    public clear() {
+    private _clear() {
         // Hide containers
         this._dataContainer.style.display = "none";
         this._exportContainer.style.display = "none";
@@ -114,6 +109,7 @@ export class Data {
     }
 
     public update(plot: Spec.Plot) {
+        this._clear();
         this._plot = plot;
         const names: string[] = [];
         const datasets: Spec.Dataset[] = [];
@@ -140,17 +136,48 @@ export class Data {
         }
     }
 
-    private _addFile(filename: string, text: string) {
-        this._datasets[filename] = text;
+    private _addFile(file: File) {
+        const filename = file.name;
+        const reader = new FileReader();
+        // Add dataset or image based file type
+        switch (file.type) {
+            case "text/csv":
+                reader.onload = (e) => {
+                    if (e.target) {
+                        this._datasets[filename] = e.target.result as string;
 
-        // Add entry to select
-        const option = document.createElement("option");
-        option.value = filename;
-        option.innerText = filename;
-        this._fileSelect.appendChild(option);
+                        // Add entry to select
+                        const option = document.createElement("option");
+                        option.value = filename;
+                        option.innerText = filename;
+                        this._fileSelect.appendChild(option);
 
-        // Ensure visible
-        this._fileContainer.style.display = "flex";
+                        // Ensure visible
+                        this._fileContainer.style.display = "flex";
+                    }
+                };
+                reader.readAsText(file);
+                break;
+            case "image/png":
+            case "image/jpg":
+            case "image/jpeg":
+                reader.onload = (e) => {
+                    if (e.target) {
+                        this._images[filename] = e.target.result as string;
+
+                        // Add entry to select
+                        const option = document.createElement("option");
+                        option.value = filename;
+                        option.innerText = filename;
+                        this._fileSelect.appendChild(option);
+
+                        // Ensure visible
+                        this._fileContainer.style.display = "flex";
+                    }
+                };
+                reader.readAsDataURL(file);
+                break;
+        }
     }
 
     private _export() {

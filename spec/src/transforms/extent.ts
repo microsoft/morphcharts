@@ -18,7 +18,7 @@ export class Extent extends Transform {
 
         // Column index
         const columnIndex = dataset.getColumnIndex(field);
-        if (columnIndex == -1) { throw new Error(`extent transform column "${field}" not found`); }
+        if (columnIndex == -1) { throw new Error(`extent transform column ${field} not found`); }
 
         // Min, max
         const min = dataset.all.minValue(columnIndex, false);
