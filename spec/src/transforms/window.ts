@@ -120,7 +120,7 @@ export class Window extends Transform {
 
             // Add to as if not enough names specified
             for (let i = 0; i < ops.length - as.length; i++) {
-                as.push(`${ops[i]}_${fieldColumnNames[i]}`);
+                as.push(`${ops[as.length + i]}_${fieldColumnNames[as.length + i]}`);
             }
         }
 
