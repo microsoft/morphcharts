@@ -466,20 +466,20 @@ export class Axis {
                 horizontalAlignment = "right";
                 break;
         }
-        let verticalALignment: string;
+        let verticalAlignment: string;
         switch (labelBaseline) {
             case "alphabetic":
             case "middle":
             default:
-                verticalALignment = "center";
+                verticalAlignment = "center";
                 break;
             case "bottom":
             case "line-bottom":
-                verticalALignment = "bottom";
+                verticalAlignment = "bottom";
                 break;
             case "line-top":
             case "top":
-                verticalALignment = "top";
+                verticalAlignment = "top";
                 break;
         }
 
@@ -517,7 +517,8 @@ export class Axis {
         const gridWidthZ = this.gridWidthZ || gridWidth;
         switch (scale.type) {
             case "band":
-            case "point": // Bandwidth = 0
+            case "point": // Bandwidth = 0. TODO: Deal with difference in padding
+                // All band scales should be treated as strings
                 tickCount = this.tickCount == undefined ? max - min + 1 : this.tickCount;
                 if (tickCount > 0) {
                     const dataset = scale.domain.data;
@@ -858,7 +859,7 @@ export class Axis {
                             labelRotationsArray.push(labelRotation[2]);
                             labelRotationsArray.push(labelRotation[3]);
                             labelHorizontalAlignmentsArray.push(horizontalAlignment);
-                            labelVerticalAlignmentsArray.push(verticalALignment);
+                            labelVerticalAlignmentsArray.push(verticalAlignment);
                             labelFillArray.push(labelFill);
                             labelStrokeArray.push(labelStroke);
                             labelStrokeWidthArray.push(labelStrokeWidth * scaling);
@@ -1181,7 +1182,7 @@ export class Axis {
                             labelRotationsArray.push(labelRotation[2]);
                             labelRotationsArray.push(labelRotation[3]);
                             labelHorizontalAlignmentsArray.push(horizontalAlignment);
-                            labelVerticalAlignmentsArray.push(verticalALignment);
+                            labelVerticalAlignmentsArray.push(verticalAlignment);
                             labelFillArray.push(labelFill);
                             labelStrokeArray.push(labelStroke);
                             labelStrokeWidthArray.push(labelStrokeWidth * scaling);
@@ -1251,15 +1252,15 @@ export class Axis {
                 case "alphabetic":
                 case "middle":
                 default:
-                    verticalALignment = "center";
+                    verticalAlignment = "center";
                     break;
                 case "bottom":
                 case "line-bottom":
-                    verticalALignment = "bottom";
+                    verticalAlignment = "bottom";
                     break;
                 case "line-top":
                 case "top":
-                    verticalALignment = "top";
+                    verticalAlignment = "top";
                     break;
             }
 
@@ -1347,7 +1348,7 @@ export class Axis {
             labelRotationsArray.push(labelRotation[2]);
             labelRotationsArray.push(labelRotation[3]);
             labelHorizontalAlignmentsArray.push(horizontalAlignment);
-            labelVerticalAlignmentsArray.push(verticalALignment);
+            labelVerticalAlignmentsArray.push(verticalAlignment);
             labelFillArray.push(labelFill);
             labelStrokeArray.push(labelStroke);
             labelStrokeWidthArray.push(labelStrokeWidth * scaling);

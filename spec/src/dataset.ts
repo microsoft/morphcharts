@@ -136,7 +136,7 @@ export class Dataset extends Core.Data.Dataset {
                                     reject(`${datasetJSON.url} ${response.statusText.toLowerCase()}`);
                                 }
                                 else {
-                                    const text = await response.text();
+                                    let text = await response.text();
                                     let rows: string[][];
                                     let headings: string[];
                                     switch (format) {
@@ -151,6 +151,16 @@ export class Dataset extends Core.Data.Dataset {
                                             rows = tsv.read(text, 1); // Remaining rows
                                             break;
                                         case "json":
+                                            // Support subset of JSON data using property attribute
+                                            if (datasetJSON.property) {
+                                                const properties = datasetJSON.property.split('.');
+                                                let json = JSON.parse(text);
+                                                for (let i = 0; i < properties.length; i++) {
+                                                    const property = properties[i];
+                                                    json = json[property];
+                                                }
+                                                text = JSON.stringify(json);
+                                            }
                                             const json = new Core.Data.Json();
                                             const data = json.read(text);
                                             headings = data[0];
@@ -177,7 +187,6 @@ export class Dataset extends Core.Data.Dataset {
                             }
                             break;
                         default:
-                        case "json":
                             console.log("data format not supported");
                             break;
                     }
@@ -278,6 +287,9 @@ export class Dataset extends Core.Data.Dataset {
                                 break;
                             case "lookup":
                                 dataset = new Transforms.Lookup(transformJSON).transform(group, dataset);
+                                break;
+                            case "pack":
+                                if (hierarchy) { dataset = new Transforms.Pack(transformJSON).transform(dataset, hierarchy, readonly); }
                                 break;
                             case "partition":
                                 if (hierarchy) { dataset = new Transforms.Partition(transformJSON).transform(group, dataset, hierarchy, readonly); }

@@ -5,8 +5,8 @@
     <title>MorphCharts Client</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="./css/gallery.css">
     <script type="module" src="./js/client.js"></script>
+    <link rel="stylesheet" href="./css/gallery.css">
     <style type="text/css">
         html,
         body {
@@ -92,7 +92,7 @@
         }
 
         .disabled {
-            color: gray;
+            color: lightgray;
         }
 
         /* sliders */
@@ -111,7 +111,7 @@
             cursor: pointer;
             border: 1px solid gray;
             border-radius: 4px 4px 0 0;
-            padding: 4px 8px;
+            padding: 4px;
             margin-top: 1px;
         }
 
@@ -133,7 +133,9 @@
             display: flex;
         }
 
-        /* .heading {} */
+        .heading {
+            font-weight: bold;
+        }
 
         /* spec tab */
         /* render options */
@@ -146,7 +148,7 @@
         }
 
         /* editor */
-        .spec {
+        .editorContainer {
             border-top: 1px solid gray;
             flex-grow: 1;
             overflow: hidden;
@@ -198,14 +200,13 @@
         }
 
         .error {
-            flex-grow: 0;
-            flex-shrink: 0;
-            /* line height units */
-            height: 2lh;
+            display: none;
             overflow: hidden;
             color: red;
             font-family: monospace;
-            padding-left: 4px;
+            padding: 4px;
+            background-color: white;
+            border-top: 1px solid gray;
         }
 
         /* data tab */
@@ -345,18 +346,18 @@
                 <!-- Tabs -->
                 <div class="tabButtons">
                     <div style="border-bottom: 1px solid gray;">&nbsp;</div>
-                    <div id="tabButton1" class="tabButton" tabindex="0">Plot</div>
-                    <div id="tabButton2" class="tabButton" tabindex="0">Render</div>
-                    <div id="tabButton3" class="tabButton" tabindex="0">Data</div>
-                    <div id="tabButton4" class="tabButton" tabindex="0">Signals</div>
-                    <div id="tabButton5" class="tabButton" tabindex="0">Tiles</div>
-                    <div id="tabButton6" class="tabButton" tabindex="0">Animation</div>
-                    <div id="tabButton7" class="tabButton" tabindex="0">About</div>
+                    <div class="tabButton" tabindex="0">Plot</div>
+                    <div class="tabButton" tabindex="0">Render</div>
+                    <div class="tabButton" tabindex="0">Data</div>
+                    <div class="tabButton" tabindex="0">Signals</div>
+                    <!-- <div class="tabButton" tabindex="0">Tiles</div> -->
+                    <!-- <div class="tabButton" tabindex="0">Animation</div> -->
+                    <div class="tabButton" tabindex="0">Textures</div>
+                    <div class="tabButton" tabindex="0">About</div>
                     <div style="flex-grow: 1; border-bottom: 1px solid gray;"></div>
                 </div>
-                <!-- tab 1 -->
-                <div id="tab1" class="tab">
-                    <!-- UI Container -->
+                <!-- plot tab -->
+                <div class="tab">
                     <div style="display: flex; flex-direction: column; gap: 12px; padding: 4px;">
                         <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
                             <input type="button" id="startStopButton" value="Start" title="Start/stop rendering"
@@ -378,10 +379,8 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Error -->
-                    <div id="error" class="error"></div>
-                    <!-- Spec -->
-                    <div id="spec" class="spec">
+                    <!-- spec -->
+                    <div id="spec" class="editorContainer">
                         <div id="editor" class="editor">
                             <div id="lines" class="lines"></div>
                             <textarea class="content" id="content" spellcheck="false"
@@ -389,14 +388,14 @@
                         </div>
                     </div>
                 </div>
-                <!-- tab 2 -->
-                <div id="tab2" class="tab">
-                    <!-- rendering -->
+                <!-- render tab -->
+                <div class="tab">
                     <div style="display: flex; flex-direction: column; gap: 12px; padding: 4px;">
                         <!-- image size -->
                         <div style="display: flex; flex-direction: column; gap: 4px;">
                             <label class="heading">Size</label>
-                            <div style="display: flex; flex-direction: row; gap: 8px; align-items: baseline;">
+                            <div
+                                style="display: flex; flex-direction: row; gap: 8px; align-items: baseline; flex-wrap: wrap;">
                                 <div><input type="radio" name="sizeRadioGroup" id="sizeFit" value="fit" /><label
                                         for="sizeFit" class="radioLabel">Fit</label></div>
                                 <div><input type="radio" name="sizeRadioGroup" id="sizeHd" value="hd" checked /><label
@@ -405,19 +404,14 @@
                                         for="sizeFullHd" title="1920x1080" class="radioLabel">Full HD</label></div>
                                 <div><input type="radio" name="sizeRadioGroup" id="size4k" value="4k" /><label
                                         for="size4k" title="3840x2160" class="radioLabel">4K</label></div>
-                            </div>
-                            <div>
-                                <div style="display: flex; flex-direction: row; align-items: center;">
-                                    <div style="display: flex; flex-direction: row; gap: 8px; align-items: baseline;">
-                                        <div><input type="radio" name="sizeRadioGroup" value="custom"
-                                                id="sizeCustom" /><label for="sizeCustom"
-                                                class="radioLabel">Custom</label>
-                                        </div>
-                                        <div>
-                                            <input type="text" id="widthText" disabled /><label
-                                                class="textboxLabel">x</label><input type="text" id="heightText"
-                                                disabled /><label class="textboxLabel">px</label>
-                                        </div>
+                                <div style="display: flex; flex-direction: row; gap: 8px; align-items: baseline;">
+                                    <div><input type="radio" name="sizeRadioGroup" value="custom"
+                                            id="sizeCustom" /><label for="sizeCustom" class="radioLabel">Custom</label>
+                                    </div>
+                                    <div>
+                                        <input type="text" id="widthText" disabled /><label
+                                            class="textboxLabel">x</label><input type="text" id="heightText"
+                                            disabled /><label class="textboxLabel">px</label>
                                     </div>
                                 </div>
                             </div>
@@ -469,10 +463,10 @@
                                     <div style="width: 48px;"><label class="rangeValue"
                                             id="apertureLabel"></label><label class="rangeValue">mm</label></div>
                                 </div>
-                                <!-- focus offset -->
+                                <!-- focus distance -->
                                 <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
-                                    <label class="rangeLabel" style="width: 104px;">Focus offset</label>
-                                    <input type="range" min="-2" max="2" step="0.01" id="focusRange" />
+                                    <label class="rangeLabel" style="width: 104px;">Focus distance</label>
+                                    <input type="range" min="0" max="4" step="0.01" id="focusRange" />
                                     <div style="width: 48px;"><label class="rangeValue" id="focusLabel"></label></div>
                                     <input type="button" id="focusResetButton" value="Reset" />
                                 </div>
@@ -531,8 +525,8 @@
                                 <div><input type="radio" name="cameraMode" id="modePerspective" value="perspective"
                                         checked /><label for="modePerspective" class="radioLabel">Perspective</label>
                                 </div>
-                                <div><input type="radio" name="cameraMode" id="modeEqualAreaCylindrical"
-                                        value="equalareacylindrical" /><label for="modeEqualAreaCylindrical"
+                                <div><input type="radio" name="cameraMode" id="modeCylindrical"
+                                        value="cylindrical" /><label for="modeCylindrical"
                                         class="radioLabel">Cylindrical</label></div>
                             </div>
                         </div>
@@ -540,16 +534,15 @@
                         <div style="display: flex; flex-direction: column; gap: 4px;">
                             <!-- perspective options -->
                             <div id="perspectiveOptions" class="cameraOptions"></div>
-                            <!-- equal area cylindrical options -->
-                            <div id="equalAreaCylindricalOptions" class="cameraOptions"></div>
+                            <!-- cylindrical options -->
+                            <div id="cylindricalOptions" class="cameraOptions"></div>
                         </div>
                     </div>
                 </div>
-                <!-- tab 3 -->
-                <div id="tab3" class="tab">
-                    <!-- data -->
+                <!-- data tab -->
+                <div id="dataTab" class="tab">
                     <div style="display: flex; flex-direction: column; gap: 12px; padding: 4px;">
-                        <input type="file" id="dataFileInput" accept=".csv" />
+                        <input type="file" id="dataFileInput" accept=".csv,.jpg,.png" />
                         <!-- files -->
                         <div id="dataFileContainer" style="display: none; flex-direction: column; gap: 4px;">
                             <label>Files</label>
@@ -595,14 +588,12 @@
                     <!-- table -->
                     <div class="data table" id="tableContainer"></div>
                 </div>
-                <!-- tab 4 -->
-                <div id="tab4" class="tab">
-                    <!-- signals -->
+                <!-- signals tab -->
+                <div class="tab">
                     <div class="table" id="signalsContainer"></div>
                 </div>
-                <!-- tab 5 -->
-                <div id="tab5" class="tab">
-                    <!-- tiles -->
+                <!-- tiles tab -->
+                <div class="tab">
                     <div style="display: flex; flex-direction: column; gap: 12px; padding: 4px;">
                         <div style="display: flex; flex-direction: column; gap: 4px;">
                             <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
@@ -629,22 +620,23 @@
                         </div>
                     </div>
                 </div>
-                <!-- tab 6 -->
-                <div id="tab6" class="tab">
-                    <!-- animation -->
-                </div>
-                <!-- tab 7 -->
-                <div id="tab7" class="tab">
-                    <!-- about -->
+                <!-- animation tab -->
+                <!-- <div class="tab"></div> -->
+                <!-- textures tab -->
+                <!-- <div class="tab"></div> -->
+                <!-- about tab -->
+                <div class="tab">
                     <div style="display: flex; flex-direction: column; gap: 12px; padding: 4px;">
                         <div class="about">MorphCharts Client</div>
-                        <!--  debug -->
+                        <!-- debug -->
                         <div style="display: flex; flex-direction: row;">
                             <input type="checkbox" id="debugCheckbox" checked /><label class="checkboxLabel"
                                 for="debugCheckbox">Debug</label>
                         </div>
                     </div>
                 </div>
+                <!-- error -->
+                <div id="error" class="error"></div>
             </div>
         </div>
         <footer>
@@ -655,12 +647,18 @@
             <a href="https://www.microsoft.com/en-us/servicesagreement/">Terms of Use</a>
         </footer>
     </div>
+    <!-- debug -->
     <div id="debugContainer" class="debugContainer">
         <!-- render -->
         <div><label for="debugRenderFrames">FRM TOT</label><span id="debugRenderFrameCount"></span></div>
         <!-- camera -->
         <div><label for="debugCameraPosition">CAM POS</label><span id="debugCameraPosition"></span></div>
-        <div><label for="debugCameraTarget">CAM TAR</label><span id="debugCameraTarget"></span></div>
+        <div><label for="debugCameraRight">CAM RHT</label><span id="debugCameraRight"></span></div>
+        <div><label for="debugCameraUp">CAM UP </label><span id="debugCameraUp"></span></div>
+        <div><label for="debugCameraForward">CAM FWD</label><span id="debugCameraForward"></span></div>
+        <div><label for="debugCameraManipulationOrigin">CAM ORI</label><span id="debugCameraManipulationOrigin"></span>
+        </div>
+        <div><label for="debugWorldPosition">WLD POS</label><span id="debugWorldPosition"></span></div>
         <div><label for="debugCameraDistance">CAM DST</label><span id="debugCameraDistance"></span></div>
         <div><label for="debugCameraFov">CAM FOV</label><span id="debugCameraFov"></span></div>
         <div><label for="debugCameraAperture">CAM DOF</label><span id="debugCameraAperture"></span></div>

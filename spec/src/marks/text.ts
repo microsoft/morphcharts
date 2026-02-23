@@ -25,7 +25,7 @@ export class Text extends Mark {
         let dataset: Dataset;
         if (this.from && this.from.data) {
             dataset = group.getDataset(this.from.data);
-            if (!dataset) { throw new Error(`text mark dataset "${this.from.data}" not found`); }
+            if (!dataset) { throw new Error(`dataset ${this.from.data} not found`); }
         }
         else {
             // Create empty dataset
@@ -177,6 +177,7 @@ export class Text extends Mark {
         let labels: string[][] = [];
         let field = this.encode.text.field
         let value = this.encode.text.value;
+        let signal = this.encode.text.signal;
         let label: string;
         let labelLines: string[];
         if (field) {
@@ -236,6 +237,15 @@ export class Text extends Mark {
             if (lineBreak) { labelLines = label.split(lineBreak); }
             else { labelLines = [label]; }
             for (let i = 0; i < dataset.length; i++) {
+                glyphCount += label.length;
+                labels.push(labelLines);
+            }
+        }
+        else if (signal) {
+            for (let i = 0; i < dataset.length; i++) {
+                label = signal.update(this, dataset, i);
+                if (lineBreak) { labelLines = label.split(lineBreak); }
+                else { labelLines = [label]; }
                 glyphCount += label.length;
                 labels.push(labelLines);
             }

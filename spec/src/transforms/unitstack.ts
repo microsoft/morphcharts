@@ -90,7 +90,7 @@ export class UnitStack extends Transform {
             const sort = this._transformJSON.sort;
             if (sort.field) {
                 const columnIndex = dataset.getColumnIndex(sort.field);
-                if (columnIndex == -1) { throw new Error(`unitstack transform sort field "${sort.field}" not found`); }
+                if (columnIndex == -1) { throw new Error(`unitstack transform sort field ${sort.field} not found`); }
                 orderedIds = dataset.all.orderedIds(columnIndex);
                 // Order
                 if (sort.order && sort.order.toLowerCase() == "descending") {
@@ -104,7 +104,7 @@ export class UnitStack extends Transform {
         let multiplier = 1;
         for (let i = 0; i < groupby.length; i++) {
             const columnIndex = dataset.getColumnIndex(groupby[i]);
-            if (columnIndex == -1) { throw new Error(`unitstack transform groupby field "${groupby[i]}" not found`); }
+            if (columnIndex == -1) { throw new Error(`unitstack transform groupby field ${groupby[i]} not found`); }
             groupbyColumnIndices.push(columnIndex);
             // Force discrete to get count of unique values to allow creation of spatial index
             groupbyColumnValues.push(dataset.all.columnValues(columnIndex, true));

@@ -6,11 +6,26 @@
   "height": 640,
   "depth": 640,
 
-  "camera": {"position": [0.5, 0.25, 2.5], "aperture": 10},
+  "camera": {
+    "position": [0.5, 0.25, 2.5],
+    "aperture": 10,
+    "focusDistance": 2.5
+  },
   
   "encode": {
     "enter": {"strokeWidth": {"value": 0}}
   },
+
+  "lights": [
+    {
+      "type": "rect",
+      "size": 0.25,
+      "distance": 1,
+      "altitude": 30,
+      "azimuth": -45,
+      "brightness": 4
+    }
+  ],
   
   "data": [
     {
@@ -132,22 +147,6 @@
           "fuzz": {"value": 0.01},
           "gloss": {"value": 0.5},
           "fill": {"value": "white"}
-        }
-      }
-    },
-    {
-      "type": "rect",
-      "material": "light",
-      "encode": {
-        "enter": {
-          "xc": {"signal": "-width"},
-          "yc": {"signal": "width*2"},
-          "zc": {"signal": "width*2"},
-          "width": {"signal": "width"},
-          "height": {"signal": "width"},
-          "angleX": {"value": 45},
-          "angleY": {"value": 45},
-          "fill": {"color": {"h": {"value": 0}, "s": {"value": 0}, "l": {"value": 2}}}
         }
       }
     },

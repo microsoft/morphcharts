@@ -19,7 +19,7 @@ export class Image {
         scene.images.push(image)
     }
 
-    public static fromJSON(group: Group, json: any): Image {
+    public static fromJSON(group: Group, images: { [key: string]: string }, json: any): Image {
         const image = new Image();
 
         // Required fields
@@ -31,6 +31,18 @@ export class Image {
 
         // dataURL
         if (json.dataURL) { image.dataURL = json.dataURL; }
+
+        // File
+        if (json.file) {
+            // Load dataURL from input file upload
+            const start = performance.now();
+            const text = images[json.file];
+            if (text) {
+                image.dataURL = text;
+                console.log(`loaded data ${image.name} ${Core.Time.formatDuration(performance.now() - start)}`);
+            }
+        }
+
         return image;
     }
 }

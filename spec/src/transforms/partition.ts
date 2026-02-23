@@ -43,7 +43,7 @@ export class Partition extends Transform {
         const field = this._transformJSON.field;
         if (field) {
             const sizeColumnIndex = dataset.getColumnIndex(field);
-            if (sizeColumnIndex == -1) { throw new Error(`partition transform field "${field}" not found`); }
+            if (sizeColumnIndex == -1) { throw new Error(`partition transform field ${field} not found`); }
             sizeValues = dataset.all.columnValues(sizeColumnIndex, false)
         }
 

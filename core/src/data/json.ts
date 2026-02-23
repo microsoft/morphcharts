@@ -34,10 +34,10 @@ export class Json {
 
                 return rows;
             }
-            throw new Error("Expected JSON to be an array of objects with consistent properties.");
+            throw new Error("JSON is not an array of objects");
         }
         catch (error) {
-           throw new Error(`Invalid JSON ${error.message}`);
+            throw new Error("invalid JSON");
         }
     }
 }

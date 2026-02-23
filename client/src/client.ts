@@ -11,6 +11,7 @@ import { Pointers } from "./input/pointers.js";
 import { Manipulator } from "./input/manipulator.js";
 import { Editor } from "./editor.js";
 import { Data } from "./data.js";
+import { Debug } from "./debug.js";
 
 window.onload = () => { new Main(); };
 
@@ -26,9 +27,10 @@ export class Main {
     private _samplesPopup: HTMLDivElement;
     private _plot: Spec.Plot;
     private _hasSpecChanged: boolean;
-    private _isSpecValid: boolean;
     private _scene: Spec.IScene;
     private _editor: Editor;
+
+    // Error
     private _error: HTMLDivElement;
 
     // Data
@@ -154,9 +156,9 @@ export class Main {
         });
 
         // Tabs
+        const tabButtons = document.getElementsByClassName("tabButton");
         const openTab = (tabButton: HTMLElement, tab: HTMLElement): void => {
             const tabs = document.getElementsByClassName("tab");
-            const tabButtons = document.getElementsByClassName("tabButton");
             // Reset active tab
             for (let i = 0; i < tabs.length; i++) {
                 const element = tabs[i] as HTMLElement;
@@ -171,10 +173,10 @@ export class Main {
             tab.className += " active";
             tabButton.className += " active";
         }
-        const tabCount = document.getElementsByClassName("tabButton").length;
-        for (let i = 0; i < tabCount; i++) {
-            const tabButton = document.getElementById(`tabButton${i + 1}`);
-            const tab = document.getElementById(`tab${i + 1}`);
+        for (let i = 0; i < tabButtons.length; i++) {
+            const tabButton = tabButtons[i] as HTMLInputElement;
+            const tabs = document.getElementsByClassName("tab");
+            const tab = tabs[i] as HTMLDivElement;
             if (tabButton && tab) {
                 // Open tab on click
                 tabButton.addEventListener("click", () => openTab(tabButton, tab));
@@ -219,7 +221,9 @@ export class Main {
         // Create a default camera
         const cameraOptions: Core.Cameras.IAltAzimuthPerspectiveCameraOptions = {
             position: Core.vector3.clone(Core.Config.cameraPosition),
-            target: Core.vector3.clone(Core.Config.cameraTarget),
+            right: Core.vector3.clone(Core.Config.cameraRight),
+            up: Core.vector3.clone(Core.Config.cameraUp),
+            forward: Core.vector3.clone(Core.Config.cameraForward),
             fov: Core.Config.cameraFov,
             aperture: Core.Config.cameraAperture,
             focusDistance: Core.Config.cameraFocusDistance,
@@ -313,7 +317,7 @@ export class Main {
     }
 
     private _initializeData(): void {
-        const dataTab = document.getElementById("tab3") as HTMLDivElement;
+        const dataTab = document.getElementById("dataTab") as HTMLDivElement;
         this._data = new Data(dataTab);
     }
 
@@ -353,7 +357,7 @@ export class Main {
         }
         const focusResetButton = document.getElementById("focusResetButton") as HTMLInputElement;
         focusResetButton.onclick = () => {
-            this._camera.focusDistance = 0;
+            this._camera.focusDistance = Core.Config.cameraFocusDistance;
             this._updateUI();
         }
 
@@ -432,18 +436,18 @@ export class Main {
 
         // Camera mode options
         const perspectiveOptions = document.getElementById("perspectiveOptions") as HTMLDivElement;
-        const equalAreaCylindricalOptions = document.getElementById("equalAreaCylindricalOptions") as HTMLDivElement;
+        const cylindricalOptions = document.getElementById("cylindricalOptions") as HTMLDivElement;
         const cameraModeChanged = () => {
             // Hide all options
             perspectiveOptions.style.display = "none";
-            equalAreaCylindricalOptions.style.display = "none";
+            cylindricalOptions.style.display = "none";
             // Show options for selected camera mode
             switch (this._renderer.cameraMode) {
                 case "perspective":
                     perspectiveOptions.style.display = "flex";
                     break;
-                case "equalAreaCylindrical":
-                    equalAreaCylindricalOptions.style.display = "flex";
+                case "cylindrical":
+                    cylindricalOptions.style.display = "flex";
                     break;
             }
         };
@@ -507,7 +511,9 @@ export class Main {
         this._includeCameraCheckbox = document.getElementById("cameraIncludeCheckbox") as HTMLInputElement;
 
         // Editor
-        this._editor = new Editor();
+        const lines = document.getElementById("lines") as HTMLDivElement;
+        const content = document.getElementById("content") as HTMLTextAreaElement;
+        this._editor = new Editor(lines, content);
         this._editor.changedCallback = () => {
             console.log("spec changed");
             this._hasSpecChanged = true;
@@ -521,34 +527,33 @@ export class Main {
         this._error = document.getElementById("error") as HTMLDivElement;
 
         // Load initial sample from querystring
+        const emptySpec = "{}";
         const urlParams = new URLSearchParams(window.location.search);
         const sample = urlParams.get("plot");
         if (sample) {
             const value = sample.toLowerCase().endsWith(".json") ? sample : `${sample}.json`;
             // Try to fetch sample and add to editor
             try {
-                const text = await fetch(`samples/${value}`).then(response => response.text());
+                const text = await fetch(value).then(response => response.text());
                 this._sampleLoaded(text);
             }
             catch (error) {
                 console.log("error loading sample from querystring", error);
-                this._sampleLoaded("{}");
+                this._sampleLoaded(emptySpec);
             }
         }
-        else { this._sampleLoaded("{}"); }
+        else { this._sampleLoaded(emptySpec); }
 
-        // Add samples to popup
+        // Samples popup
         this._samplesPopup = document.getElementById("samplesPopup") as HTMLDivElement;
         const samplesCloseButton = document.getElementById("samplesCloseButton") as HTMLButtonElement;
         samplesCloseButton.onclick = () => { this._samplesPopup.style.display = "none"; };
         const samplesContainer = document.getElementById("samples") as HTMLDivElement;
-
         const categories = await Common.loadSampleIndex("samples/index.json");
         Common.renderGalleryGrid(samplesContainer, categories, async (plot) => {
             this._samplesPopup.style.display = "none";
             await this._loadSampleAsync(`samples/${plot.plot}`);
         });
-
         const samplesButton = document.getElementById("samplesButton") as HTMLAnchorElement;
         samplesButton.onclick = () => { this._samplesPopup.style.display = "flex"; };
 
@@ -635,10 +640,16 @@ export class Main {
 
             // Camera
             this._debug.cameraPosition = this._camera.position;
-            this._debug.cameraTarget = this._camera.target;
+            this._debug.cameraRight = this._camera.right;
+            this._debug.cameraUp = this._camera.up;
+            this._debug.cameraForward = this._camera.forward;
+            this._debug.cameraManipulationOrigin = this._camera.manipulationOrigin
             this._debug.cameraFov = this._camera.fov;
             this._debug.cameraAperture = this._camera.aperture;
             this._debug.cameraFocusDistance = this._camera.focusDistance;
+
+            // World
+            if (this._plot) { this._plot.cameraToWorldPosition(this._camera.position, this._debug.worldPosition); }
 
             // Depth
             this._debug.depthMin = this._renderer.depthMin;
@@ -660,7 +671,9 @@ export class Main {
         // Camera
         this._camera.update(elapsedTime);
         this._renderer.cameraPosition = this._camera.position;
-        this._renderer.cameraTarget = this._camera.target;
+        this._renderer.cameraRight = this._camera.right;
+        this._renderer.cameraUp = this._camera.up;
+        this._renderer.cameraForward = this._camera.forward;
         this._renderer.cameraFov = this._camera.fov;
         this._renderer.cameraAperture = this._camera.aperture;
         this._renderer.cameraFocusDistance = this._camera.focusDistance;
@@ -717,21 +730,18 @@ export class Main {
 
     private async _startAsync(): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
+            // Clear errors
+            this._error.innerText = "";
+            this._error.style.display = "none";
+
             try {
                 // Plot specification
                 if (this._hasSpecChanged) {
-                    this._hasSpecChanged = false;
-                    this._isSpecValid = false;
-
-                    // Clear
-                    this._error.innerText = "";
-                    this._data.clear();
-
                     // Check for valid JSON
                     const plotJSON = this._editor.parseJSON();
 
                     // Parse plot specification
-                    this._plot = await Spec.Plot.fromJSONAsync(plotJSON, this._data.datasets);
+                    this._plot = await Spec.Plot.fromJSONAsync(plotJSON, this._data.datasets, this._data.images);
 
                     // Parse scene
                     this._scene = await this._plot.parse();
@@ -744,13 +754,13 @@ export class Main {
 
                     // Initialize scene
                     this._initializeScene(this._scene, this._includeCameraCheckbox.checked);
-                    this._isSpecValid = true;
 
                     // Update UI with scene settings
                     this._updateUI();
-                }
 
-                if (!this._isSpecValid) { throw new Error("invalid spec"); }
+                    // Reset changed flag for valid spec
+                    this._hasSpecChanged = false;
+                }
 
                 // Ensure valid spec, and marks exist
                 if (this._renderer.bufferVisuals.length > 0 ||
@@ -798,9 +808,8 @@ export class Main {
                 resolve();
             }
             catch (error) {
-                // Show error
                 this._error.innerText = error;
-                console.log("error parsing plot specification");
+                this._error.style.display = "block";
                 this._stop();
                 reject(error);
             }
@@ -914,7 +923,7 @@ export class Main {
     private _processManipulation(elapsedTime: number): void {
         this._mouseWheel.update(elapsedTime);
         if (this._mouseWheel.delta != 0) {
-            const scale = this._mouseWheelZoomScale; // Scale zoom delta
+            const scale = -this._mouseWheelZoomScale; // Scale zoom delta
             this._camera.zoom(this._mouseWheel.delta * scale, this._pointers.hoverX, this._pointers.hoverY);
         }
 
@@ -1022,13 +1031,17 @@ export class Main {
 
         // Camera
         const cameraPosition = scene.camera.position || Core.Config.cameraPosition;
-        const cameraTarget = scene.camera.target || Core.Config.cameraTarget;
+        const cameraRight = scene.camera.right || Core.Config.cameraRight;
+        const cameraUp = scene.camera.up || Core.Config.cameraUp;
+        const cameraForward = scene.camera.forward || Core.Config.cameraForward;
         const cameraFov = scene.camera.fov || Core.Config.cameraFov;
         const cameraAperture = scene.camera.aperture || Core.Config.cameraAperture;
         const cameraFocusDistance = scene.camera.focusDistance || Core.Config.cameraFocusDistance;
         const _resetCamera = () => {
             this._camera.position = Core.vector3.clone(cameraPosition);
-            this._camera.target = Core.vector3.clone(cameraTarget);
+            this._camera.right = Core.vector3.clone(cameraRight);
+            this._camera.up = Core.vector3.clone(cameraUp);
+            this._camera.forward = Core.vector3.clone(cameraForward);
             this._camera.fov = cameraFov;
             this._camera.aperture = cameraAperture;
             this._camera.focusDistance = cameraFocusDistance;
@@ -1042,83 +1055,8 @@ export class Main {
         // Lighting
         this._renderer.ambientColor = scene.ambient || Core.vector3.clone(Core.Config.ambientColor);
         this._renderer.backgroundColor = scene.background || Core.vector4.clone(Core.Config.backgroundColor);
-        this._renderer.directionToLight = scene.directionToLight || Core.vector3.clone(Core.Config.directionToLight);
-        this._renderer.diffuseColor = scene.diffuse || Core.vector3.clone(Core.Config.diffuseColor);
-        this._renderer.specularIntensity = (scene.specular != undefined) ? scene.specular : Core.Config.specularIntensity;
+        this._renderer.lights = scene.lights;
 
         console.log(`scene initialized ${Core.Time.formatDuration((performance.now() - start))}`);
-    }
-}
-
-class Debug {
-    // Renderer
-    private _renderFrameCount: HTMLSpanElement;
-    public renderFrameCount: number;
-
-    // Editor
-    private _editorLineCount: HTMLSpanElement;
-    public editorLineCount: number;
-    private _editorLineNumber: HTMLSpanElement;
-    public editorLineNumber: number;
-
-    // Camera
-    private _cameraPosition: HTMLSpanElement;
-    public cameraPosition: Core.Vector3;
-    private _cameraTarget: HTMLSpanElement;
-    public cameraTarget: Core.Vector3;
-    private _cameraDistance: HTMLSpanElement;
-    private _cameraFov: HTMLSpanElement;
-    public cameraFov: number;
-    private _cameraAperture: HTMLSpanElement;
-    public cameraAperture: number;
-    private _cameraFocus: HTMLSpanElement;
-    public cameraFocusDistance: number;
-
-    // Depth
-    private _depthMin: HTMLSpanElement;
-    private _depthMax: HTMLSpanElement;
-    public depthMin: number;
-    public depthMax: number;
-
-    constructor() {
-        // Renderer
-        this._renderFrameCount = document.getElementById("debugRenderFrameCount") as HTMLSpanElement;
-
-        // Camera
-        this._cameraPosition = document.getElementById("debugCameraPosition") as HTMLSpanElement;
-        this._cameraTarget = document.getElementById("debugCameraTarget") as HTMLSpanElement;
-        this._cameraDistance = document.getElementById("debugCameraDistance") as HTMLSpanElement;
-        this._cameraFov = document.getElementById("debugCameraFov") as HTMLSpanElement;
-        this._cameraAperture = document.getElementById("debugCameraAperture") as HTMLSpanElement;
-        this._cameraFocus = document.getElementById("debugCameraFocus") as HTMLSpanElement;
-
-        // Depth
-        this._depthMin = document.getElementById("debugDepthMin") as HTMLSpanElement;
-        this._depthMax = document.getElementById("debugDepthMax") as HTMLSpanElement;
-
-        // Editor
-        this._editorLineCount = document.getElementById("debugEditorLineCount") as HTMLSpanElement;
-        this._editorLineNumber = document.getElementById("debugEditorLineNumber") as HTMLSpanElement;
-    }
-
-    public update(): void {
-        // Renderer
-        this._renderFrameCount.innerText = this.renderFrameCount.toString();
-
-        // Camera
-        this._cameraPosition.innerText = `[${this.cameraPosition[0].toFixed(3).padStart(6, " ")},${this.cameraPosition[1].toFixed(3).padStart(6, " ")},${this.cameraPosition[2].toFixed(3).padStart(6, " ")}]`;
-        this._cameraTarget.innerText = `[${this.cameraTarget[0].toFixed(3).padStart(6, " ")},${this.cameraTarget[1].toFixed(3).padStart(6, " ")},${this.cameraTarget[2].toFixed(3).padStart(6, " ")}]`;
-        this._cameraDistance.innerText = (Core.vector3.distance(this.cameraPosition, this.cameraTarget)).toFixed(3);
-        this._cameraFov.innerText = `${Math.round(this.cameraFov * Core.Constants.DEGREES_PER_RADIAN)}°`;
-        this._cameraAperture.innerText = `${(this.cameraAperture * 1000).toFixed(1)}mm`;
-        this._cameraFocus.innerText = `${(this.cameraFocusDistance).toFixed(3)}`;
-
-        // Depth
-        this._depthMin.innerText = `${this.depthMin.toFixed(2).padStart(5, " ")}`;
-        this._depthMax.innerText = `${this.depthMax.toFixed(2).padStart(5, " ")}`;
-
-        // Editor
-        this._editorLineCount.innerText = this.editorLineCount.toString();
-        this._editorLineNumber.innerText = this.editorLineNumber.toString();
     }
 }

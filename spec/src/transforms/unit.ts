@@ -20,7 +20,7 @@ export class Unit extends Transform {
         // Required parameters
         const field = this._transformJSON.field;
         const columnIndex = dataset.getColumnIndex(field);
-        if (columnIndex == -1) { throw new Error(`unit transform field "${field}" not found`); }
+        if (columnIndex == -1) { throw new Error(`unit transform field ${field} not found`); }
         const start = performance.now();
         const columnValues = dataset.all.columnValues(columnIndex, false);
         const rows = [];

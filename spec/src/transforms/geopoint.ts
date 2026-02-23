@@ -16,13 +16,12 @@ export class Geopoint extends Transform {
             if (Array.isArray(fields) && fields.length == 2) {
                 columnIndex0 = dataset.getColumnIndex(fields[0]);
                 columnIndex1 = dataset.getColumnIndex(fields[1]);
-                if (columnIndex0 == -1) { throw new Error(`geopoint transform field "${fields[0]}" not found`); }
+                if (columnIndex0 == -1) { throw new Error(`geopoint transform field ${fields[0]} not found`); }
                 columnValues0 = dataset.all.columnValues(columnIndex0, false);
-                if (columnIndex1 == -1) { throw new Error(`geopoint transform field "${fields[1]}" not found`); }
+                if (columnIndex1 == -1) { throw new Error(`geopoint transform field ${fields[1]} not found`);  }
                 columnValues1 = dataset.all.columnValues(columnIndex1, false);
             }
         }
-
         let projection: Projections.IMapProjection;
         if (this._transformJSON.projection) {
             const name = this._transformJSON.projection;

@@ -114,6 +114,20 @@ export const vector3 = {
         out[1] = v[1] - 2 * dot * n[1];
         out[2] = v[2] - 2 * dot * n[2];
     },
+    rotateX(v: Vector3, origin: Vector3, angle: number, out: Vector3): void {
+        const x = v[0] - origin[0], y = v[1] - origin[1], z = v[2] - origin[2];
+        const cos = Math.cos(angle), sin = Math.sin(angle);
+        out[0] = x + origin[0];
+        out[1] = y * cos - z * sin + origin[1];
+        out[2] = y * sin + z * cos + origin[2];
+    },
+    rotateY(v: Vector3, origin: Vector3, angle: number, out: Vector3): void {
+        const x = v[0] - origin[0], y = v[1] - origin[1], z = v[2] - origin[2];
+        const cos = Math.cos(angle), sin = Math.sin(angle);
+        out[0] = z * sin + x * cos + origin[0];
+        out[1] = y + origin[1];
+        out[2] = z * cos - x * sin + origin[2];
+    },
     rotateZ(v: Vector3, origin: Vector3, angle: number, out: Vector3): void {
         const x = v[0] - origin[0], y = v[1] - origin[1], z = v[2] - origin[2];
         const cos = Math.cos(angle), sin = Math.sin(angle);
@@ -191,7 +205,12 @@ export const vector3 = {
         out[0] = 1 / (Math.abs(v[0]) == 0 ? EPSILON : v[0]);
         out[1] = 1 / (Math.abs(v[1]) == 0 ? EPSILON : v[1]);
         out[2] = 1 / (Math.abs(v[2]) == 0 ? EPSILON : v[2]);
-    }
+    },
+    lerp(a: Vector3, b: Vector3, t: number, out: Vector3): void {
+        out[0] = a[0] + t * (b[0] - a[0]);
+        out[1] = a[1] + t * (b[1] - a[1]);
+        out[2] = a[2] + t * (b[2] - a[2]);
+    },
 };
 
 export const vector4 = {
@@ -315,6 +334,67 @@ export const quaternion = {
         out[1] = -q[1];
         out[2] = -q[2];
         out[3] = q[3];
+    },
+    /**
+     * Calculate a quaternion from a 3x3 rotation matrix
+     * @param m 
+     * @param out
+     */
+    fromMatrix3x3(m: Matrix3x3, out: Quaternion): void {
+        const m00 = m[0], m01 = m[1], m02 = m[2];
+        const m10 = m[3], m11 = m[4], m12 = m[5];
+        const m20 = m[6], m21 = m[7], m22 = m[8];
+        const trace = m00 + m11 + m22;
+        if (trace > 0) {
+            const s = 0.5 / Math.sqrt(trace + 1);
+            out[3] = 0.25 / s;
+            out[0] = (m21 - m12) * s;
+            out[1] = (m02 - m20) * s;
+            out[2] = (m10 - m01) * s;
+        }
+        else if (m00 > m11 && m00 > m22) {
+            const s = 2 * Math.sqrt(1 + m00 - m11 - m22);
+            out[3] = (m21 - m12) / s;
+            out[0] = 0.25 * s;
+            out[1] = (m01 + m10) / s;
+            out[2] = (m02 + m20) / s;
+        }
+        else if (m11 > m22) {
+            const s = 2 * Math.sqrt(1 + m11 - m00 - m22);
+            out[3] = (m02 - m20) / s;
+            out[0] = (m01 + m10) / s;
+            out[1] = 0.25 * s;
+            out[2] = (m12 + m21) / s;
+        }
+        else {
+            const s = 2 * Math.sqrt(1 + m22 - m00 - m11);
+            out[3] = (m10 - m01) / s;
+            out[0] = (m02 + m20) / s;
+            out[1] = (m12 + m21) / s;
+            out[2] = 0.25 * s;
+        }
+    },
+    /**
+     * Create a quaternion from Euler (Tait-Bryan) angles
+     * @param pitch, rotation about the x axis, radians
+     * @param yaw, rotation about the y axis, radians
+     * @param roll, rotation about the z axis, radians
+     * @param out
+     */
+    fromEulerAngles(pitch: number, yaw: number, roll: number, out: Quaternion): void {
+        const halfPitch = pitch * 0.5;
+        const halfYaw = yaw * 0.5;
+        const halfRoll = roll * 0.5;
+        const sinPitch = Math.sin(halfPitch);
+        const cosPitch = Math.cos(halfPitch);
+        const sinYaw = Math.sin(halfYaw);
+        const cosYaw = Math.cos(halfYaw);
+        const sinRoll = Math.sin(halfRoll);
+        const cosRoll = Math.cos(halfRoll);
+        out[0] = cosYaw * sinPitch * cosRoll + sinYaw * cosPitch * sinRoll;
+        out[1] = sinYaw * cosPitch * cosRoll - cosYaw * sinPitch * sinRoll;
+        out[2] = cosYaw * cosPitch * sinRoll - sinYaw * sinPitch * cosRoll;
+        out[3] = cosYaw * cosPitch * cosRoll + sinYaw * sinPitch * sinRoll;
     }
 }
 
@@ -361,6 +441,101 @@ export const matrix3x3 = {
             m10, m11, m12,
             m20, m21, m22
         ];
+    },
+    multiply(a: Matrix3x3, b: Matrix3x3, out: Matrix3x3): void {
+        const a00 = a[0], a01 = a[1], a02 = a[2];
+        const a10 = a[3], a11 = a[4], a12 = a[5];
+        const a20 = a[6], a21 = a[7], a22 = a[8];
+        const b00 = b[0], b01 = b[1], b02 = b[2];
+        const b10 = b[3], b11 = b[4], b12 = b[5];
+        const b20 = b[6], b21 = b[7], b22 = b[8];
+        out[0] = a00 * b00 + a01 * b10 + a02 * b20;
+        out[1] = a00 * b01 + a01 * b11 + a02 * b21;
+        out[2] = a00 * b02 + a01 * b12 + a02 * b22;
+        out[3] = a10 * b00 + a11 * b10 + a12 * b20;
+        out[4] = a10 * b01 + a11 * b11 + a12 * b21;
+        out[5] = a10 * b02 + a11 * b12 + a12 * b22;
+        out[6] = a20 * b00 + a21 * b10 + a22 * b20;
+        out[7] = a20 * b01 + a21 * b11 + a22 * b21;
+        out[8] = a20 * b02 + a21 * b12 + a22 * b22;
+    },
+    transpose(m: Matrix3x3, out: Matrix3x3): void {
+        out[0] = m[0];
+        out[1] = m[3];
+        out[2] = m[6];
+        out[3] = m[1];
+        out[4] = m[4];
+        out[5] = m[7];
+        out[6] = m[2];
+        out[7] = m[5];
+        out[8] = m[8];
+    },
+    invert(m: Matrix3x3, out: Matrix3x3): void {
+        const a00 = m[0], a01 = m[1], a02 = m[2];
+        const a10 = m[3], a11 = m[4], a12 = m[5];
+        const a20 = m[6], a21 = m[7], a22 = m[8];
+        const b01 = a22 * a11 - a12 * a21;
+        const b11 = -a22 * a10 + a12 * a20;
+        const b21 = a21 * a10 - a11 * a20;
+        let det = a00 * b01 + a01 * b11 + a02 * b21;
+        if (Math.abs(det) < EPSILON) {
+            // return identity if not invertible
+            this.identity(out);
+            return;
+        }
+        det = 1.0 / det;
+        out[0] = b01 * det;
+        out[1] = (-a22 * a01 + a02 * a21) * det;
+        out[2] = (a12 * a01 - a02 * a11) * det;
+        out[3] = b11 * det;
+        out[4] = (a22 * a00 - a02 * a20) * det;
+        out[5] = (-a12 * a00 + a02 * a10) * det;
+        out[6] = b21 * det;
+        out[7] = (-a21 * a00 + a01 * a20) * det;
+        out[8] = (a11 * a00 - a01 * a10) * det;
+    },
+    identity(m: Matrix3x3): void {
+        m[0] = 1; m[1] = 0; m[2] = 0;
+        m[3] = 0; m[4] = 1; m[5] = 0;
+        m[6] = 0; m[7] = 0; m[8] = 1;
+    },
+    rotateX(angle: number, out: Matrix3x3): void {
+        const c = Math.cos(angle);
+        const s = Math.sin(angle);
+        out[0] = 1; out[1] = 0; out[2] = 0;
+        out[3] = 0; out[4] = c; out[5] = -s;
+        out[6] = 0; out[7] = s; out[8] = c;
+    },
+    rotateY(angle: number, out: Matrix3x3): void {
+        const c = Math.cos(angle);
+        const s = Math.sin(angle);
+        out[0] = c; out[1] = 0; out[2] = s;
+        out[3] = 0; out[4] = 1; out[5] = 0;
+        out[6] = -s; out[7] = 0; out[8] = c;
+    },
+    rotateZ(angle: number, out: Matrix3x3): void {
+        const c = Math.cos(angle);
+        const s = Math.sin(angle);
+        out[0] = c; out[1] = -s; out[2] = 0;
+        out[3] = s; out[4] = c; out[5] = 0;
+        out[6] = 0; out[7] = 0; out[8] = 1;
+    },
+    fromEulerAngles(pitch: number, yaw: number, roll: number, out: Matrix3x3): void {
+        const cp = Math.cos(pitch);
+        const sp = Math.sin(pitch);
+        const cy = Math.cos(yaw);
+        const sy = Math.sin(yaw);
+        const cr = Math.cos(roll);
+        const sr = Math.sin(roll);
+        out[0] = cy * cr;
+        out[1] = -cy * sr;
+        out[2] = sy;
+        out[3] = sp * sy * cr + cp * sr;
+        out[4] = -sp * sy * sr + cp * cr;
+        out[5] = -sp * cy;
+        out[6] = -cp * sy * cr + sp * sr;
+        out[7] = cp * sy * sr + sp * cr;
+        out[8] = cp * cy;
     },
 }
 
@@ -421,7 +596,7 @@ export const matrix4x4 = {
             return;
         }
 
-        // Calculate the forward vector
+        // Calculate the forward vector (opposite direction to viewing direction)
         z0 = eyex - targetx;
         z1 = eyey - targety;
         z2 = eyez - targetz;

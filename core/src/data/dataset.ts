@@ -70,7 +70,7 @@ export class Dataset {
             let type;
             // Use Number rather than parseFloat, e.g. Number("2021-01-01") = NaN, parseFloat = 2021.
             // But Number("") = 0, so check for empty string first.
-            if (value == "") {
+            if (value.trim() == "") {
                 type = ColumnType.string;
             }
             else {

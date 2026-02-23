@@ -12,10 +12,8 @@ export class Angles {
      * @returns wrapped angle
      */
     public static wrapAngle(angle: number): number {
-        if (angle > Constants.PI)
-            angle = angle - Constants.TWO_PI;
-        else if (angle < -Constants.PI)
-            angle += Constants.TWO_PI;
+        while (angle > Constants.PI) { angle -= Constants.TWO_PI; }
+        while (angle < -Constants.PI) { angle += Constants.TWO_PI; }
         return angle;
     }
 

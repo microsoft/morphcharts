@@ -72,13 +72,13 @@ export class Linear extends Scale {
             // Data reference
             const data = scaleJSON.domain.data;
             const dataset = group.getDataset(data);
-            if (!dataset) { throw new Error(`linear scale dataset "${data}" not found`); }
+            if (!dataset) { throw new Error(`linear scale dataset ${data} not found`); }
             const field = scaleJSON.domain.field;
             if (!field) { throw new Error("linear scale domain field not specified"); }
             domain.data = dataset;
             domain.field = field;
             const columnIndex = dataset.getColumnIndex(field);
-            if (columnIndex == -1) { throw new Error(`linear scale field "${field}" not found`); }
+            if (columnIndex == -1) { throw new Error(`linear scale field ${field} not found`); }
 
             // Min, max
             const isDiscrete = false; // Linear scales are always continuous
@@ -87,7 +87,7 @@ export class Linear extends Scale {
             if (scaleJSON.domainMax != undefined) { domain.max = scaleJSON.domainMax; }
             else { domain.max = linear.zero ? Math.max(0, dataset.all.maxValue(columnIndex, isDiscrete)) : dataset.all.maxValue(columnIndex, isDiscrete); }
         }
-        else { console.log(`linear scale unknown domain type "${scaleJSON.domain}"`); }
+        else { console.log(`unknown domain type ${scaleJSON.domain}`); }
 
         // Zero
         if (linear.zero) {

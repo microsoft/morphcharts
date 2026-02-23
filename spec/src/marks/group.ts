@@ -80,7 +80,6 @@ export class Group extends Mark {
         const value = markEncodingValue.value;
         const color = markEncodingValue.color;
         const scale = markEncodingValue.scale;
-        let colorValue: Core.ColorRGB;
         if (color) {
             // RGB
             const r = color.r, g = color.g, b = color.b;
@@ -88,7 +87,7 @@ export class Group extends Mark {
                 const rValue = this.value(r, dataset, i);
                 const gValue = this.value(g, dataset, i);
                 const bValue = this.value(b, dataset, i);
-                colorValue = [rValue / 0xff, gValue / 0xff, bValue / 0xff];
+                return [rValue / 0xff, gValue / 0xff, bValue / 0xff];
             }
             else {
                 // HSL
@@ -99,7 +98,7 @@ export class Group extends Mark {
                     const lValue = this.value(l, dataset, i);
                     const rgb: Core.ColorRGB = [0, 0, 0];
                     Core.Color.hsvToRgb(hValue, sValue, lValue, rgb);
-                    colorValue = rgb;
+                    return rgb;
                 }
             }
         }
@@ -110,7 +109,7 @@ export class Group extends Mark {
                 if (scale.type == "ordinal" && range.colors) {
                     // Use colors array
                     const value = this.value(markEncodingValue, dataset, i);
-                    colorValue = range.colors[value % range.colors.length];
+                    return range.colors[value % range.colors.length];
                 }
                 else if (scheme) {
                     if (Array.isArray(scheme)) {
@@ -119,6 +118,7 @@ export class Group extends Mark {
                     else {
                         // Check for valid name
                         const palette = Core.Palettes[scheme.toLowerCase()];
+                        let colorValue: Core.ColorRGB;
                         if (palette) {
                             const value = this.value(markEncodingValue, dataset, i);
                             switch (scale.type) {
@@ -126,29 +126,28 @@ export class Group extends Mark {
                                 case "linear":
                                     colorValue = Core.Palette.sample(palette.colors, value, true);
                                     break;
-
                                 // Discrete scales
                                 case "ordinal":
                                     colorValue = palette.colors[value % palette.colors.length];
                                     break;
-
                                 // Discretizing scales
                                 case "quantile":
                                     colorValue = range.colors[value];
                                     break;
-
                                 case "quantize":
                                     break;
                             }
                         }
+                        if (colorValue) { return colorValue; }
                     }
                 }
             }
         }
         else if (value) {
-            colorValue = Color.parse(value);
+            const colorValue = Color.parse(value);
+            if (colorValue) { return colorValue; }
         }
-        return colorValue;
+        throw new Error("invalid color value");
     }
 
     public values(markEncodingValue: MarkEncodingValue, dataset: Dataset): Float32Array {
@@ -170,6 +169,7 @@ export class Group extends Mark {
      * @param i 
      * @returns 
      */
+    // TODO: Rather than passing scles, pass plot and group. Check group for scale name, otheriwse check plot.root. TODO: Can nested group marks access previous group scales, or only their own?
     public value(markEncodingValue: MarkEncodingValue, dataset: Dataset, i: number): number {
         const scale = markEncodingValue.scale;
         const band = markEncodingValue.band;
@@ -203,7 +203,7 @@ export class Group extends Mark {
                 baseColumnIndex = dataset.getColumnIndex(field);
             }
             if (baseColumnIndex == -1) {
-                throw new Error(`mark encoding field "${field}" not found`);
+                throw new Error(`mark encoding field ${field} not found in mark type ${this.constructor.name}`);
             }
             switch (baseDataset.getColumnType(baseColumnIndex)) {
                 case Core.Data.ColumnType.float:
@@ -484,7 +484,7 @@ export class Group extends Mark {
         return null;
     }
 
-    public static async fromJSONAsync(plot: Plot, group: Group, datasets: { [key: string]: string }, markJSON: any): Promise<Group> {
+    public static async fromJSONAsync(plot: Plot, group: Group, datasets: { [key: string]: string }, images: { [key: string]: string }, markJSON: any): Promise<Group> {
         return new Promise<Group>(async (resolve, reject) => {
             try {
                 const mark = new Group(group);
@@ -501,7 +501,7 @@ export class Group extends Mark {
                     if (facet.groupby) {
                         // Create an array of ids for each group
                         const dataset = mark.getDataset(facet.data);
-                        if (!dataset) { throw new Error(`group mark facet data "${facet.data}" not found`); }
+                        if (!dataset) { throw new Error(`group mark facet data ${facet.data} not found`); }
 
                         // Group by columns
                         const groupbyColumnIndices = [];
@@ -511,7 +511,7 @@ export class Group extends Mark {
                         let groupbyArray = Array.isArray(facet.groupby) ? facet.groupby : [facet.groupby];
                         for (let i = 0; i < groupbyArray.length; i++) {
                             const columnIndex = dataset.getColumnIndex(groupbyArray[i]);
-                            if (columnIndex == -1) { throw new Error(`group mark facet groupby field "${groupbyArray[i]}" not found`); }
+                            if (columnIndex == -1) { throw new Error(`group mark facet groupby field ${groupbyArray[i]} not found`); }
                             groupbyColumnIndices.push(columnIndex);
                             // Force discrete to get count of unique values to allow creation of spatial index
                             groupbyColumnValues.push(dataset.all.columnValues(columnIndex, true));
@@ -561,14 +561,14 @@ export class Group extends Mark {
                             const facetDataset = new Dataset(dataset.headings.slice(), facetRows, dataset.columnTypes.slice());
                             facetGroup.datasets = { [facet.name]: facetDataset };
 
-                            await this._fromJSONAsync(facetGroup, plot, group, datasets, markJSON);
+                            await this._fromJSONAsync(facetGroup, plot, group, datasets, images, markJSON);
                             mark.marks.push(facetGroup);
                         }
                     }
                 }
                 else {
                     // No facets, just a single group mark
-                    await this._fromJSONAsync(mark, plot, group, datasets, markJSON);
+                    await this._fromJSONAsync(mark, plot, group, datasets, images, markJSON);
                 }
                 resolve(mark);
             }
@@ -579,7 +579,7 @@ export class Group extends Mark {
         });
     }
 
-    protected static async _fromJSONAsync(mark: Group, plot: Plot, group: Group, datasets: { [key: string]: string }, markJSON: any): Promise<void> {
+    protected static async _fromJSONAsync(mark: Group, plot: Plot, group: Group, datasets: { [key: string]: string }, images: { [key: string]: string }, markJSON: any): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
             try {
                 // Create config
@@ -671,7 +671,7 @@ export class Group extends Mark {
                 if (imagesJSON) {
                     for (let i = 0; i < imagesJSON.length; i++) {
                         const imageJSON = imagesJSON[i];
-                        const image = Image.fromJSON(mark, imageJSON);
+                        const image = Image.fromJSON(mark, images, imageJSON);
                         if (image) {
                             mark.images[image.name] = image;
                             console.log(`added image ${image.name}`);
@@ -730,7 +730,7 @@ export class Group extends Mark {
                     let dataset: Dataset;
                     if (mark.from && mark.from.data) {
                         dataset = mark.getDataset(mark.from.data);
-                        if (!dataset) { throw new Error(`group mark encoding dataset "${mark.from.data}" not found`); }
+                        if (!dataset) { throw new Error(`group mark encoding dataset ${mark.from.data} not found`); }
                     }
                     else {
                         // Create empty dataset
@@ -812,9 +812,10 @@ export class Group extends Mark {
                     mark.marks = [];
                     for (let i = 0; i < markJSON.marks.length; i++) {
                         const child = markJSON.marks[i];
+                        if (child.visible === false) { continue; } // Skip invisible marks
                         switch (child.type) {
                             case "group":
-                                mark.marks.push(await Group.fromJSONAsync(plot, mark, datasets, child));
+                                mark.marks.push(await Group.fromJSONAsync(plot, mark, datasets, images, child));
                                 break;
                             case "arc":
                                 mark.marks.push(await Arc.fromJSONAsync(mark, child));

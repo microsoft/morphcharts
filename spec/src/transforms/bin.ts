@@ -10,10 +10,10 @@ export class Bin extends Transform {
     transform(group: Group, dataset: Dataset): Dataset {
         // Required fields
         let columnIndex, columnValues, from, to;
-         if (this._transformJSON.field) {
+        if (this._transformJSON.field) {
             const field = this._transformJSON.field;
             columnIndex = dataset.getColumnIndex(field);
-            if (columnIndex == -1) { throw new Error(`bin transform field "${field}" not found`); }
+            if (columnIndex == -1) { throw new Error(`bin transform field ${field} not found`); }
             columnValues = dataset.all.columnValues(columnIndex, false);
         }
         if (this._transformJSON.extent) {
