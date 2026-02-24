@@ -534,7 +534,7 @@ export class Main {
             const value = sample.toLowerCase().endsWith(".json") ? sample : `${sample}.json`;
             // Try to fetch sample and add to editor
             try {
-                const text = await fetch(value).then(response => response.text());
+                const text = await fetch(`samples/${value}`).then(response => response.text());
                 this._sampleLoaded(text);
             }
             catch (error) {
