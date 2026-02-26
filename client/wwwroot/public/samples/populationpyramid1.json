@@ -1,0 +1,334 @@
+{
+  "title": "3D Population Pyramid",
+  "description": "3D Population Pyramid of US Census from 1850 to 2000",
+
+  "height": 180,
+  "depth": 640,
+
+  "camera": {
+    "position": [0, 1.5, 1.5],
+    "target": [0, -0.1, 0]
+  },
+
+  "signals": [
+    {"name": "chartWidth", "value": 320},
+    {"name": "chartPad", "value": 0},
+    {"name": "width", "update": "2*chartWidth+chartPad"}
+  ],
+
+  "data": [
+    {
+      "name": "population",
+      "url": "https://raw.githubusercontent.com/vega/vega-datasets/refs/heads/main/data/population.json",
+      "format": {"type": "json"}
+    },
+    {
+      "name": "popYear",
+      "source": "population",
+      "transform": [
+        {"type": "filter", "expr": "datum.year>=1850"},
+        {"type": "formula", "expr": "datum.age==90?toString(datum.age)+'+':toString(datum.age)+'-'+toString(datum.age+4)", "as": "ageGroup"}
+      ]
+    },
+    {
+      "name": "males",
+      "source": "popYear",
+      "transform": [{"type": "filter", "expr": "datum.sex==1"}]
+    },
+    {
+      "name": "females",
+      "source": "popYear",
+      "transform": [{"type": "filter", "expr": "datum.sex==2"}]
+    },
+    {
+      "name": "ageGroups",
+      "source": "population",
+      "transform": [{"type": "aggregate", "groupby": ["age"]}]
+    }
+  ],
+
+  "scales": [
+    {
+      "name": "y",
+      "type": "band",
+      "padding": 0.1,
+      "range": "height",
+      "domain": {"data": "ageGroups", "field": "age"}
+    },
+    {
+      "name": "z",
+      "type": "band",
+      "range": "depth",
+      "padding": 0.5,
+      "reverse": true,
+      "domain": {"data": "popYear", "field": "year"}
+    },
+    {
+      "name": "colormales",
+      "type": "linear",
+      "domain": {"data": "population", "field": "people"},
+      "range": {"scheme": "oranges"},
+      "reverse": false
+    },
+    {
+      "name": "colorfemales",
+      "type": "linear",
+      "domain": {"data": "population", "field": "people"},
+      "range": {"scheme": "blues"},
+      "reverse": false
+    }
+  ],
+
+  "marks": [
+    {
+      "type": "rect",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "zc": {"signal": "depth/2"},
+          "yc": {"value": 0},
+          "width": {"signal": "width*3"},
+          "depth": {"signal": "depth*3"},
+          "height": {"value": 0},
+          "fill": {"value": "white"}
+        }
+      }
+    },
+    {
+      "type": "group",
+      "encode": {
+        "update": {
+          "x": {"value": 0},
+          "width": {"signal": "chartWidth"},
+          "height": {"signal": "height"}
+        }
+      },
+
+      "scales": [
+        {
+          "name": "x",
+          "type": "linear",
+          "range": [{"signal": "chartWidth"}, 0],
+          "nice": true,
+          "domain": {"data": "population", "field": "people"}
+        }
+      ],
+
+      "axes": [
+        {
+          "orient": "bottom",
+          "orientZ": "left",
+          "scale": "z",
+          "labels": false,
+          "domain": false,
+          "grid": true,
+          "gridWidth": 0.25
+        },
+        {
+          "orient": "bottom",
+          "orientZ": "left",
+          "scale": "z",
+          "labelAngleX": 90,
+          "labelAlign": "right",
+          "labelOffsetY": 0.01,
+          "labelFontSize": 12,
+          "labelFontWeight": 600,
+          "domain": false,
+          "grid": false
+        },
+        {
+          "orient": "bottom",
+          "orientZ": "front",
+          "scale": "x",
+          "labels": false,
+          "tickCount": 120,
+          "domain": false,
+          "grid": false,
+          "gridZ": true,
+          "gridWidth": 0.05
+        },
+        {
+          "orient": "bottom",
+          "orientZ": "front",
+          "scale": "x",
+          "labelAngleX": 90,
+          "labelAngle": 90,
+          "labelAlign": "left",
+          "labelOffsetY": 0.01,
+          "labelFontSize": 12,
+          "labelFontWeight": 600,
+          "tickCount": 12,
+          "domain": false,
+          "grid": false,
+          "gridZ": true,
+          "gridWidth": 0.25,
+          "title": "females",
+          "titleAngleX": 90,
+          "titleOffsetY": 0.01,
+          "titleOffsetZ": 30,
+          "titleFontSize": 12,
+          "titleFontWeight": 600,
+          "numberFormat": {"notation": "compact", "compactDisplay": "short"}
+        }
+      ],
+
+      "marks": [
+        {
+          "type": "rect",
+          "geometry": "boxsdf",
+          "material": "glossy",
+          "from": {"data": "females"},
+          "encode": {
+            "enter": {
+              "x": {"scale": "x", "field": "people"},
+              "x2": {"scale": "x", "value": 0},
+              "y": {"scale": "y", "field": "age"},
+              "height": {"scale": "y", "band": 1},
+              "z": {"scale": "z", "field": "year"},
+              "depth": {"scale": "z", "band": 1},
+              "rounding": {"scale": "y", "band": 0.1},
+              "gloss": {"value": 0.5},
+              "fill": {"scale": "colorfemales", "field": "people"}
+            }
+          }
+        },
+        {
+          "type": "text",
+          "from": {"data": "females"},
+          "encode": {
+            "enter": {
+              "x": {"scale": "x", "field": "people", "offset": -0.01},
+              "y": {"scale": "y", "field": "age", "offset": {"scale": "y", "band": 0.5}},
+              "z": {"scale": "z", "field": "year", "offset": {"scale": "z", "band": 0.5}},
+              "angleY": {"value": 90},
+              "text": {"field": "ageGroup"},
+              "fontSize": {"value": 5},
+              "fontWeight": {"value": 600},
+              "fill": {"value": "black"},
+              "stroke": {"value": "white"},
+              "strokeWidth": {"value": 0.05}
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "group",
+      "encode": {
+        "update": {
+          "x": {"signal": "chartWidth+chartPad"},
+          "width": {"signal": "chartWidth"},
+          "height": {"signal": "height"}
+        }
+      },
+
+      "scales": [
+        {
+          "name": "x",
+          "type": "linear",
+          "range": [0, {"signal": "chartWidth"}],
+          "nice": true,
+          "domain": {"data": "population", "field": "people"}
+        }
+      ],
+
+      "axes": [
+        {
+          "orient": "bottom",
+          "orientZ": "left",
+          "scale": "z",
+          "labels": false,
+          "domain": false,
+          "grid": true,
+          "gridWidth": 0.25
+        },
+        {
+          "orient": "bottom",
+          "orientZ": "right",
+          "scale": "z",
+          "labelAngleX": 90,
+          "labelAlign": "left",
+          "labelOffsetY": 0.01,
+          "labelFontSize": 12,
+          "labelFontWeight": 600,
+          "domain": false,
+          "grid": false
+        },
+        {
+          "orient": "bottom",
+          "orientZ": "front",
+          "scale": "x",
+          "labels": false,
+          "tickCount": 120,
+          "domain": false,
+          "grid": false,
+          "gridZ": true,
+          "gridWidth": 0.05
+        },
+        {
+          "orient": "bottom",
+          "orientZ": "front",
+          "scale": "x",
+          "labelAngleX": 90,
+          "labelAngle": 90,
+          "labelAlign": "left",
+          "labelOffsetY": 0.01,
+          "labelFontSize": 12,
+          "labelFontWeight": 600,
+          "tickCount": 12,
+          "domain": false,
+          "grid": false,
+          "gridZ": true,
+          "gridWidth": 0.25,
+          "title": "males",
+          "titleAngleX": 90,
+          "titleOffsetY": 0.01,
+          "titleOffsetZ": 30,
+          "titleFontSize": 12,
+          "titleFontWeight": 600,
+          "numberFormat": {"notation": "compact", "compactDisplay": "short"}
+        }
+      ],
+
+      "marks": [
+        {
+          "type": "rect",
+          "geometry": "boxsdf",
+          "from": {"data": "males"},
+          "material": "glossy",
+          "encode": {
+            "enter": {
+              "x": {"scale": "x", "field": "people"},
+              "x2": {"scale": "x", "value": 0},
+              "y": {"scale": "y", "field": "age"},
+              "height": {"scale": "y", "band": 1},
+              "z": {"scale": "z", "field": "year"},
+              "depth": {"scale": "z", "band": 1},
+              "rounding": {"scale": "y", "band": 0.1},
+              "gloss": {"value": 0.5},
+              "fill": {"scale": "colormales", "field": "people"}
+            }
+          }
+        },
+        {
+          "type": "text",
+          "from": {"data": "males"},
+          "encode": {
+            "enter": {
+              "x": {"scale": "x", "field": "people", "offset": 0.01},
+              "y": {"scale": "y", "field": "age", "offset": {"scale": "y", "band": 0.5}},
+              "z": {"scale": "z", "field": "year", "offset": {"scale": "z", "band": 0.5}},
+              "angleY": {"value": -90},
+              "text": {"field": "ageGroup"},
+              "fontSize": {"value": 5},
+              "fontWeight": {"value": 600},
+              "fill": {"value": "black"},
+              "stroke": {"value": "white"},
+              "strokeWidth": {"value": 0.05}
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

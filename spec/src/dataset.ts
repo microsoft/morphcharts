@@ -289,7 +289,7 @@ export class Dataset extends Core.Data.Dataset {
                                 dataset = new Transforms.Lookup(transformJSON).transform(group, dataset);
                                 break;
                             case "pack":
-                                if (hierarchy) { dataset = new Transforms.Pack(transformJSON).transform(dataset, hierarchy, readonly); }
+                                if (hierarchy) { dataset = new Transforms.Pack(transformJSON).transform(group, dataset, hierarchy, readonly); }
                                 break;
                             case "partition":
                                 if (hierarchy) { dataset = new Transforms.Partition(transformJSON).transform(group, dataset, hierarchy, readonly); }

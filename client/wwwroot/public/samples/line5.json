@@ -1,6 +1,6 @@
 {
-  "title": "3D Line Chart Lissajous Generator",
-  "description": "A 3D line chart Lissajou generator",
+  "title": "3D Lissajous Curve",
+  "description": "A 3D line chart Lissajous curve generator",
 
   "width": 640,
   "height": 360,
@@ -20,33 +20,11 @@
     {
       "name": "table", 
       "transform": [
-        {
-          "type": "sequence",
-          "start": 0,
-          "stop": {"signal": "rows+1"},
-          "step": 1,
-          "as": "id"
-        },
-        {
-          "type": "formula",
-          "as": "t",
-          "expr": "2*PI*datum.id/(rows+1)"
-        },
-        {
-          "type": "formula",
-          "as": "x",
-          "expr": "sin(a*datum.t)"
-        },
-        {
-          "type": "formula",
-          "as": "y",
-          "expr": "sin(b*datum.t)"
-        },
-        {
-          "type": "formula",
-          "as": "z",
-          "expr": "sin(c*datum.t)"
-        }
+        {"type": "sequence", "start": 0, "stop": {"signal": "rows+1"}, "step": 1, "as": "id"},
+        {"type": "formula", "as": "t", "expr": "2*PI*datum.id/(rows+1)"},
+        {"type": "formula", "as": "x", "expr": "sin(a*datum.t)"},
+        {"type": "formula", "as": "y", "expr": "sin(b*datum.t)"},
+        {"type": "formula", "as": "z", "expr": "sin(c*datum.t)"}
       ]
     }
   ], 

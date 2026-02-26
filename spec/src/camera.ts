@@ -93,9 +93,13 @@ export class Camera {
             camera.position[2] - target[2]
         ];
         Core.vector3.normalize(camera._forward, camera._forward);
-        camera._right = [0, 0, 0];
-        Core.vector3.cross(Core.Constants.VECTOR3_UNITY, camera._forward, camera._right);
-        Core.vector3.normalize(camera._right, camera._right);
+        if (Math.abs(Core.vector3.dot(camera._forward, Core.Constants.VECTOR3_UNITY)) === 1) {
+            camera._right = [1, 0, 0];
+        } else {
+            camera._right = [0, 0, 0];
+            Core.vector3.cross(Core.Constants.VECTOR3_UNITY, camera._forward, camera._right);
+            Core.vector3.normalize(camera._right, camera._right);
+        }
         camera._up = [0, 0, 0];
         Core.vector3.cross(camera._forward, camera._right, camera._up);
         Core.vector3.normalize(camera._up, camera._up);
