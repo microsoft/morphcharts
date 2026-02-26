@@ -21,7 +21,7 @@ export class Pack extends Transform {
             dataset = dataset.clone();
         }
 
-        // TODO: Either enforce hierachy or privide option for handling flat data
+        // TODO: Either enforce hierachy or provide option for handling flat data
 
         // Width, height
         let width = 1, height = 1;
@@ -44,7 +44,13 @@ export class Pack extends Transform {
         }
 
         const field = this._transformJSON.field;
-        const padding = this._transformJSON.padding || 0; // Padding, size-value units
+        let padding = 0; // Padding, size-value units
+        if (this._transformJSON.padding) {
+            if (typeof this._transformJSON.padding == "object" && this._transformJSON.padding.signal) {
+                padding = group.parseSignalValue(this._transformJSON.padding.signal);
+            }
+            else if (typeof this._transformJSON.padding == "number") { padding = this._transformJSON.padding; }
+        }
         let xColumn = "x";
         let yColumn = "y";
         let rColumn = "r";
