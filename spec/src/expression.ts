@@ -123,10 +123,9 @@ export class Expression {
                 }
                 let string = "";
                 while (i < closingQuote) {
-                    // Alphanumeric characters, underscore, space, round brackets, dash only
                     // Note that a query of field names with dates won't work, e.g. datum.date=='2023-03-23', instead use datum.date==1679529600000
-                    if (!/[a-zA-Z0-9_ ()-]/.test(expr[i])) {
-                        throw new Error("expression invalid string character");
+                    if (!/[a-zA-Z0-9_ ()%+-]/.test(expr[i])) {
+                        throw new Error("expression invalid string literal character");
                     }
                     string += expr[i];
                     i++;

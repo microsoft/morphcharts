@@ -1,0 +1,224 @@
+{
+  "title": "Les Misérables Co-occurrences",
+  "description": "A co-occurrence matrix of Les Misérables characters",
+
+  "width": 640,
+  "height": 120,
+  "depth": 640,
+
+  "camera": {
+    "distance": 1.6,
+    "altitude": 30,
+    "position": [0, 0, 0],
+    "target": [0, 0, 0.25]
+  },
+
+  "data": [
+    {
+      "name": "characters",
+      "url": "https://raw.githubusercontent.com/vega/vega-datasets/refs/heads/main/data/miserables.json",
+      "property": "nodes",
+      "format": {"type": "json"}
+    },
+    {
+      "name": "cooccurrences",
+      "url": "https://raw.githubusercontent.com/vega/vega-datasets/refs/heads/main/data/miserables.json",
+      "format": {"type": "json"},
+      "property": "links",
+      "transform": [
+        {
+          "type": "lookup",
+          "from":"characters",
+          "key": "index",
+          "fields": ["source"],
+          "values": ["name", "group"],
+          "as": ["fromname", "fromgroup"]
+        },
+        {
+          "type": "lookup",
+          "from":"characters",
+          "key": "index",
+          "fields": ["target"],
+          "values": ["name", "group"],
+          "as": ["toname", "togroup"]
+        }
+      ]
+    }
+  ],
+
+  "scales": [
+    {
+      "name": "position",
+      "type": "band",
+      "padding": 0.05,
+      "domain": {"data": "characters", "field": "name"},
+      "range": "width"
+    },
+    {
+      "name": "size",
+      "type": "linear",
+      "domain": {"data": "cooccurrences", "field": "value"},
+      "range": "height"
+    },
+    {
+      "name": "fill",
+      "type": "linear",
+      "domain": {"data": "cooccurrences", "field": "value"},
+      "range": {"scheme": "blues"},
+      "reverse": true
+    }
+  ],
+
+  "axes": [
+    {
+      "orient": "bottom",
+      "orientZ": "left",
+      "scale": "position",
+      "labelAlign": "right",
+      "labelBaseline": "middle",
+      "labelAngle": 0,
+      "labelAngleX": 90,
+      "labelFontSize": 6,
+      "labelFontWeight": 600,
+      "labelOffsetY": 0.01,
+      "domain": false,
+      "grid": true,
+      "gridWidth": 0.1,
+      "gridWidthY": 0.01
+    },
+    {
+      "orient": "bottom",
+      "orientZ": "right",
+      "scale": "position",
+      "labelAlign": "left",
+      "labelBaseline": "middle",
+      "labelAngle": 0,
+      "labelAngleX": 90,
+      "labelFontSize": 6,
+      "labelFontWeight": 600,
+      "labelOffsetY": 0.01,
+      "domain": false
+    },
+    {
+      "orient": "bottom",
+      "orientZ": "front",
+      "scale": "position",
+      "labelAlign": "right",
+      "labelBaseline": "middle",
+      "labelAngle": -90,
+      "labelAngleX": 90,
+      "labelFontSize": 6,
+      "labelFontWeight": 600,
+      "labelOffsetY": 0.01,
+      "domain": false,
+      "gridZ": true,
+      "gridWidth": 0.1,
+      "gridWidthY": 0.01
+    },
+    {
+      "orient": "bottom",
+      "orientZ": "back",
+      "scale": "position",
+      "labelAlign": "left",
+      "labelBaseline": "middle",
+      "labelAngle": -90,
+      "labelAngleX": 90,
+      "labelFontSize": 6,
+      "labelFontWeight": 600,
+      "labelOffsetY": 0.01,
+      "domain": false
+    }
+  ],
+
+  "marks": [
+    {
+      "type": "rect",
+      "geometry": "xzrect",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "zc": {"signal": "depth/2"},
+          "width": {"signal": "width*3"},
+          "depth": {"signal": "depth*3"},
+          "fill": {"value": "white"}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "from": {"data": "cooccurrences"},
+      "geometry": "cylindersdf",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "x": {"scale": "position", "field": "fromname"},
+          "y": {"value": 0},
+          "z": {"scale": "position", "field": "toname"},
+          "width": {"scale": "position", "band": 1},
+          "height": {"scale": "size", "field": "value"},
+          "depth": {"scale": "position", "band": 1},
+          "fuzz": {"value": 0},
+          "rounding": {"scale": "position", "band": 0.05},
+          "fill": {"scale": "fill", "field": "value"}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "from": {"data": "cooccurrences"},
+      "geometry": "cylindersdf",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "x": {"scale": "position", "field": "toname"},
+          "y": {"value": 0},
+          "z": {"scale": "position", "field": "fromname"},
+          "width": {"scale": "position", "band": 1},
+          "height": {"scale": "size", "field": "value"},
+          "depth": {"scale": "position", "band": 1},
+          "fuzz": {"value": 0.1},
+          "rounding": {"scale": "position", "band": 0.05},
+          "fill": {"scale": "fill", "field": "value"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": {"data": "cooccurrences"},
+      "encode": {
+        "enter": {
+          "x": {"scale": "position", "field": "fromname", "offset": {"scale": "position", "band": 0.5}},
+          "y": {"scale": "size", "field": "value", "offset": 0.01},
+          "z": {"scale": "position", "field": "toname", "offset": {"scale": "position", "band": 0.5}},
+          "dy":{"scale": "position", "band": -0.05},
+          "text": {"field": "value"},
+          "fontSize": {"value": 6},
+          "fill": {"value": "black"},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.25},
+          "fontWeight": {"value": 900},
+          "angleX": {"value": 90}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": {"data": "cooccurrences"},
+      "encode": {
+        "enter": {
+          "x": {"scale": "position", "field": "toname", "offset": {"scale": "position", "band": 0.5}},
+          "y": {"scale": "size", "field": "value", "offset": 0.01},
+          "z": {"scale": "position", "field": "fromname", "offset": {"scale": "position", "band": 0.5}},
+          "dy":{"scale": "position", "band": -0.05},
+          "text": {"field": "value"},
+          "fontSize": {"value": 6},
+          "fill": {"value": "black"},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.25},
+          "fontWeight": {"value": 900},
+          "angleX": {"value": 90}
+        }
+      }
+    }
+  ]
+}

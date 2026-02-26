@@ -1,0 +1,118 @@
+{ 
+  "title": "3D Circle Packing", 
+  "description": "3D Circle packing chart",
+  
+  "width": 640,
+  "depth": 640,
+  "height": 90,
+
+  "camera": {
+    "position": [0, 0, 0],
+    "distance": 1.8,
+    "altitude": 60,
+    "worldTarget": [320, 0, 350]
+  },
+  
+  "data": [
+    {
+      "name": "raw",
+      "url": "https://raw.githubusercontent.com/vega/vega-datasets/refs/heads/main/data/flare.json",
+      "format": {"type": "json"}
+    },
+    {
+      "name": "raw2",
+      "source": "raw", 
+      "transform": [
+        {"type": "formula", "expr": "datum.parent==''?datum.id:datum.parent", "as": "parent2"},
+        {"type": "formula", "expr": "datum.size==''?0:datum.size", "as": "size2"},
+        {"type": "collect", "fields": ["id","name","parent2","size2"], "as": ["id","name","parent","size"]}
+      ]
+    },
+    {
+      "name": "table",
+      "source": "raw2", 
+      "transform": [
+        {"type": "stratify", "key": "id", "parentKey": "parent"},
+        {
+          "type": "pack",
+          "field": "size",
+          "sort": {"field": "size", "order": "descending"},          
+          "size": [{"signal": "width"},{"signal": "depth"}],
+          "as": ["x", "y", "r", "depth", "children", "size0", "descendents"]
+        }
+      ]
+    },
+    {
+      "name": "leafs",
+      "source": "table",
+      "transform": [
+        {"type": "filter", "expr": "datum.children==0"}
+      ]
+    }
+  ],
+
+  "scales": [
+    {
+      "name": "height",
+      "type": "band",
+      "padding": 0.01,
+      "domain": {"data": "table", "field": "depth"},
+      "range": "height"
+    },
+    {
+      "name": "color",
+      "type": "ordinal",
+      "domain": {"data": "table", "field": "depth"},
+      "range": {"scheme": "category20"}
+    }
+  ],
+
+  "marks": [
+    {
+      "type": "rect",
+      "geometry": "xzrect",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "zc": {"signal": "depth/2"},
+          "width": {"signal": "width*2"},
+          "depth": {"signal": "depth*2"},
+          "fill": {"value": "white"}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "cylindersdf",
+      "material": "metal",
+      "from": {"data": "table"},
+      "encode": {
+        "enter": {
+          "xc": {"field": "x"},
+          "zc": {"field": "y"},
+          "y": {"scale": "height", "field": "depth"},
+          "width": {"field": "r", "mult": 2},
+          "rounding": {"value": 1},
+          "height": {"scale": "height", "band": 1},
+          "fuzz": {"value": 1},
+          "fill": {"scale": "color", "field": "depth"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": {"data": "leafs"},
+      "encode": {
+        "enter": {
+          "x": {"field": "x"},
+          "z": {"field": "y"},
+          "y": {"scale": "height", "field": "depth", "band": 1, "offset": 0.01},
+          "text": {"field": "name"},
+          "fill": {"value": "black"},
+          "angleX": {"value": 90},
+          "fontSize": {"signal": "3*datum.r/length(datum.name)"}
+        }
+      }
+    }
+  ]
+}

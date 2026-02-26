@@ -1,0 +1,224 @@
+{ 
+  "title": "3D Circle Packing", 
+  "description": "3D Circle packing chart",
+
+  "width": 640,
+  "depth": 640,
+  "height": 90,
+
+  "camera": {
+    "position": [0, 0, 0],
+    "distance": 1.8,
+    "altitude": 60,
+    "worldTarget": [320, 0, 350]
+  },
+
+  "scales": [
+    {
+      "name": "height",
+      "type": "band",
+      "padding": 0.01,
+      "domain": {"data": "table", "field": "depth"},
+      "range": "height"
+    },
+    {
+      "name": "color",
+      "type": "ordinal",
+      "domain": {"data": "table", "field": "depth"},
+      "range": {"scheme": "category20"}
+    }
+  ],
+
+  "marks": [
+    {
+      "type": "rect",
+      "geometry": "xzrect",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "zc": {"signal": "depth/2"},
+          "width": {"signal": "width*2"},
+          "depth": {"signal": "depth*2"},
+          "fill": {"value": "white"}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "cylindersdf",
+      "material": "metal",
+      "from": {"data": "table"},
+      "encode": {
+        "enter": {
+          "xc": {"field": "x"},
+          "zc": {"field": "y"},
+          "y": {"scale": "height", "field": "depth"},
+          "width": {"field": "r", "mult": 2},
+          "rounding": {"value": 1},
+          "height": {"scale": "height", "band": 1},
+          "fuzz": {"value": 1},
+          "fill": {"scale": "color", "field": "depth"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": {"data": "leafs"},
+      "encode": {
+        "enter": {
+          "x": {"field": "x"},
+          "z": {"field": "y", "offset": {"field": "fontSize", "mult": 0.1}},
+          "y": {"scale": "height", "field": "depth", "band": 1, "offset": 0.01},
+          "text": {"field": "value"},
+          "fill": {"value": "white"},
+          "stroke": {"value": "black"},
+          "strokeWidth": {"value": 0.5},
+          "angleX": {"value": 90},
+          "fontSize": {"field": "fontSize", "mult": 1.5}
+        }
+      }
+    }
+  ],
+
+  "data": [
+    {
+      "name": "raw", 
+      "values": [
+        {"id":   0, "parent":  0, "value":  0},
+        {"id":   1, "parent":  0, "value":  1},
+        {"id":   2, "parent":  0, "value":  2},
+        {"id":   3, "parent":  0, "value":  3},
+        {"id":   4, "parent":  0, "value":  4},
+        {"id":   5, "parent":  0, "value":  5},
+        {"id":   6, "parent":  0, "value":  6},
+        {"id":   7, "parent":  0, "value":  7},
+        {"id":   8, "parent":  0, "value":  8},
+        {"id":   9, "parent":  0, "value":  9},
+        {"id":  10, "parent":  0, "value": 10},
+        {"id":  11, "parent":  2, "value":  1},
+        {"id":  12, "parent":  2, "value":  2},
+        {"id":  13, "parent":  2, "value":  3},
+        {"id":  14, "parent":  2, "value":  4},
+        {"id":  15, "parent":  2, "value":  5},
+        {"id":  16, "parent":  2, "value":  6},
+        {"id":  17, "parent":  2, "value":  7},
+        {"id":  18, "parent":  2, "value":  8},
+        {"id":  19, "parent":  2, "value":  9},
+        {"id":  20, "parent":  2, "value": 10},
+        {"id":  21, "parent":  4, "value":  1},
+        {"id":  22, "parent":  4, "value":  2},
+        {"id":  23, "parent":  4, "value":  3},
+        {"id":  24, "parent":  4, "value":  4},
+        {"id":  25, "parent":  4, "value":  5},
+        {"id":  26, "parent":  4, "value":  6},
+        {"id":  27, "parent":  4, "value":  7},
+        {"id":  28, "parent":  4, "value":  8},
+        {"id":  29, "parent":  4, "value":  9},
+        {"id":  30, "parent":  4, "value": 10},
+        {"id":  31, "parent":  6, "value":  1},
+        {"id":  32, "parent":  6, "value":  2},
+        {"id":  33, "parent":  6, "value":  3},
+        {"id":  34, "parent":  6, "value":  4},
+        {"id":  35, "parent":  6, "value":  5},
+        {"id":  36, "parent":  6, "value":  6},
+        {"id":  37, "parent":  6, "value":  7},
+        {"id":  38, "parent":  6, "value":  8},
+        {"id":  39, "parent":  6, "value":  9},
+        {"id":  40, "parent":  6, "value": 10},
+        {"id":  41, "parent":  8, "value":  1},
+        {"id":  42, "parent":  8, "value":  2},
+        {"id":  43, "parent":  8, "value":  3},
+        {"id":  44, "parent":  8, "value":  4},
+        {"id":  45, "parent":  8, "value":  5},
+        {"id":  46, "parent":  8, "value":  6},
+        {"id":  47, "parent":  8, "value":  7},
+        {"id":  48, "parent":  8, "value":  8},
+        {"id":  49, "parent":  8, "value":  9},
+        {"id":  50, "parent":  8, "value": 10},
+        {"id":  51, "parent": 10, "value":  1},
+        {"id":  52, "parent": 10, "value":  2},
+        {"id":  53, "parent": 10, "value":  3},
+        {"id":  54, "parent": 10, "value":  4},
+        {"id":  55, "parent": 10, "value":  5},
+        {"id":  56, "parent": 10, "value":  6},
+        {"id":  57, "parent": 10, "value":  7},
+        {"id":  58, "parent": 10, "value":  8},
+        {"id":  59, "parent": 10, "value":  9},
+        {"id":  60, "parent": 10, "value": 10},
+        {"id":  61, "parent": 11, "value":  1},
+        {"id":  62, "parent": 11, "value":  2},
+        {"id":  63, "parent": 11, "value":  3},
+        {"id":  64, "parent": 11, "value":  4},
+        {"id":  65, "parent": 11, "value":  5},
+        {"id":  66, "parent": 11, "value":  6},
+        {"id":  67, "parent": 11, "value":  7},
+        {"id":  68, "parent": 11, "value":  8},
+        {"id":  69, "parent": 11, "value":  9},
+        {"id":  70, "parent": 11, "value": 10},
+        {"id":  71, "parent": 21, "value":  1},
+        {"id":  72, "parent": 21, "value":  2},
+        {"id":  73, "parent": 21, "value":  3},
+        {"id":  74, "parent": 21, "value":  4},
+        {"id":  75, "parent": 21, "value":  5},
+        {"id":  76, "parent": 21, "value":  6},
+        {"id":  77, "parent": 21, "value":  7},
+        {"id":  78, "parent": 21, "value":  8},
+        {"id":  79, "parent": 21, "value":  9},
+        {"id":  80, "parent": 21, "value": 10},
+        {"id":  81, "parent": 31, "value":  1},
+        {"id":  82, "parent": 31, "value":  2},
+        {"id":  83, "parent": 31, "value":  3},
+        {"id":  84, "parent": 31, "value":  4},
+        {"id":  85, "parent": 31, "value":  5},
+        {"id":  86, "parent": 31, "value":  6},
+        {"id":  87, "parent": 31, "value":  7},
+        {"id":  88, "parent": 31, "value":  8},
+        {"id":  89, "parent": 31, "value":  9},
+        {"id":  90, "parent": 31, "value": 10},
+        {"id":  91, "parent": 41, "value":  1},
+        {"id":  92, "parent": 41, "value":  2},
+        {"id":  93, "parent": 41, "value":  3},
+        {"id":  94, "parent": 41, "value":  4},
+        {"id":  95, "parent": 41, "value":  5},
+        {"id":  96, "parent": 41, "value":  6},
+        {"id":  97, "parent": 41, "value":  7},
+        {"id":  98, "parent": 41, "value":  8},
+        {"id":  99, "parent": 41, "value":  9},
+        {"id": 100, "parent": 41, "value": 10},
+        {"id": 101, "parent": 51, "value":  1},
+        {"id": 102, "parent": 51, "value":  2},
+        {"id": 103, "parent": 51, "value":  3},
+        {"id": 104, "parent": 51, "value":  4},
+        {"id": 105, "parent": 51, "value":  5},
+        {"id": 106, "parent": 51, "value":  6},
+        {"id": 107, "parent": 51, "value":  7},
+        {"id": 108, "parent": 51, "value":  8},
+        {"id": 109, "parent": 51, "value":  9},
+        {"id": 110, "parent": 51, "value": 10}
+      ],
+      "format": {"type": "csv"}
+    },
+    {
+      "name": "table", 
+      "source": "raw",
+      "transform": [
+        {"type": "stratify", "key": "id", "parentKey": "parent"},
+        {
+          "type": "pack",
+          "field": "value",
+          "_sort": {"field": "value", "order": "descending"},
+          "size": [{"signal": "width"},{"signal": "depth"}],
+          "as": ["x", "y", "r", "depth", "children", "size", "descendents"]
+        },
+        {"type": "formula", "expr": "datum.r/length(toString(datum.value))", "as": "fontSize"}
+      ]
+    },
+    {
+      "name": "leafs",
+      "source": "table",
+      "transform": [
+        {"type": "filter", "expr": "datum.children==0"}
+      ]
+    }
+  ]
+}

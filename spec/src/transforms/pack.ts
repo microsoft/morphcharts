@@ -5,6 +5,7 @@ import * as Core from "core";
 import { Dataset } from "../dataset.js";
 import { Transform } from "./transform.js";
 import { IHierarchy } from "./stratify.js";
+import { Group } from "../marks/group.js";
 
 export class Pack extends Transform {
     /**
@@ -14,29 +15,56 @@ export class Pack extends Transform {
      * @param readonly
      * @returns
      */
-    transform(dataset: Dataset, hierarchy: IHierarchy, readonly: boolean): Dataset {
+    transform(group: Group, dataset: Dataset, hierarchy: IHierarchy, readonly: boolean): Dataset {
         let start = performance.now();
         if (readonly) {
             dataset = dataset.clone();
         }
 
+        // TODO: Either enforce hierachy or privide option for handling flat data
+
+        // Width, height
+        let width = 1, height = 1;
+        if (this._transformJSON.size) {
+            const size = this._transformJSON.size;
+            if (Array.isArray(size) && size.length == 2) {
+                if (typeof size[0] == "number") { width = size[0]; }
+                else if (typeof size[0] == "object" && size[0].signal) {
+                    width = group.parseSignalValue(size[0].signal);
+                }
+                if (typeof size[1] == "number") { height = size[1]; }
+                else if (typeof size[1] == "object" && size[1].signal) {
+                    height = group.parseSignalValue(size[1].signal);
+                }
+            }
+            else if (typeof size == "object" && size.signal) {
+                const s = group.parseSignalValue(size.signal);
+                if (Array.isArray(s) && s.length == 2) { width = s[0]; height = s[1]; }
+            }
+        }
+
         const field = this._transformJSON.field;
-        const width = this._transformJSON.size[0];
-        const height = this._transformJSON.size[1];
+        const padding = this._transformJSON.padding || 0; // Padding, size-value units
         let xColumn = "x";
         let yColumn = "y";
         let rColumn = "r";
         let depthColumn = "depth";
-        // let childrenColumn = "children";
+        let childrenColumn = "children";
+        let sizeColumn = "size";
+        let descendentsColumn = "descendents";
         const as = this._transformJSON.as;
-        // Default ["x", "y", "r", "depth", "children"]
-        if (as && Array.isArray(as) && as.length == 5) {
-            xColumn = as[0];
-            yColumn = as[1];
-            rColumn = as[2];
-            depthColumn = as[3];
+        // Default ["x", "y", "r", "depth", "size", "children", "descendents"]
+        if (Array.isArray(as)) {
+            if (as.length > 0) { xColumn = as[0]; }
+            if (as.length > 1) { yColumn = as[1]; }
+            if (as.length > 2) { rColumn = as[2]; }
+            if (as.length > 3) { depthColumn = as[3]; }
+            if (as.length > 4) { childrenColumn = as[4]; }
+            if (as.length > 5) { sizeColumn = as[5]; }
+            if (as.length > 6) { descendentsColumn = as[6]; }
         }
 
+        // Sizes
         let sizeValues: Float64Array;
         if (field) {
             const sizeColumnIndex = dataset.getColumnIndex(field);
@@ -47,112 +75,136 @@ export class Pack extends Transform {
         const rootId = hierarchy.rootIds[0];
         const indices = hierarchy.indices;
         const children = hierarchy.children;
-        const ids: number[] = [];
-        const positions = new Float64Array(dataset.length);
         const depths = new Uint32Array(dataset.length);
         const sizes = new Float64Array(dataset.length);
-        let position = 0;
+        const descendents = new Uint32Array(dataset.length);
+        const radii = new Float64Array(dataset.length);
+        const relativeX = new Float64Array(dataset.length);
+        const relativeY = new Float64Array(dataset.length);
         let maxDepth = 0;
-        const buildTree = (parentId: number, depth: number) => {
-            // TODO: Don't add leaf nodes if counting size and size is 0
+
+        // Compute summed sizes bottom-up
+        const computeSizes = (parentId: number) => {
             const parentIndex = indices[parentId];
-            ids.push(parentIndex);
-            positions[parentIndex] = position;
             const childIds = children[parentId];
             if (childIds !== undefined) {
                 let totalSize = 0;
                 for (let i = 0; i < childIds.length; i++) {
-                    const childId = childIds[i];
-                    buildTree(childId, depth + 1);
-                    const childIndex = indices[childId];
-                    totalSize += sizes[childIndex];
+                    computeSizes(childIds[i]);
+                    totalSize += sizes[indices[childIds[i]]];
                 }
-                if (sizeValues) {
-                    const parentSize = sizeValues[parentIndex];
-                    sizes[parentIndex] = totalSize + parentSize;
-                    position += parentSize;
-                }
-                else {
-                    // Don't add size if counting leaf nodes
-                    sizes[parentIndex] = totalSize;
+                sizes[parentIndex] = totalSize;
+            } else {
+                sizes[parentIndex] = sizeValues ? sizeValues[parentIndex] : 1;
+            }
+        };
+        computeSizes(rootId);
+
+        // Sort hierarchy children, if specified
+        if (this._transformJSON.sort) {
+            const sort = this._transformJSON.sort;
+            if (sort.field) {
+                const columnIndex = dataset.getColumnIndex(sort.field);
+                if (columnIndex == -1) { throw new Error(`pack transform sort field ${sort.field} not found`); }
+                // Sorting using summed sizes ensure that parent nodes sort by their total subtree value
+                const sortValues = sort.field === field ? sizes : dataset.all.columnValues(columnIndex, false);
+                const descending = sort.order && sort.order.toLowerCase() == "descending";
+                for (const key in hierarchy.children) {
+                    hierarchy.children[key].sort((a, b) => {
+                        const aVal = sortValues[indices[a]];
+                        const bVal = sortValues[indices[b]];
+                        return descending ? bVal - aVal : aVal - bVal;
+                    });
                 }
             }
+        }
+
+        // Pack circles bottom-up
+        const rootNodeId = indices[rootId];
+        const targetRadius = 0.5 * Math.min(width, height);
+        PackCircles.resetRandom();
+        const buildTree = (parentId: number, depth: number) => {
+            const parentIndex = indices[parentId];
+            const childIds = children[parentId];
+            if (childIds !== undefined) {
+                for (let i = 0; i < childIds.length; i++) {
+                    const childId = childIds[i];
+                    buildTree(childId, depth + 1);
+                    descendents[parentIndex] += descendents[indices[childId]] + 1; // +1 for the child itself
+                }
+
+                // Pack children using the pre-sorted order from hierarchy children
+                const childIndices = new Uint32Array(childIds.length);
+                const circles: Circle[] = [];
+                for (let i = 0; i < childIds.length; i++) {
+                    childIndices[i] = indices[childIds[i]];
+                    circles.push(new Circle(0, 0, radii[childIndices[i]] + padding));
+                }
+                const enclosingRadius = PackCircles.packSiblings(circles);
+                for (let i = 0; i < childIndices.length; i++) {
+                    relativeX[childIndices[i]] = circles[i].x;
+                    relativeY[childIndices[i]] = circles[i].y;
+                }
+                radii[parentIndex] = enclosingRadius;
+            }
             else {
-                // Leaf node
                 const size = sizeValues ? sizeValues[parentIndex] : 1; // Default to unit size
-                sizes[parentIndex] = size;
-                position += size;
+                // Leaf node radius is sqrt(size) so that area is proportional to size
+                radii[parentIndex] = Math.sqrt(size);
+
+                // No-op (descendents typed array initialized to zero)
+                // descendents[parentIndex] = 0;
             }
             depths[parentIndex] = depth;
             maxDepth = Math.max(maxDepth, depth);
         };
         buildTree(rootId, 0);
 
-        // Area
-        for (let i = 0; i < dataset.length; i++) { sizes[i] = Math.sqrt(sizes[i]); }
+        // Top-down pass to apply a single uniform scale to fit the target size
+        const globalScale = radii[rootNodeId] > 0 ? targetRadius / radii[rootNodeId] : 1;
 
-        // Pack circles
-        const keyValues = hierarchy.childIds;
         const positionsX = new Float64Array(dataset.length);
         const positionsY = new Float64Array(dataset.length);
-        const radii = new Float64Array(dataset.length);
-        const buildTreeMap = (
-            parentId: number,
-            x: number,
-            y: number,
-            radius: number,
-        ) => {
-            // Order children by size
-            const children = hierarchy.children[keyValues[parentId]];
-            let orderedChildrenNodeIds = new Uint32Array(children.length);
-            for (let i = 0; i < children.length; i++) { orderedChildrenNodeIds[i] = hierarchy.indices[children[i]]; }
-            orderedChildrenNodeIds.sort((a, b) => sizes[b] - sizes[a]);
 
-            // Arrange children
-            const circles: Circle[] = [];
-            for (let i = 0; i < orderedChildrenNodeIds.length; i++) {
-                const index = orderedChildrenNodeIds[i];
-                circles.push(new Circle(0, 0, sizes[index]));
-            }
-            const r = PackCircles.packSiblings(circles);
-            const scale = radius / r;
-            for (let i = 0; i < orderedChildrenNodeIds.length; i++) {
-                const index = orderedChildrenNodeIds[i];
-                positionsX[index] = x + circles[i].x * scale;
-                positionsY[index] = y + circles[i].y * scale;
-                radii[index] = circles[i].radius * scale;
-            }
+        // Scale all radii uniformly
+        for (let i = 0; i < dataset.length; i++) {
+            radii[i] *= globalScale;
+        }
 
-            // Iterate children, reurse for nodes which are parents
-            for (let i = 0; i < orderedChildrenNodeIds.length; i++) {
-                const nodeId = orderedChildrenNodeIds[i];
-                if (hierarchy.children[keyValues[nodeId]]) {
-                    const x = positionsX[nodeId];
-                    const y = positionsY[nodeId];
-                    const radius = radii[nodeId]; // Keep 1x scale
-                    buildTreeMap(nodeId, x, y, radius);
+        // Root position
+        positionsX[rootNodeId] = 0;
+        positionsY[rootNodeId] = 0;
+
+        const computeAbsolutePositions = (parentId: number) => {
+            const parentIndex = indices[parentId];
+            const childIds = children[parentId];
+            if (childIds !== undefined) {
+                for (let i = 0; i < childIds.length; i++) {
+                    const childId = childIds[i];
+                    const childIndex = indices[childId];
+                    positionsX[childIndex] = positionsX[parentIndex] + relativeX[childIndex] * globalScale;
+                    positionsY[childIndex] = positionsY[parentIndex] + relativeY[childIndex] * globalScale;
+                    computeAbsolutePositions(childId);
                 }
             }
         };
-
-        // Start with root
-        const rootNodeId = hierarchy.indices[hierarchy.rootIds[0]];
-        const radius = Math.min(width, height);
-        const x = 0;
-        const y = 0;
-        positionsX[rootNodeId] = x;
-        positionsY[rootNodeId] = y;
-        radii[rootNodeId] = radius;
-        buildTreeMap(rootNodeId, 0, 0, radius);
+        computeAbsolutePositions(rootId);
 
         // Add columns
+        const halfWidth = width / 2;
+        const halfHeight = height / 2;
         for (let i = 0; i < dataset.length; i++) {
             const row = dataset.rows[i];
-            row.push((positionsX[i] + width / 2).toString()); // x
-            row.push((positionsY[i] + height / 2).toString()); // y
+            row.push((positionsX[i] + halfWidth).toString()); // x
+            row.push((positionsY[i] + halfHeight).toString()); // y
             row.push(radii[i].toString()); // radii
             row.push(depths[i].toString()); // depth
+            // Children
+            const childIds = children[hierarchy.childIds[i]];
+            if (childIds !== undefined) { row.push(childIds.length.toString()); }
+            else { row.push("0"); }
             row.push(sizes[i].toString()); // sizes
+            row.push(descendents[i].toString()); // descendents
         }
 
         // Add headings, columnTypes
@@ -164,9 +216,13 @@ export class Pack extends Transform {
         dataset.columnTypes.push(Core.Data.ColumnType.float);
         dataset.headings.push(depthColumn);
         dataset.columnTypes.push(Core.Data.ColumnType.integer);
-        dataset.headings.push("size0");
+        dataset.headings.push(childrenColumn);
         dataset.columnTypes.push(Core.Data.ColumnType.integer);
-        console.log(`Circle pack ${dataset.length} rows ${Math.round(performance.now() - start)}ms`);
+        dataset.headings.push(sizeColumn);
+        dataset.columnTypes.push(Core.Data.ColumnType.float);
+        dataset.headings.push(descendentsColumn);
+        dataset.columnTypes.push(Core.Data.ColumnType.integer);
+        console.log(`circle pack ${dataset.length} rows ${Math.round(performance.now() - start)}ms`);
         return dataset;
     }
 }
@@ -184,6 +240,12 @@ class Circle {
 }
 
 export class PackCircles {
+    private static _random = new Core.PseudoRandom(1);
+
+    static resetRandom() {
+        PackCircles._random = new Core.PseudoRandom(1);
+    }
+
     /**
      * Pack circles in siblings array into a tight circle and return the radius of the enclosing circle
      * @param circles 
@@ -372,15 +434,14 @@ export class PackCircles {
         let p: Circle;
         let e: Circle | null = null;
 
-        // Shuffle circles for randomization (simplified version)
-        const shuffled = [...circles];
-        for (let idx = shuffled.length - 1; idx > 0; idx--) {
-            const j = Math.floor(Math.random() * (idx + 1));
-            [shuffled[idx], shuffled[j]] = [shuffled[j], shuffled[idx]];
+        // Shuffle circles in-place using seeded PRNG for deterministic results
+        for (let idx = n - 1; idx > 0; idx--) {
+            const j = Math.floor(PackCircles._random.nextFloat() * (idx + 1));
+            [circles[idx], circles[j]] = [circles[j], circles[idx]];
         }
 
         while (i < n) {
-            p = shuffled[i];
+            p = circles[i];
             if (e && PackCircles.enclosesWeak(e, p)) {
                 ++i;
             } else {

@@ -131,8 +131,9 @@
         "plot": "line5.json",
         "thumbnail": "line5_raytrace_640x360.jpg",
         "image": "line5_raytrace_3840x2160.jpg",
-        "title": "3D Line Chart Lissajous Generator",
-        "description": "A 3D line chart Lissajou generator"
+        "title": "3D Lissajous Curve",
+        "description": "A 3D line chart Lissajous curve generator",
+        "notes": "<p>The curve are defined by three parametric <code>sin</code> functions, and drawn as a line with <code>rows</code> line segments, and thickness <code>strokeWidth</code>. Since the line segments are cylinders, spheres are also drawn at the endpoints to avoid gaps.</p><p>Try varying <code>a</code>, <code>b</code>, and <code>c</code> for different effects. The color can be varied using a scale along the <code>t</code> field (uncomment the <code>_fill</code> and <code>_stroke</code> properties).</p>"
       },
       {
         "plot": "line2.json",
@@ -186,7 +187,7 @@
   },
   {
     "title": "Donut & Pie Charts",
-    "description": "Donut, pie, and sunburst visualizations",
+    "description": "Donut and pie chart visualizations",
     "plots": [
       {
         "plot": "donut1.json",
@@ -208,21 +209,6 @@
         "image": "donut3_raytrace_3840x2160.jpg",
         "title": "Faceted Pie Charts",
         "description": "Faceted pie charts"
-      },
-      {
-        "plot": "sunburst1.json",
-        "thumbnail": "sunburst1_raytrace_640x360.jpg",
-        "image": "sunburst1_raytrace_3840x2160.jpg",
-        "title": "3D Sunburst Chart",
-        "description": "3D Sunburst chart with rotated labels"
-      },
-      {
-        "plot": "sunburst2.json",
-        "thumbnail": "sunburst2_raytrace_640x360.jpg",
-        "image": "sunburst2_raytrace_3840x2160.jpg",
-        "title": "3D Sunburst Chart",
-        "description": "3D Sunburst chart with rotated labels showing the Flare visualization library.",
-        "notes": "Data linked from <a href=\"https://github.com/vega/vega-datasets\">vega-datasets</a>."
       }
     ]
   },
@@ -231,25 +217,33 @@
     "description": "Histogram and unit stack visualizations",
     "plots": [
       {
+        "plot": "populationpyramid1.json",
+        "thumbnail": "populationpyramid1_raytrace_640x360.jpg",
+        "image": "populationpyramid1_raytrace_3840x2160.jpg",
+        "title": "3D Population Pyramid",
+        "description": "3D Population Pyramid of US Census from 1850 to 2000",
+        "notes": "<p>Note the <a href=\"https://en.wikipedia.org/wiki/1890_United_States_census#Data_availability\">missing data</a> for year 1890.</p><p>U.S. population counts by age group (0-90+ in 5-year intervals) and sex for each decade between 1850 and 2000, collected and harmonized from historical census records by IPUMS USA.</p><p>IPUMS updates and revises datasets over time, which may result in discrepancies with current IPUMS data.</p><p>Steven Ruggles, Katie Genadek, Ronald Goeken, Josiah Grover, and Matthew Sobek. Integrated Public Use Microdata Series: Version 6.0. Minneapolis: University of Minnesota, 2015. http://doi.org/10.18128/D010.V6.0</p><p>Data linked from <a href=\"https://github.com/vega/vega-datasets\">vega-datasets</a>.</p>"
+      },
+      {
         "plot": "bar11.json",
         "thumbnail": "bar11_raytrace_640x360.jpg",
         "image": "bar11_raytrace_3840x2160.jpg",
-        "title": "3D Unit Stack Histogram",
-        "description": "A 3D unit stack histogram. Some randomness introduced into the stack positions. Includes an accent light."
+        "title": "3D Unit Histogram",
+        "description": "A 3D unit histogram. Some randomness introduced into the stack positions. Includes an accent light."
       },
       {
         "plot": "histogram1.json",
         "thumbnail": "histogram1_raytrace_640x360.jpg",
         "image": "histogram1_raytrace_3840x2160.jpg",
-        "title": "2-Dice Roll Sum Histogram",
+        "title": "3D Unit Histogram",
         "description": "A unit histogram of the sum of rolling 2 dice, highlighting doubles"
       },
       {
         "plot": "histogram2.json",
         "thumbnail": "histogram2_raytrace_640x360.jpg",
         "image": "histogram2_raytrace_3840x2160.jpg",
-        "title": "2D Normal Distribution Histogram",
-        "description": "2D normal distribution histogram using Box-Muller transform, showing standard deviations as color"
+        "title": "3D Histogram",
+        "description": "3D histogram of a 2D normal distribution using the Box-Muller transform, showing standard deviations as color"
       },
       {
         "plot": "bar10.json",
@@ -265,6 +259,44 @@
     "description": "Node-link and network visualizations",
     "plots": [
       {
+        "plot": "sunburst1.json",
+        "thumbnail": "sunburst1_raytrace_640x360.jpg",
+        "image": "sunburst1_raytrace_3840x2160.jpg",
+        "title": "3D Sunburst Chart",
+        "description": "3D Sunburst chart with rotated labels"
+      },
+      {
+        "plot": "sunburst2.json",
+        "thumbnail": "sunburst2_raytrace_640x360.jpg",
+        "image": "sunburst2_raytrace_3840x2160.jpg",
+        "title": "3D Sunburst Chart",
+        "description": "Flare visualization library rendereed as a 3D sunburst chart with rotated labels",
+        "notes": "Data linked from <a href=\"https://github.com/vega/vega-datasets\">vega-datasets</a>."
+      },
+      {
+        "plot": "circlepack1.json",
+        "thumbnail": "circlepack1_raytrace_640x360.jpg",
+        "image": "circlepack1_raytrace_3840x2160.jpg",
+        "title": "Circle Pack 3D",
+        "description": "3D Circle packing chart"
+      },
+      {
+        "plot": "circlepack2.json",
+        "thumbnail": "circlepack2_raytrace_640x360.jpg",
+        "image": "circlepack2_raytrace_3840x2160.jpg",
+        "title": "Circle Pack 3D",
+        "description": "Flare visualization library rendereed as a 3D circle packing chart",
+        "notes": "<p>Note the use of the <code>sort</code> property in the <code>pack</code> transform to sort the data by the <code>size</code> column. This results in more efficient packing than using the data in its original order.</p><p>Data linked from <a href=\"https://github.com/vega/vega-datasets\">vega-datasets</a>.</p>"
+      },
+      {
+        "plot": "adjacencymatrix1.json",
+        "thumbnail": "adjacencymatrix1_raytrace_640x360.jpg",
+        "image": "adjacencymatrix1_raytrace_3840x2160.jpg",
+        "title": "3D Adjacency Matrix",
+        "description": "A 3D adjacency matrix showing character co-occurrence in Les Misérables",
+        "notes": "<p>This visualization shows character relationships in Victor Hugo's novel, <a href=\"https://en.wikipedia.org/wiki/Les_Mis%C3%A9rables\">Les Misérables</a>. The data is a network, where nodes represent characters in the novel, and edges represent two characters appearing in the same chapter. While this data can be drawn as a node-link graph, this chart is an adjacency matrix. Since co-occurrences are not directed, the chart is symmetrical. The characters are ordered according to a clustering algorithm which detects character communities, rather than alphabetically, or by total co-occurrences.</p><p>Data linked from <a href=\"https://github.com/vega/vega-datasets\">vega-datasets</a>.</p><p><a href=\"https://www-cs-faculty.stanford.edu/~knuth/sgb.html\">D. E. Knuth, The Stanford GraphBase: A Platform for Combinatorial Computing, Addison-Wesley, Reading, MA (1993)</a>.</p>"
+      },
+      {
         "plot": "nodelink1.json",
         "thumbnail": "nodelink1_raytrace_640x360.jpg",
         "image": "nodelink1_raytrace_3840x2160.jpg",
@@ -274,8 +306,21 @@
     ]
   },
   {
-    "title": "Primitives",
-    "description": "Geometric primitives for marks",
+    "title": "Miscellaneous",
+    "description": "Miscellaneous visualizations",
+    "plots": [
+      {
+        "plot": "messystack1.json",
+        "thumbnail": "messystack1_raytrace_640x360.jpg",
+        "image": "messystack1_raytrace_3840x2160.jpg",
+        "title": "Messy Stack",
+        "description": "A stack of labelled blocks with random size and rotation"
+      }
+    ]
+  },
+  {
+    "title": "Primitives & Materials",
+    "description": "Geometric primitives and materials for marks",
     "plots": [
       {
         "plot": "primitives1.json",
@@ -283,13 +328,7 @@
         "image": "primitives1_raytrace_3840x2160.jpg",
         "title": "Geometric primitives",
         "description": "Geometric primitives for marks"
-      }
-    ]
-  },
-  {
-    "title": "Materials",
-    "description": "Materials and texturing",
-    "plots": [
+      },
       {
         "plot": "primitives2.json",
         "thumbnail": "primitives2_raytrace_640x360.jpg",
@@ -317,19 +356,6 @@
         "image": "bar12_raytrace_3840x2160.jpg",
         "title": "Textured 3D Bar Chart",
         "description": "A 3D bar chart with aligned checker textures"
-      }
-    ]
-  },
-  {
-    "title": "Miscellaneous",
-    "description": "Miscellaneous visualizations",
-    "plots": [
-      {
-        "plot": "messystack1.json",
-        "thumbnail": "messystack1_raytrace_640x360.jpg",
-        "image": "messystack1_raytrace_3840x2160.jpg",
-        "title": "Messy Stack Alphabet Blocks",
-        "description": "A stack of labelled blocks with random size and rotation"
       }
     ]
   }

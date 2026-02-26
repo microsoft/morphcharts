@@ -40,15 +40,11 @@ export class Treemap extends Transform {
         if (readonly) { dataset = dataset.clone(); }
         let sizeValues: Float64Array;
         const field = this._transformJSON.field;
-        let sizeColumnIndex;
+        let sizeColumnIndex = -1;
         if (field) {
             sizeColumnIndex = dataset.getColumnIndex(field);
             if (sizeColumnIndex == -1) { throw new Error(`treemap transform field ${field} not found`); }
             sizeValues = dataset.all.columnValues(sizeColumnIndex, false);
-        }
-        else {
-            // No size
-            sizeColumnIndex = -1;
         }
         const method = this._transformJSON.method;
         const paddingOuter = this._transformJSON.paddingOuter;
@@ -57,14 +53,14 @@ export class Treemap extends Transform {
         const paddingInnerMultiplier = this._transformJSON.paddingInnerMultiplier;
 
         // As
-        let x0 = "x0";
-        let y0 = "y0";
-        let x1 = "x1";
-        let y1 = "y1";
-        let depth = "depth";
-        let _children = "children";
-        let size = "size";
-        let _descendents = "descendents";
+        let x0Column = "x0";
+        let y0Column = "y0";
+        let x1Column = "x1";
+        let y1Column = "y1";
+        let depthColumn = "depth";
+        let childrenColumn = "children";
+        let sizeColumn = "size";
+        let descendentsColumn = "descendents";
 
         // Support flat hierarchy (no stratify)
         if (!hierarchy) {
@@ -89,6 +85,10 @@ export class Treemap extends Transform {
                         for (let i = 0; i < dataset.length; i++) { sizeValues[i] = 1; }
                     }
                     else { orderedIds = dataset.all.orderedIds(sizeColumnIndex) }
+
+                    // Total size
+                    let totalSize = 0;
+                    for (let i = 0; i < dataset.length; i++) { totalSize += sizeValues[i]; }
 
                     // X, y
                     let x = -width / 2;
@@ -122,6 +122,7 @@ export class Treemap extends Transform {
                         y: y,
                         width: width,
                         height: height,
+                        parentSize: totalSize,
                         lookup: lookup,
                     };
                     Core.TreeMap.squarifiedLayout(options);
@@ -147,12 +148,14 @@ export class Treemap extends Transform {
                     }
 
                     // Add columns
+                    const halfWidth = width / 2;
+                    const halfHeight = height / 2;
                     for (let i = 0; i < dataset.length; i++) {
                         const row = dataset.rows[i];
-                        row.push((positionsX[i] + width / 2 - sizesX[i] / 2).toString()); // x0
-                        row.push((positionsY[i] + height / 2 - sizesY[i] / 2).toString()); // y0
-                        row.push((positionsX[i] + width / 2 + sizesX[i] / 2).toString()); // x1
-                        row.push((positionsY[i] + height / 2 + sizesY[i] / 2).toString()); // y1
+                        row.push((positionsX[i] + halfWidth - sizesX[i] / 2).toString()); // x0
+                        row.push((positionsY[i] + halfHeight - sizesY[i] / 2).toString()); // y0
+                        row.push((positionsX[i] + halfWidth + sizesX[i] / 2).toString()); // x1
+                        row.push((positionsY[i] + halfHeight + sizesY[i] / 2).toString()); // y1
                         row.push(sizeValues[i].toString()); // size
                     }
 
@@ -161,24 +164,24 @@ export class Treemap extends Transform {
                     if (this._transformJSON.as) {
                         const as = this._transformJSON.as;
                         if (as && Array.isArray(as)) {
-                            if (as.length > 0) { x0 = as[0]; }
-                            if (as.length > 1) { y0 = as[1]; }
-                            if (as.length > 2) { x1 = as[2]; }
-                            if (as.length > 3) { y1 = as[3]; }
-                            if (as.length > 4) { size = as[4]; }
+                            if (as.length > 0) { x0Column = as[0]; }
+                            if (as.length > 1) { y0Column = as[1]; }
+                            if (as.length > 2) { x1Column = as[2]; }
+                            if (as.length > 3) { y1Column = as[3]; }
+                            if (as.length > 4) { sizeColumn = as[4]; }
                         }
                     }
 
                     // Add headings, columnTypes
-                    dataset.headings.push(x0);
+                    dataset.headings.push(x0Column);
                     dataset.columnTypes.push(Core.Data.ColumnType.float);
-                    dataset.headings.push(y0);
+                    dataset.headings.push(y0Column);
                     dataset.columnTypes.push(Core.Data.ColumnType.float);
-                    dataset.headings.push(x1);
+                    dataset.headings.push(x1Column);
                     dataset.columnTypes.push(Core.Data.ColumnType.float);
-                    dataset.headings.push(y1);
+                    dataset.headings.push(y1Column);
                     dataset.columnTypes.push(Core.Data.ColumnType.float);
-                    dataset.headings.push(size);
+                    dataset.headings.push(sizeColumn);
                     dataset.columnTypes.push(Core.Data.ColumnType.float);
                     console.log(`treemap flat width ${width} height ${height} ${dataset.length} rows ${Core.Time.formatDuration(performance.now() - start)}`);
                     return dataset;
@@ -189,14 +192,12 @@ export class Treemap extends Transform {
         const rootId = hierarchy.rootIds[0];
         const indices = hierarchy.indices;
         const children = hierarchy.children;
-        const ids: number[] = [];
         const depths = new Uint32Array(dataset.length);
         const sizes = new Float32Array(dataset.length);
         const descendents = new Uint32Array(dataset.length);
         let maxDepth = 0;
         const buildTree = (parentId: number, depth: number) => {
             const parentIndex = indices[parentId];
-            ids.push(parentIndex);
             const childIds = children[parentId];
             if (childIds !== undefined) {
                 let totalSize = 0;
@@ -212,7 +213,7 @@ export class Treemap extends Transform {
                     sizes[parentIndex] = totalSize + parentSize;
                 }
                 else {
-                    // Don't add size if counting leaf nodes
+                    // Only sum children sizes (ignore parent size) so that children completely fill the parent
                     sizes[parentIndex] = totalSize;
                 }
             }
@@ -220,7 +221,9 @@ export class Treemap extends Transform {
                 // Leaf node
                 const size = sizeValues ? sizeValues[parentIndex] : 1; // Default to unit size
                 sizes[parentIndex] = size;
-                descendents[parentIndex] = 0;
+                
+                // No-op (descendents typed array initialized to zero)
+                // descendents[parentIndex] = 0;
             }
             depths[parentIndex] = depth;
             maxDepth = Math.max(maxDepth, depth);
@@ -282,6 +285,7 @@ export class Treemap extends Transform {
                         y: y,
                         width: width,
                         height: height,
+                        parentSize: sizes[parentId],
                         lookup: lookup,
                     };
                     Core.TreeMap.squarifiedLayout(options);
@@ -291,8 +295,6 @@ export class Treemap extends Transform {
                         const id = orderedChildrenNodeIds[i];
 
                         // Padding inner
-                        let x = positionsX[id];
-                        let y = positionsY[id];
                         let width = sizesX[id];
                         let height = sizesY[id];
                         if (paddingInner) {
@@ -303,8 +305,6 @@ export class Treemap extends Transform {
                             width *= paddingInnerMultiplier;
                             height *= paddingInnerMultiplier;
                         }
-                        positionsX[id] = x;
-                        positionsY[id] = y;
                         sizesX[id] = width;
                         sizesY[id] = height;
 
@@ -317,7 +317,7 @@ export class Treemap extends Transform {
                 };
 
                 // Start with root
-                const rootNodeId = hierarchy.indices[hierarchy.rootIds[0]];
+                const rootNodeId = indices[rootId];
                 positionsX[rootNodeId] = 0;
                 positionsY[rootNodeId] = 0;
                 sizesX[rootNodeId] = width;
@@ -325,12 +325,14 @@ export class Treemap extends Transform {
                 buildTreeMap(rootNodeId, -width / 2, -height / 2, width, height);
 
                 // Add columns
+                const halfWidth = width / 2;
+                const halfHeight = height / 2;
                 for (let i = 0; i < dataset.length; i++) {
                     const row = dataset.rows[i];
-                    row.push((positionsX[i] + width / 2 - sizesX[i] / 2).toString()); // x0
-                    row.push((positionsY[i] + height / 2 - sizesY[i] / 2).toString()); // y0
-                    row.push((positionsX[i] + width / 2 + sizesX[i] / 2).toString()); // x1
-                    row.push((positionsY[i] + height / 2 + sizesY[i] / 2).toString()); // y1
+                    row.push((positionsX[i] + halfWidth - sizesX[i] / 2).toString()); // x0
+                    row.push((positionsY[i] + halfHeight - sizesY[i] / 2).toString()); // y0
+                    row.push((positionsX[i] + halfWidth + sizesX[i] / 2).toString()); // x1
+                    row.push((positionsY[i] + halfHeight + sizesY[i] / 2).toString()); // y1
                     row.push(depths[i].toString()); // depth
                     // Children
                     const childIds = children[hierarchy.childIds[i]];
@@ -344,35 +346,35 @@ export class Treemap extends Transform {
                 // For hierarchy, use [x0, y0, x1, y1, depth, children, size, descendents]
                 if (this._transformJSON.as) {
                     const as = this._transformJSON.as;
-                    if (as && Array.isArray(as)) {
-                        if (as.length > 0) { x0 = as[0]; }
-                        if (as.length > 1) { y0 = as[1]; }
-                        if (as.length > 2) { x1 = as[2]; }
-                        if (as.length > 3) { y1 = as[3]; }
-                        if (as.length > 4) { depth = as[4]; }
-                        if (as.length > 5) { _children = as[5]; }
-                        if (as.length > 6) { size = as[6]; }
-                        if (as.length > 7) { _descendents = as[7]; }
+                    if (Array.isArray(as)) {
+                        if (as.length > 0) { x0Column = as[0]; }
+                        if (as.length > 1) { y0Column = as[1]; }
+                        if (as.length > 2) { x1Column = as[2]; }
+                        if (as.length > 3) { y1Column = as[3]; }
+                        if (as.length > 4) { depthColumn = as[4]; }
+                        if (as.length > 5) { childrenColumn = as[5]; }
+                        if (as.length > 6) { sizeColumn = as[6]; }
+                        if (as.length > 7) { descendentsColumn = as[7]; }
                     }
                 }
 
                 // Add headings, columnTypes
-                dataset.headings.push(x0);
+                dataset.headings.push(x0Column);
                 dataset.columnTypes.push(Core.Data.ColumnType.float);
-                dataset.headings.push(y0);
+                dataset.headings.push(y0Column);
                 dataset.columnTypes.push(Core.Data.ColumnType.float);
-                dataset.headings.push(x1);
+                dataset.headings.push(x1Column);
                 dataset.columnTypes.push(Core.Data.ColumnType.float);
-                dataset.headings.push(y1);
+                dataset.headings.push(y1Column);
                 dataset.columnTypes.push(Core.Data.ColumnType.float);
-                dataset.headings.push(depth);
+                dataset.headings.push(depthColumn);
+                dataset.columnTypes.push(Core.Data.ColumnType.integer);
+                dataset.headings.push(childrenColumn);
+                dataset.columnTypes.push(Core.Data.ColumnType.integer);
+                dataset.headings.push(sizeColumn);
                 dataset.columnTypes.push(Core.Data.ColumnType.float);
-                dataset.headings.push(_children);
-                dataset.columnTypes.push(Core.Data.ColumnType.float);
-                dataset.headings.push(size);
-                dataset.columnTypes.push(Core.Data.ColumnType.float);
-                dataset.headings.push(_descendents);
-                dataset.columnTypes.push(Core.Data.ColumnType.float);
+                dataset.headings.push(descendentsColumn);
+                dataset.columnTypes.push(Core.Data.ColumnType.integer);
                 console.log(`treemap width ${width} height ${height} ${dataset.length} rows ${Core.Time.formatDuration(performance.now() - start)}`);
                 return dataset;
         }
