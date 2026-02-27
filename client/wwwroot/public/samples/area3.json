@@ -3,8 +3,15 @@
   "description": "A multi series 2D stacked area chart",
   "width": 640,
   "height": 360,
+  "depth": 50,
     
   "camera": {"position": [0, 0, 1.5]},
+
+  "encode": {
+    "enter": {
+      "strokeWidth": {"value": 0}
+    }
+  },
   
   "data": [
     {
@@ -42,6 +49,13 @@
       "type": "ordinal",
       "range": {"scheme": "category20"},
       "domain": {"data": "table", "field": "series"}
+    },
+    {
+      "name": "depth",
+      "type": "linear",
+      "range": [1,50],
+      "domain": {"data": "table", "field": "series"},
+      "reverse": true
     }
   ],
 
@@ -81,9 +95,9 @@
               "x": {"scale": "x", "field": "x"},
               "y": {"scale": "y", "field": "y0"},
               "y2": {"scale": "y", "field": "y1"},
-              "_z": {"signal": "series-datum.series", "mult": 5},
-              "_depth": {"signal": "series-datum.series", "mult": 10},
-              "strokeWidth": {"value": 2},
+              "z": {"signal": "depth/2"},
+              "depth": {"signal": "depth"},
+              "_depth": {"scale": "depth", "field": "series"},
               "fill": {"scale": "fill", "field": "series"}
             }
           }

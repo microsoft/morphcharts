@@ -91,16 +91,26 @@ export class Area extends Mark {
                     const minY = Math.min(fromPositionY, toPositionY, fromPositionY2, toPositionY2);
                     const maxY = Math.max(fromPositionY, toPositionY, fromPositionY2, toPositionY2);
                     const height = maxY - minY;
-                    const halfHeight = height / 2;
-                    const centerY = (minY + maxY) / 2;
-                    const base = (centerY - halfHeight);
-                    // Allow y, y2 to be in any order
-                    a[fromId] = ((fromPositionY < fromPositionY2 ? fromPositionY : fromPositionY2) - base) / height;
-                    b[fromId] = ((fromPositionY < fromPositionY2 ? fromPositionY2 : fromPositionY) - base) / height;
-                    c[fromId] = ((toPositionY < toPositionY2 ? toPositionY : toPositionY2) - base) / height;
-                    d[fromId] = ((toPositionY < toPositionY2 ? toPositionY2 : toPositionY) - base) / height;
-                    sizesY[fromId] = Math.abs(height);
-                    positionsYc[fromId] = centerY;
+                    if (height > 0) {
+                        const halfHeight = height / 2;
+                        const centerY = (minY + maxY) / 2;
+                        const base = (centerY - halfHeight);
+                        // Allow y, y2 to be in any order
+                        a[fromId] = ((fromPositionY < fromPositionY2 ? fromPositionY : fromPositionY2) - base) / height;
+                        b[fromId] = ((fromPositionY < fromPositionY2 ? fromPositionY2 : fromPositionY) - base) / height;
+                        c[fromId] = ((toPositionY < toPositionY2 ? toPositionY : toPositionY2) - base) / height;
+                        d[fromId] = ((toPositionY < toPositionY2 ? toPositionY2 : toPositionY) - base) / height;
+                        sizesY[fromId] = height;
+                        positionsYc[fromId] = centerY;
+                    } else {
+                        // Zero height, area collapses to nothing
+                        a[fromId] = 0;
+                        b[fromId] = 0;
+                        c[fromId] = 0;
+                        d[fromId] = 0;
+                        sizesY[fromId] = 0;
+                        positionsYc[fromId] = minY;
+                    }
                 }
                 if (positionsZ) {
                     toPositionZ = positionsZ[toId];

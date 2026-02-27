@@ -21,10 +21,10 @@ export class HittableQuadSdf extends Hittable {
     constructor(options: IHittableQuadSdfOptions) {
         super(options);
         this._size = options.size;
-        this._a = options.a || 0;
-        this._b = options.b || 1;
-        this._c = options.c || 0;
-        this._d = options.d || 1;
+        this._a = options.a ?? 0;
+        this._b = options.b ?? 1;
+        this._c = options.c ?? 0;
+        this._d = options.d ?? 1;
 
         // Bounds
         this._bounds.min[0] = this._center[0] - this._size[0] * 0.5;

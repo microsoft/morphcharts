@@ -1,0 +1,145 @@
+{
+  "title": "3D Hierarchical Treemap",
+  "description": "A 3D hierarchical treemap",
+  "width": 640,
+  "height": 180,
+  "depth": 360,
+      
+  "camera": {"position": [0, 1.2, 0.6], "target": [0, 0, 0.02]},
+
+  "data": [
+    { 
+      "name": "raw",
+      "url": "https://raw.githubusercontent.com/vega/vega-datasets/refs/heads/main/data/flare.json",
+      "format": {"type": "json"}
+    },
+    {
+      "name": "raw2",
+      "source": "raw", 
+      "transform": [
+        {"type": "formula", "expr": "datum.parent==''?datum.id:datum.parent", "as": "parent2"},
+        {"type": "formula", "expr": "datum.size==''?0:datum.size", "as": "size2"},
+        {"type": "collect", "fields": ["id","name","parent2","size2"], "as": ["id","name","parent","size"]}
+      ]
+    },
+    {
+      "name": "tree",
+      "source": "raw2", 
+      "transform": [
+        {"type": "stratify", "key": "id", "parentKey": "parent"},
+        {
+          "type": "treemap",
+          "field": "size",
+          "method": "squarify",
+          "paddingInner": 0.5,
+          "paddingOuter": 15,
+          "size": [640,360],
+          "as": ["x0", "y0", "x1", "y1", "depth", "children", "size", "descendents"]
+        }
+      ]
+    },
+    { 
+      "name": "leafs",
+      "source": "tree",
+      "transform": [
+        {"type": "filter", "expr": "datum.children==0"}
+      ]
+    },
+    { 
+      "name": "parents",
+      "source": "tree",
+      "transform": [
+        {"type": "filter", "expr": "datum.children>0"}
+      ]
+    }
+  ],
+
+  "scales": [
+    {
+      "name": "height",
+      "type": "band",
+      "padding": 0,
+      "domain": {"data": "tree", "field": "depth"},
+      "range": "height"
+    },
+    {
+      "name": "fill",
+      "type": "ordinal",
+      "domain": {"data": "tree", "field": "id"},
+      "reverse": true,
+      "range": {"scheme": "category10"}
+    }
+  ],
+
+  "marks": [
+    {
+      "type": "rect",
+      "geometry": "boxsdf",
+      "material": "glossy",
+      "from": {"data": "tree"},
+      "encode": {
+        "enter": {
+          "x": {"field": "x0"},
+          "x2": {"field": "x1"},
+          "z": {"field": "y0"},
+          "z2": {"field": "y1"},
+          "y": {"scale": "height", "field": "depth"},
+          "height": {"scale": "height", "band": 1},
+          "rounding": {"value": 0},
+          "fuzz": {"value": 0.1},
+          "fill": {"scale": "fill", "field": "id"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": {"data": "leafs"},
+      "encode": {
+        "enter": {
+          "x": {"signal": "(datum.x0+datum.x1)/2"},
+          "z": {"signal": "(datum.y0+datum.y1)/2"},
+          "y": {"scale": "height", "field": "depth", "offset": {"scale": "height", "band": 1, "offset": 0.01}},
+          "baseline": {"value": "middle"},
+          "align": {"value": "center"},
+          "angleX": {"value": 90},
+          "fontSize": {"signal": "(datum.x1-datum.x0)<(datum.y1-datum.y0)?min((datum.y1-datum.y0)/length(datum.name)*1.6,(datum.x1-datum.x0)*0.9):min((datum.x1-datum.x0)/length(datum.name)*1.6,(datum.y1-datum.y0)*0.9)"},
+          "angleY": {"signal": "(datum.x1-datum.x0)<(datum.y1-datum.y0)?-90:0"},
+          "text": {"field": "name"},
+          "fill": {"value": "white"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": {"data": "parents"},
+      "encode": {
+        "enter": {
+          "x": {"field": "x0", "offset": 1},
+          "z": {"field": "y1"},
+          "y": {"scale": "height", "field": "depth", "offset": {"scale": "height", "band": 1, "offset": 0.01}},
+          "baseline": {"value": "bottom"},
+          "align": {"value": "left"},
+          "angleX": {"value": 90},
+          "fontSize": {"signal": "min((datum.x1-datum.x0)/length(datum.name)*1.8,8)"},
+          "text": {"field": "name"},
+          "fill": {"value": "white"}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "xzrect",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "zc": {"signal": "depth/2"},
+          "width": {"signal": "width*5"},
+          "depth": {"signal": "width*5"},
+          "fuzz": {"value": 0.1},
+          "fill": {"value": "white"}
+        }
+      }
+    }
+  ]
+}
