@@ -94,6 +94,14 @@
         "description": "3D flat, faceted treemaps"
       },
       {
+        "plot": "treemap7.json",
+        "thumbnail": "treemap7_raytrace_640x360.jpg",
+        "image": "treemap7_raytrace_3840x2160.jpg",
+        "title": "3D Hierarchical Treemap",
+        "description": "Flare visualization library rendereed as a 3D hierarchical treemap",
+        "notes": "<p>The labels have been rotated to follow the aspect ratio of the blocks. A <code>paddingOuter</code> creates a margin around groups of child blocks, leaving space for a label. Leaf node labels are scaled according the the block size.</p><p>Data linked from <a href=\"https://github.com/vega/vega-datasets\">vega-datasets</a>.</p>"
+      },
+      {
         "plot": "treemap1.json",
         "thumbnail": "treemap1_raytrace_640x360.jpg",
         "image": "treemap1_raytrace_3840x2160.jpg",

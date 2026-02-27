@@ -10,6 +10,8 @@ const PI_OVER_TWO = 1.57079632679489661923f;
 const ROOT_THREE_OVER_TWO = 0.86602540378443864676f;
 const ROOT_TWO_OVER_TWO = 0.70710678118654752440f;
 const ONE_OVER_LOG10 = 1f / log(10f);
+const EPSILON = 1e-8;
+const LARGE_VALUE = 1e8;
 
 struct ColorBuffer {
     values: array<f32>,
@@ -375,9 +377,9 @@ fn hitBVH(ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, HitRecord>) -
     // let invDir = vec3<f32>(1f, 1f, 1f) / ray.direction;
     // Avoid division by zero (otherwise box hit, intersection returns true for rays with 0 in direction)
     let invDir = vec3<f32>(
-        select(1f / ray.direction.x, 1e8f, ray.direction.x == 0f),
-        select(1f / ray.direction.y, 1e8f, ray.direction.y == 0f),
-        select(1f / ray.direction.z, 1e8f, ray.direction.z == 0f)
+        select(1f / ray.direction.x, LARGE_VALUE, ray.direction.x == 0f),
+        select(1f / ray.direction.y, LARGE_VALUE, ray.direction.y == 0f),
+        select(1f / ray.direction.z, LARGE_VALUE, ray.direction.z == 0f)
     );
     var tempHitRecord: HitRecord;
     var toVisitOffset = 0u;
@@ -1152,14 +1154,22 @@ fn mapQuadSdf(p: vec3<f32>, p0: vec2<f32>, p1: vec2<f32>, p2: vec2<f32>, p3: vec
 	let e1 = p2 - p1; let v1 = p.xy - p1;
 	let e2 = p3 - p2; let v2 = p.xy - p2;
 	let e3 = p0 - p3; let v3 = p.xy - p3;
-	let pq0 = v0 - e0 * clamp(dot(v0, e0) / dot(e0, e0), 0f, 1f);
-	let pq1 = v1 - e1 * clamp(dot(v1, e1) / dot(e1, e1), 0f, 1f);
-	let pq2 = v2 - e2 * clamp(dot(v2, e2) / dot(e2, e2), 0f, 1f);
-    let pq3 = v3 - e3 * clamp(dot(v3, e3) / dot(e3, e3), 0f, 1f);
-    let ds = vec2<f32>(min(min(vec2<f32>(dot(pq0, pq0), v0.x * e0.y - v0.y * e0.x),
-                               vec2<f32>(dot(pq1, pq1), v1.x * e1.y - v1.y * e1.x)),
-                           min(vec2<f32>(dot(pq2, pq2), v2.x * e2.y - v2.y * e2.x),
-                               vec2<f32>(dot(pq3, pq3), v3.x * e3.y - v3.y * e3.x))));
+	let d0 = dot(e0, e0); let d1 = dot(e1, e1); let d2 = dot(e2, e2); let d3 = dot(e3, e3);
+	let pq0 = v0 - e0 * clamp(dot(v0, e0) / max(d0, EPSILON), 0f, 1f);
+	let pq1 = v1 - e1 * clamp(dot(v1, e1) / max(d1, EPSILON), 0f, 1f);
+	let pq2 = v2 - e2 * clamp(dot(v2, e2) / max(d2, EPSILON), 0f, 1f);
+    let pq3 = v3 - e3 * clamp(dot(v3, e3) / max(d3, EPSILON), 0f, 1f);
+    // When an edge is degenerate (two corners coincide), its cross product is always 0,
+    // which poisons the min-based winding test. Replace with a large positive sentinel
+    // so degenerate edges don't affect inside/outside classification.
+    let c0 = select(v0.x * e0.y - v0.y * e0.x, LARGE_VALUE, d0 < EPSILON);
+    let c1 = select(v1.x * e1.y - v1.y * e1.x, LARGE_VALUE, d1 < EPSILON);
+    let c2 = select(v2.x * e2.y - v2.y * e2.x, LARGE_VALUE, d2 < EPSILON);
+    let c3 = select(v3.x * e3.y - v3.y * e3.x, LARGE_VALUE, d3 < EPSILON);
+    let ds = vec2<f32>(min(min(vec2<f32>(dot(pq0, pq0), c0),
+                               vec2<f32>(dot(pq1, pq1), c1)),
+                           min(vec2<f32>(dot(pq2, pq2), c2),
+                               vec2<f32>(dot(pq3, pq3), c3))));
     let d = select(sqrt(ds.x), -sqrt(ds.x), ds.y > 0f);
     
     // Extrude
@@ -1640,7 +1650,7 @@ fn hitSpotLight(id: u32, ray: Ray, color: ptr<function, vec3<f32>>, hitRecord: p
 }
 
 fn nearZero(v: vec3<f32>) -> bool {
-    return max(max(abs(v.x), abs(v.y)), abs(v.z)) < 0.00000001f; // 1e-8
+    return max(max(abs(v.x), abs(v.y)), abs(v.z)) < EPSILON;
 }
 
 fn scatterLambertian(ray: ptr<function, Ray>, hitRecord: ptr<function, HitRecord>, attenuation: ptr<function, vec3<f32>>, seed: ptr<function, u32>) -> bool {
