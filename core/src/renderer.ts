@@ -1,10 +1,37 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license. 
 
-import { Atlas, ColorRGB, ColorRGBA, Config, Constants, GlyphRasterizer, IAtlasVisual, IBuffer, IBufferVisual, IGlyphRasterizerVisual, IImageVisual, ILabelSetVisual, Image, ITransitionBuffer, ITransitionBufferVisual, LabelSet, Light, vector3, Vector3 } from "./index.js";
+import { Atlas, ColorRGB, ColorRGBA, Config, Constants, GlyphRasterizer, IAtlasOptions, IAtlasVisual, IBuffer, IBufferVisual, IGlyphRasterizerOptions, IGlyphRasterizerVisual, IImageVisual, ILabelSetVisual, Image, ITransitionBuffer, ITransitionBufferVisual, LabelSet, Light, vector3, Vector3, vector4 } from "./index.js";
+import * as Cameras from "./cameras/index.js";
+
+export interface IRendererOptions {
+    width?: number;
+    height?: number;
+    renderMode?: string;
+}
+
+export interface IInitializeOptions {
+    atlasOptions?: IAtlasOptions;
+    glyphRasterizerOptions?: IGlyphRasterizerOptions;
+}
+
+export interface ISceneOptions {
+    buffers?: IBuffer[];
+    labels?: LabelSet[];
+    images?: Image[];
+    camera?: Cameras.Camera;
+    ambient?: ColorRGB;
+    background?: ColorRGBA;
+    lights?: Light[];
+    glyphRasterizerVisual?: IGlyphRasterizerVisual;
+}
 
 export abstract class Renderer {
     protected _isInitialized: boolean; // Ready to call render()
+
+    // Glyph rasterizer visual (created during initialization, used by loadScene for label sets)
+    // This references an atlas visual in atlasVisuals — do not remove that atlas visual without replacing this
+    public glyphRasterizerVisual: IGlyphRasterizerVisual;
 
     // Transition
     public _transitionTime: number;
@@ -222,7 +249,7 @@ export abstract class Renderer {
     }
     public get depthMax(): number { return this._depthMax; }
 
-    constructor() {
+    constructor(options?: IRendererOptions) {
         // Visual collections
         this.atlasVisuals = [];
         this.imageVisuals = [];
@@ -238,11 +265,11 @@ export abstract class Renderer {
         this.maxPrimsInNode = 1;
 
         // Lighting
-        this.ambientColor = [Config.ambientColor[0], Config.ambientColor[1], Config.ambientColor[2]];
-        this.backgroundColor = [Config.backgroundColor[0], Config.backgroundColor[1], Config.backgroundColor[2], Config.backgroundColor[3]];
-        
+        this.ambientColor = vector3.clone(Config.ambientColor);
+        this.backgroundColor = vector4.clone(Config.backgroundColor);
+
         // Render mode
-        this._renderMode = Config.renderMode;
+        this._renderMode = options?.renderMode ?? Config.renderMode;
 
         // Multisample
         this._multisample = Config.multisample;
@@ -270,13 +297,100 @@ export abstract class Renderer {
         this._tileOffsetX = 0;
         this._tileOffsetY = 0;
         this._hasTilesChanged = true; // Force tile update on first render
+
+        // Size
+        this._width = options?.width ?? Config.width;
+        this._height = options?.height ?? Config.height;
+        this._hasSizeChanged = true; // Force size update on first render
+    }
+
+    // Initialize default atlas and glyph rasterizer visuals
+    // Call after renderer-specific initialization (e.g. GPU setup)
+    protected _initializeDefaultVisuals(options?: IInitializeOptions): void {
+        const atlasOptions: IAtlasOptions = options?.atlasOptions ?? {
+            width: Config.fontAtlasWidth,
+            height: Config.fontAtlasHeight,
+            type: "font",
+        };
+        const atlas = new Atlas(atlasOptions);
+        const atlasVisual = this.createAtlasVisual(atlas);
+        this.atlasVisuals.push(atlasVisual);
+
+        const glyphRasterizerOptions: IGlyphRasterizerOptions = options?.glyphRasterizerOptions ?? {
+            size: Config.glyphRasterizerSize,
+            border: Config.glyphRasterizerBorder,
+            edgeValue: Config.sdfBuffer,
+            maxDistance: Config.glyphRasterizerMaxDistance,
+        };
+        const glyphRasterizer = new GlyphRasterizer(glyphRasterizerOptions);
+        this.glyphRasterizerVisual = this.createGlyphRasterizerVisual(glyphRasterizer, atlasVisual);
+    }
+
+    // Load a scene into the renderer, creating visuals for buffers, label sets, images,
+    // and applying camera and lighting settings
+    public loadScene(options: ISceneOptions): void {
+        // Reset visuals
+        this.bufferVisuals = [];
+        this.labelSetVisuals = [];
+        this.imageVisuals = [];
+
+        // Populate visuals
+        if (options.buffers) {
+            for (const buffer of options.buffers) {
+                this.bufferVisuals.push(this.createBufferVisual(buffer));
+            }
+        }
+        if (options.labels) {
+            for (const labelSet of options.labels) {
+                this.labelSetVisuals.push(this.createLabelSetVisual(labelSet, options.glyphRasterizerVisual));
+            }
+        }
+        if (options.images) {
+            for (const image of options.images) {
+                this.imageVisuals.push(this.createImageVisual(image));
+            }
+        }
+
+        // Camera
+        if (options.camera) {
+            // Base camera properties
+            if (options.camera.position != null) this.cameraPosition = options.camera.position;
+            if (options.camera.right != null) this.cameraRight = options.camera.right;
+            if (options.camera.up != null) this.cameraUp = options.camera.up;
+            if (options.camera.forward != null) this.cameraForward = options.camera.forward;
+
+            // Perspective camera properties
+            if (options.camera instanceof Cameras.PerspectiveCamera) {
+                if (options.camera.fov != null) this.cameraFov = options.camera.fov;
+                if (options.camera.aperture != null) this.cameraAperture = options.camera.aperture;
+                if (options.camera.focusDistance != null) this.cameraFocusDistance = options.camera.focusDistance;
+            }
+        }
+
+        // Lighting
+        if (options.ambient) this.ambientColor = vector3.clone(options.ambient);
+        if (options.background) this.backgroundColor = vector4.clone(options.background);
+        if (options.lights) this.lights = options.lights;
+    }
+
+    // Copy camera state from an interactive camera to the renderer
+    public copyCamera(camera: Cameras.Camera): void {
+        this.cameraPosition = camera.position;
+        this.cameraRight = camera.right;
+        this.cameraUp = camera.up;
+        this.cameraForward = camera.forward;
+        if (camera instanceof Cameras.PerspectiveCamera) {
+            this.cameraFov = camera.fov;
+            this.cameraAperture = camera.aperture;
+            this.cameraFocusDistance = camera.focusDistance;
+        }
     }
 
     // Factory methods for renderer-specific classes
     public abstract createBufferVisual(buffer: IBuffer): IBufferVisual;
     public abstract createTransitionBufferVisual(transitionBuffer: ITransitionBuffer): ITransitionBufferVisual;
     public abstract createGlyphRasterizerVisual(glyphRasterizser: GlyphRasterizer, atlasVisual: IAtlasVisual): IGlyphRasterizerVisual;
-    public abstract createLabelSetVisual(labelSet: LabelSet, glyphRasterizerVisual: IGlyphRasterizerVisual): ILabelSetVisual;
+    public abstract createLabelSetVisual(labelSet: LabelSet, glyphRasterizerVisual?: IGlyphRasterizerVisual): ILabelSetVisual;
     public abstract createAtlasVisual(atlas: Atlas): IAtlasVisual;
     public abstract createImageVisual(image: Image): IImageVisual;
 

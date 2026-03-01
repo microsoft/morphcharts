@@ -5,7 +5,7 @@ MorphCharts is a visualization library for creating rich, immersive, and engagin
 ### Getting Started
 You can [Try Online](https://microsoft.github.io/morphcharts/client.html), or install and run locally (see [Installation](#installation), below).
 
-<img src="./client/wwwroot/public/img/client1.jpg" width="100%" alt="Try Online client" style="max-width: 1024px">
+<img src="./client/wwwroot/public/img/client1.jpg" width="100%" alt="Try Online client" style="max-width: 100%px; border: 1px solid black">
 
 There are 2 principal ways to create charts using this library:
 

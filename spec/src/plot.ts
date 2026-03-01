@@ -9,7 +9,7 @@ import { Color } from "./color.js";
 import { Identifier } from "./transforms/identifier.js";
 
 export interface IScene {
-    camera: Core.Cameras.PerspectiveCamera,
+    camera: Core.Cameras.Camera,
     ambient?: Core.ColorRGB, // Should this just be a light, e.g. so it could be directional
     background?: Core.ColorRGBA,
     lights?: Core.Light[],
@@ -63,10 +63,12 @@ export class Plot {
     }
 
     // Create a specification from a JSON string
-    public static async fromJSONAsync(plotJSON: any, datasets: { [key: string]: string }, images: { [key: string]: string }): Promise<Plot> {
+    public static async fromJSONAsync(plotJSON: any, options?: { datasets?: { [key: string]: string }, images?: { [key: string]: string } }): Promise<Plot> {
         return new Promise<Plot>(async (resolve, reject) => {
             const start = performance.now();
             try {
+                const datasets = options?.datasets || {};
+                const images = options?.images || {};
                 const plot = new Plot();
 
                 // Create a top-level group mark
@@ -133,6 +135,7 @@ export class Plot {
         return new Promise<IScene>(async (resolve, reject) => {
             try {
                 // Convert to core camera
+                // TODO: Use this.camera.type to construct the appropriate Core.Cameras subclass (e.g. OrthographicCamera)
                 const cameraOptions: Core.Cameras.IPerspectiveCameraOptions = {
                     position: this.camera?.position,
                     right: this.camera?.right,

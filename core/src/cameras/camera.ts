@@ -28,28 +28,35 @@ export class Camera {
     protected _up: Vector3;
     protected _worldUp: Vector3;
     public get forward(): Vector3 { return this._forward; }
-    public set forward(value: Vector3) { this._forward = value; }
+    public set forward(value: Vector3) { vector3.copy(value, this._forward); }
     public get up(): Vector3 { return this._up; }
-    public set up(value: Vector3) { this._up = value; }
+    public set up(value: Vector3) { vector3.copy(value, this._up); }
     public get right(): Vector3 { return this._right; }
-    public set right(value: Vector3) { this._right = value; }
+    public set right(value: Vector3) { vector3.copy(value, this._right); }
     public get manipulationOrigin(): Vector3 { return this._manipulationOrigin; }
-    public set manipulationOrigin(value: Vector3) { this._manipulationOrigin = value; }
+    public set manipulationOrigin(value: Vector3) { vector3.copy(value, this._manipulationOrigin); }
     public get worldUp(): Vector3 { return this._worldUp; }
-    public set worldUp(value: Vector3) { this._worldUp = value; }
+    public set worldUp(value: Vector3) { vector3.copy(value, this._worldUp); }
     public get position(): Vector3 { return this._position; }
-    public set position(value: Vector3) { this._position = value; }
+    public set position(value: Vector3) { vector3.copy(value, this._position); }
 
-    constructor(options: ICameraOptions) {
-        this._manipulationOrigin = options.manipulationOrigin || vector3.clone(Config.cameraManipulationOrigin);
-        this._worldUp = options.worldUp || vector3.clone(Config.cameraWorldUp);
-        this._position = options.position || vector3.clone(Config.cameraPosition);
-        this._forward = options.forward || vector3.clone(Config.cameraForward);
-        this._right = options.right || vector3.clone(Config.cameraRight);
-        this._up = options.up || vector3.clone(Config.cameraUp);
+    constructor(options?: ICameraOptions) {
+        this._manipulationOrigin = vector3.clone(options?.manipulationOrigin || Config.cameraManipulationOrigin);
+        this._worldUp = vector3.clone(options?.worldUp || Config.cameraWorldUp);
+        this._position = vector3.clone(options?.position || Config.cameraPosition);
+        this._forward = vector3.clone(options?.forward || Config.cameraForward);
+        this._right = vector3.clone(options?.right || Config.cameraRight);
+        this._up = vector3.clone(options?.up || Config.cameraUp);
     }
 
     public update(elapsedTime: number): void { }
+
+    public copyFrom(source: Camera): void {
+        this.position = source.position;
+        this.right = source.right;
+        this.up = source.up;
+        this.forward = source.forward;
+    }
 
     public getViewMatrix(out: Matrix4x4): void {
         matrix4x4.lookAt(
@@ -94,19 +101,35 @@ export class PerspectiveCamera extends Camera {
     public get focusDistance(): number { return this._focusDistance; }
     public set focusDistance(value: number) { this._focusDistance = value; }
 
-    constructor(options: IPerspectiveCameraOptions) {
+    constructor(options?: IPerspectiveCameraOptions) {
         super(options);
-        this._fov = options.fov || Config.cameraFov;
-        this._width = options.width || Config.width;
-        this._height = options.height || Config.height;
-        this._nearPlane = options.nearPlane || Config.cameraNearPlane;
-        this._farPlane = options.farPlane || Config.cameraFarPlane;
-        this._aperture = options.aperture || Config.cameraAperture;
-        this._focusDistance = options.focusDistance || Config.cameraFocusDistance;
+        this._fov = options?.fov || Config.cameraFov;
+        this._width = options?.width || Config.width;
+        this._height = options?.height || Config.height;
+        this._nearPlane = options?.nearPlane || Config.cameraNearPlane;
+        this._farPlane = options?.farPlane || Config.cameraFarPlane;
+        this._aperture = options?.aperture || Config.cameraAperture;
+        this._focusDistance = options?.focusDistance || Config.cameraFocusDistance;
     }
 
-    public getProjectionMatrix(out: Matrix4x4): void {
-        matrix4x4.perspective(this._fov, this._width / this._height, this._nearPlane, this._farPlane, out);
+    public override copyFrom(source: Camera): void {
+        super.copyFrom(source);
+        if (source instanceof PerspectiveCamera) {
+            this.fov = source.fov;
+            this.aperture = source.aperture;
+            this.focusDistance = source.focusDistance;
+        } else {
+            this.fov = Config.cameraFov;
+            this.aperture = Config.cameraAperture;
+            this.focusDistance = Config.cameraFocusDistance;
+        }
+    }
+
+    // Optional aspectRatio allows the caller to match the renderer's pixel grid
+    // when it differs from the canvas (e.g. half-resolution rendering).
+    // Defaults to the camera's own width / height, which tracks the canvas.
+    public getProjectionMatrix(out: Matrix4x4, aspectRatio?: number): void {
+        matrix4x4.perspective(this._fov, aspectRatio ?? (this._width / this._height), this._nearPlane, this._farPlane, out);
     }
 
     public translate(x: number, y: number): void {
@@ -123,6 +146,10 @@ export class PerspectiveCamera extends Camera {
         this._position[0] += dx;
         this._position[1] += dy;
         this._position[2] += dz;
+    }
+
+    public zoomWheel(deltaY: number, x: number, y: number): void {
+        this.zoom(-deltaY * Config.cameraMouseWheelZoomScale, x, y);
     }
 
     public zoom(scale: number, x: number, y: number): void {
@@ -173,7 +200,7 @@ export class AltAzimuthPerspectiveCamera extends PerspectiveCamera {
     private _quat1: Quaternion;
     private _quat2: Quaternion;
 
-    constructor(options: IAltAzimuthPerspectiveCameraOptions) {
+    constructor(options?: IAltAzimuthPerspectiveCameraOptions) {
         super(options);
         this._quat1 = [0, 0, 0, 0];
         this._quat2 = [0, 0, 0, 0];

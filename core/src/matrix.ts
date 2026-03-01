@@ -64,6 +64,11 @@ export const vector3 = {
     clone(v: Vector3): Vector3 {
         return [v[0], v[1], v[2]];
     },
+    copy(v: Vector3, out: Vector3): void {
+        out[0] = v[0];
+        out[1] = v[1];
+        out[2] = v[2];
+    },
     dot(a: Vector3, b: Vector3): number {
         return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
     },
