@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MorphCharts — Prerequisites</title>
+    <link rel="stylesheet" href="../css/common.css">
+</head>
+
+<body>
+    <header>
+        <a href="../index.html">Home</a>
+        <a href="../client.html">Try Online</a>
+        <a href="../gallery.html">Gallery</a>
+        <a href="./index.html">Docs</a>
+        <a href="https://github.com/microsoft/morphcharts">GitHub</a>
+    </header>
+
+    <h1>Prerequisites</h1>
+    <p>
+        These prerequisites apply to browser-based MorphCharts client pages.
+    </p>
+
+    <h2 id="webgpu">WebGPU</h2>
+    <p>
+        The WebGPU renderer requires a browser that supports
+        <a href="https://caniuse.com/webgpu">WebGPU</a>. As of early 2026,
+        this includes recent versions of Chrome, Edge, and Firefox.
+    </p>
+
+    <h2 id="secure-context">Secure Context</h2>
+    <p>
+        WebGPU requires a <strong>secure context</strong>
+        (<code>https://</code> or <code>localhost</code>), so your page must be
+        served from a local web server — it won't work opened directly as a
+        file.
+    </p>
+
+    <h2 id="local-web-server">Local Web Server</h2>
+    <p>
+        The simplest option is to save your page as <code>index.html</code>,
+        then run one of the following from the same directory:
+    </p>
+    <pre><code>npx serve</code></pre>
+    <p>
+        This requires <a href="https://nodejs.org">Node.js</a>.
+    </p>
+    <p>
+        Alternatively, if you have
+        <a href="https://www.python.org">Python</a> installed:
+    </p>
+    <pre><code>python -m http.server</code></pre>
+    <p>
+        Then open <code>http://localhost:3000</code> (or the port shown in your
+        terminal) in your browser.
+    </p>
+
+    <h2 id="es-modules">ES Modules</h2>
+    <p>
+        MorphCharts is published as ES modules. Use an
+        <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/importmap">import map</a>
+        to map bare specifiers to their URLs, for example:
+    </p>
+    <pre><code>&lt;script type="importmap"&gt;
+{
+    "imports": {
+        "core": "https://microsoft.github.io/morphcharts/lib/morphcharts-core.js",
+        "spec": "https://microsoft.github.io/morphcharts/lib/morphcharts-spec.js",
+        "webgpuraytrace": "https://microsoft.github.io/morphcharts/lib/morphcharts-webgpuraytrace.js"
+    }
+}
+&lt;/script&gt;</code></pre>
+    <table>
+        <tr>
+            <th>Module</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td><code>core</code></td>
+            <td>Core library — contains fundamental data structures and utilities</td>
+        </tr>
+        <tr>
+            <td><code>spec</code></td>
+            <td>Spec parser — turns a JSON spec into a scene</td>
+        </tr>
+        <tr>
+            <td><code>webgpuraytrace</code></td>
+            <td>WebGPU renderer — draws the scene</td>
+        </tr>
+    </table>
+
+    <p>
+        Note that the <code>core</code> module is required even if you don't use it directly, since the other modules depend on it.
+    </p>
+
+    <footer>
+        <span>© 2025 Microsoft</span>
+        <a href="https://go.microsoft.com/fwlink/?LinkId=521839">Privacy &amp; Cookies</a>
+        <a href="https://go.microsoft.com/fwlink/?linkid=2259814">Consumer Health Privacy</a>
+        <a href="https://www.microsoft.com/trademarks">Trademarks</a>
+        <a href="https://www.microsoft.com/en-us/servicesagreement/">Terms of Use</a>
+    </footer>
+    <script src="../js/copy.js"></script>
+</body>
+
+</html>

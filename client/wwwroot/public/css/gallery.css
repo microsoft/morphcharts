@@ -58,3 +58,13 @@
 .galleryNotes p:last-child {
     margin-bottom: 0;
 }
+
+#galleryDetail img {
+    width: 100%;
+    height: auto;
+}
+
+#galleryDetailTryLink {
+    display: inline-block;
+    margin: 12px 0;
+}

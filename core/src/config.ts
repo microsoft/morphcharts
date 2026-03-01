@@ -26,6 +26,7 @@ export class Config {
     public static readonly cameraUp: Vector3 = [0, 1, 0];
     public static readonly cameraAperture: number = 0;
     public static readonly cameraFocusDistance: number = 1; // Focus distance in camera space
+    public static readonly cameraMouseWheelZoomScale: number = 0.001;
 
     // Depth
     public static readonly depthAuto: boolean = true;
@@ -37,7 +38,7 @@ export class Config {
     public static readonly ambientColor: ColorRGB = [1, 1, 1];
 
     // Render mode
-    public static readonly renderMode: string = "color";
+    public static readonly renderMode: string = "raytrace";
 
     // Camera mode
     public static readonly cameraMode: string = "perspective";

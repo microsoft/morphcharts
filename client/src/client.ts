@@ -59,7 +59,6 @@ export class Main {
     private _widthText: HTMLInputElement;
     private _heightText: HTMLInputElement;
     private _renderer: WebGPURenderer.Main;
-    private _glyphRasterizerVisual: WebGPURenderer.GlyphRasterizerVisual;
     private _startStopButton: HTMLButtonElement;
     private _maxSamplesText: HTMLInputElement;
     private _maxSamplesPerPixel: number;
@@ -69,8 +68,6 @@ export class Main {
     // Manipulation
     private _dragToleranceSquared: number;
     private _manipulatorMinRelativeDistanceSquared: number;
-    private _multiTouchZoomScale: number;
-    private _mouseWheelZoomScale: number;
     private _mouseWheel: MouseWheel;
     private _pointers: Pointers
     private _manipulationProcessor: ManipulationProcessor;
@@ -113,8 +110,6 @@ export class Main {
         // Manipulation
         this._dragToleranceSquared = 100; // 10px
         this._manipulatorMinRelativeDistanceSquared = 100; // 10px
-        this._mouseWheelZoomScale = 0.001;
-        this._multiTouchZoomScale = 1;
         this._mouseWheel = new MouseWheel();
         this._mouseWheel.initialize(this._canvas);
         const manipulationProcessorOptions: IManipulationProcessorOptions = {
@@ -220,15 +215,6 @@ export class Main {
 
         // Create a default camera
         const cameraOptions: Core.Cameras.IAltAzimuthPerspectiveCameraOptions = {
-            position: Core.vector3.clone(Core.Config.cameraPosition),
-            right: Core.vector3.clone(Core.Config.cameraRight),
-            up: Core.vector3.clone(Core.Config.cameraUp),
-            forward: Core.vector3.clone(Core.Config.cameraForward),
-            fov: Core.Config.cameraFov,
-            aperture: Core.Config.cameraAperture,
-            focusDistance: Core.Config.cameraFocusDistance,
-            nearPlane: Core.Config.cameraNearPlane,
-            farPlane: Core.Config.cameraFarPlane,
             width: this._renderer.width,
             height: this._renderer.height,
         };
@@ -670,13 +656,7 @@ export class Main {
 
         // Camera
         this._camera.update(elapsedTime);
-        this._renderer.cameraPosition = this._camera.position;
-        this._renderer.cameraRight = this._camera.right;
-        this._renderer.cameraUp = this._camera.up;
-        this._renderer.cameraForward = this._camera.forward;
-        this._renderer.cameraFov = this._camera.fov;
-        this._renderer.cameraAperture = this._camera.aperture;
-        this._renderer.cameraFocusDistance = this._camera.focusDistance;
+        this._renderer.copyCamera(this._camera);
 
         // Renderer
         await this._renderer.updateAsync(elapsedTime);
@@ -741,7 +721,7 @@ export class Main {
                     const plotJSON = this._editor.parseJSON();
 
                     // Parse plot specification
-                    this._plot = await Spec.Plot.fromJSONAsync(plotJSON, this._data.datasets, this._data.images);
+                    this._plot = await Spec.Plot.fromJSONAsync(plotJSON, { datasets: this._data.datasets, images: this._data.images });
 
                     // Parse scene
                     this._scene = await this._plot.parse();
@@ -923,8 +903,7 @@ export class Main {
     private _processManipulation(elapsedTime: number): void {
         this._mouseWheel.update(elapsedTime);
         if (this._mouseWheel.delta != 0) {
-            const scale = -this._mouseWheelZoomScale; // Scale zoom delta
-            this._camera.zoom(this._mouseWheel.delta * scale, this._pointers.hoverX, this._pointers.hoverY);
+            this._camera.zoomWheel(this._mouseWheel.delta, this._pointers.hoverX, this._pointers.hoverY);
         }
 
         // Pointers
@@ -951,8 +930,7 @@ export class Main {
         else {
             // Zoom
             if (this._manipulationProcessor.scaleDelta != 0) {
-                const scale = -this._manipulationProcessor.scaleDelta * this._multiTouchZoomScale;
-                this._camera.zoom(scale, this._manipulationProcessor.centroid[0], this._manipulationProcessor.centroid[1]);
+                this._camera.zoom(this._manipulationProcessor.scaleDelta, this._manipulationProcessor.centroid[0], this._manipulationProcessor.centroid[1]);
             }
         }
     }
@@ -960,37 +938,17 @@ export class Main {
     private async _initializeRendererAsync(): Promise<void> {
         const start = performance.now();
 
-        // Initialize the renderer
+        // Initialize the renderer with high-quality font settings
         this._renderer = new WebGPURenderer.Main(this._canvas);
-        await this._renderer.initializeAsync();
-
-        // High-quality font
-        const fontAtlasWidth = 4096;
-        const fontAtlasHeight = 4096;
-        const glyphRasterizerSize = 192;
-        const glyphRasterizerBorder = 0x18; // 24px
-        const glyphRasterizerMaxDistance = 0x40; // 64px
-        const glyphRasterizerEdgeValue = Core.Config.sdfBuffer;
-
-        // Atlas
-        const atlasOptions: Core.IAtlasOptions = {
-            width: fontAtlasWidth,
-            height: fontAtlasHeight,
-            type: "font"
-        };
-        const atlas = new Core.Atlas(atlasOptions);
-        const atlasVisual = this._renderer.createAtlasVisual(atlas);
-        this._renderer.atlasVisuals.push(atlasVisual);
-
-        // Glyph rasterizer
-        const glyphRasterizerOptions: Core.IGlyphRasterizerOptions = {
-            size: glyphRasterizerSize,
-            border: glyphRasterizerBorder,
-            edgeValue: glyphRasterizerEdgeValue,
-            maxDistance: glyphRasterizerMaxDistance,
-        };
-        const glyphRasterizer = new Core.GlyphRasterizer(glyphRasterizerOptions);
-        this._glyphRasterizerVisual = this._renderer.createGlyphRasterizerVisual(glyphRasterizer, atlasVisual);
+        await this._renderer.initializeAsync({
+            atlasOptions: { width: 4096, height: 4096, type: "font" },
+            glyphRasterizerOptions: {
+                size: 192,
+                border: 0x18,     // 24px
+                edgeValue: Core.Config.sdfBuffer,
+                maxDistance: 0x40, // 64px
+            },
+        });
         console.log(`renderer initialized ${Core.Time.formatDuration((performance.now() - start))}`);
     }
 
@@ -1007,56 +965,21 @@ export class Main {
     private _initializeScene(scene: Spec.IScene, includeCamera: boolean): void {
         const start = performance.now();
 
-        // Reset scene
-        this._renderer.bufferVisuals = [];
-        this._renderer.labelSetVisuals = [];
-        this._renderer.imageVisuals = [];
-
-        // Scene visuals
-        for (let i = 0; i < scene.buffers.length; i++) {
-            const buffer = scene.buffers[i];
-            const bufferVisual = this._renderer.createBufferVisual(buffer);
-            this._renderer.bufferVisuals.push(bufferVisual);
-        }
-        for (let i = 0; i < scene.labels.length; i++) {
-            const labels = scene.labels[i];
-            const labelSetVisual = this._renderer.createLabelSetVisual(labels, this._glyphRasterizerVisual);
-            this._renderer.labelSetVisuals.push(labelSetVisual);
-        }
-        for (let i = 0; i < scene.images.length; i++) {
-            const image = scene.images[i];
-            const imageVisual = this._renderer.createImageVisual(image);
-            this._renderer.imageVisuals.push(imageVisual);
-        }
+        // Load scene visuals and lighting into the renderer
+        this._renderer.loadScene(scene);
 
         // Camera
-        const cameraPosition = scene.camera.position || Core.Config.cameraPosition;
-        const cameraRight = scene.camera.right || Core.Config.cameraRight;
-        const cameraUp = scene.camera.up || Core.Config.cameraUp;
-        const cameraForward = scene.camera.forward || Core.Config.cameraForward;
-        const cameraFov = scene.camera.fov || Core.Config.cameraFov;
-        const cameraAperture = scene.camera.aperture || Core.Config.cameraAperture;
-        const cameraFocusDistance = scene.camera.focusDistance || Core.Config.cameraFocusDistance;
-        const _resetCamera = () => {
-            this._camera.position = Core.vector3.clone(cameraPosition);
-            this._camera.right = Core.vector3.clone(cameraRight);
-            this._camera.up = Core.vector3.clone(cameraUp);
-            this._camera.forward = Core.vector3.clone(cameraForward);
-            this._camera.fov = cameraFov;
-            this._camera.aperture = cameraAperture;
-            this._camera.focusDistance = cameraFocusDistance;
-        };
-        if (includeCamera) { _resetCamera(); }
+        if (includeCamera) { this._resetCamera(); }
         this._cameraResetButton.onclick = () => {
-            _resetCamera();
+            this._resetCamera();
             this._updateUI();
         };
 
-        // Lighting
-        this._renderer.ambientColor = scene.ambient || Core.vector3.clone(Core.Config.ambientColor);
-        this._renderer.backgroundColor = scene.background || Core.vector4.clone(Core.Config.backgroundColor);
-        this._renderer.lights = scene.lights;
-
         console.log(`scene initialized ${Core.Time.formatDuration((performance.now() - start))}`);
+    }
+
+    // Copy scene camera properties to the local interactive camera
+    private _resetCamera(): void {
+        this._camera.copyFrom(this._scene.camera);
     }
 }

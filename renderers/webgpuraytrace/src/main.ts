@@ -26,9 +26,6 @@ export class Main extends Core.Renderer {
     private _presentationFormat: GPUTextureFormat;
     private _maxComputeWorkgroupsPerDimension: number;
 
-    // Frames
-    public frameCount: number;
-
     // Compute
     private _computeUniformBuffer: GPUBuffer;
     private _computeUniformBufferData: ComputeUniformBufferData;
@@ -87,19 +84,32 @@ export class Main extends Core.Renderer {
     private _emptyLightBuffer: GPUBuffer;
     private _lightBufferData: LightBufferData;
 
-    constructor(canvas: HTMLCanvasElement) {
-        super();
+    constructor(canvas: HTMLCanvasElement, options?: Core.IRendererOptions) {
+        super({
+            width: options?.width ?? canvas.width,
+            height: options?.height ?? canvas.height,
+            renderMode: options?.renderMode,
+        });
 
         // Canvas
         this._canvas = canvas;
 
-        // Initialize frame count
+        // Frames
         this.frameCount = 0;
     }
 
-    public async initializeAsync(): Promise<void> {
+    // Frames
+    public frameCount: number;
+
+    public override loadScene(options: Core.ISceneOptions): void {
+        super.loadScene(options);
+        this.frameCount = 0;
+    }
+
+    public async initializeAsync(options?: Core.IInitializeOptions): Promise<void> {
         await this._initializeAPIAsync()
             .then(async () => { await this._initializeResourcesAsync(); });
+        this._initializeDefaultVisuals(options);
     }
 
     public start(): void { }
@@ -490,8 +500,10 @@ export class Main extends Core.Renderer {
         };
         return visual;
     }
-    public createLabelSetVisual(labelSet: Core.LabelSet, glyphRasterizerVisual: Core.IGlyphRasterizerVisual) {
-        const visual = new LabelSetVisual(labelSet, glyphRasterizerVisual);
+    public createLabelSetVisual(labelSet: Core.LabelSet, glyphRasterizerVisual?: Core.IGlyphRasterizerVisual) {
+        const resolved = glyphRasterizerVisual ?? this.glyphRasterizerVisual;
+        if (!resolved) { throw new Error("no glyph rasterizer visual available, call initializeAsync() before createLabelSetVisual(), or provide a glyphRasterizerVisual"); }
+        const visual = new LabelSetVisual(labelSet, resolved);
         visual.hasChangedCallback = () => {
             this._hasWorldChanged = true;
         };

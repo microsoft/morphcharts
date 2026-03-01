@@ -5,9 +5,10 @@ html {
 body {
     background-color: white;
     font-family: sans-serif;
-    max-width: 1024px;
+    max-width: 1280px;
     margin: 0 auto;
     padding: 8px;
+    counter-reset: figure;
 }
 
 a {
@@ -34,9 +35,86 @@ footer {
 
 header {
     border-bottom: 1px solid gray;
+    padding-left: 0;
+    padding-right: 0;
 }
 
 footer {
     margin-top: 32px;
     border-top: 1px solid gray;
+}
+
+pre {
+    background-color: whitesmoke;
+    padding: 12px;
+    overflow-x: auto;
+    font-size: 0.85em;
+    border: 1px solid lightgray;
+    line-height: 1.5;
+}
+
+pre code {
+    background-color: transparent;
+}
+
+.copyContainer {
+    position: relative;
+}
+
+.copyContainer button {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 4px;
+    border: 1px solid lightgray;
+    border-radius: 4px;
+    background: white;
+    cursor: pointer;
+    font-size: 0.85em;
+    color: gray;
+    opacity: 0;
+}
+
+.copyContainer:hover button {
+    opacity: 1;
+}
+
+.copyContainer button:hover {
+    color: black;
+    border-color: gray;
+}
+
+table {
+    border-collapse: collapse;
+    margin: 16px 0;
+}
+
+th,
+td {
+    border: 1px solid #ccc;
+    padding: 6px 12px;
+    text-align: left;
+}
+
+th {
+    background-color: #f0f0f0;
+}
+
+figure {
+    margin: 24px 0;
+}
+
+figure img {
+    max-width: 100%;
+}
+
+figcaption {
+    margin-top: 8px;
+    font-size: 0.9em;
+    color: gray;
+    counter-increment: figure;
+}
+
+figcaption::before {
+    content: "Figure " counter(figure) ". ";
 }

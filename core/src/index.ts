@@ -45,6 +45,7 @@ export type { ILabelSetOptions, ILabelSetVisual } from "./labels.js";
 export type { ILightOptions, IRectLightOptions, IDiskLightOptions, ISphereLightOptions, IDirectionalLightOptions, IHemisphereLightOptions, ISpotLightOptions, IProjectorLightOptions, IPointLightOptions } from "./light.js";
 export type { IMaterialOptions } from "./material.js";
 export type { Vector2, Vector3, Vector4, Quaternion, Matrix2x2, Matrix3x3, Matrix4x4 } from "./matrix.js";
+export type { IRendererOptions, IInitializeOptions, ISceneOptions } from "./renderer.js";
 export type { ITree3DOptions } from "./tree.js";
 export type { ISquarifiedTreeMapOptions } from "./treemap.js";
 

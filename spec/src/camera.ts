@@ -38,6 +38,7 @@ export class Camera {
 
     public static fromJSON(plot: Plot, json: any): Camera {
         // TODO: Parse signals with plot.root.parseSignalValue(json)
+        // TODO: Support different camera types via json.type (e.g. "perspective", "orthographic"), defaulting to "perspective"
 
         const camera = new Camera();
         camera.position = json?.position || Core.vector3.clone(Core.Config.cameraPosition);

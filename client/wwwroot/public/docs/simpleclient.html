@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MorphCharts — Simple Client</title>
+    <link rel="stylesheet" href="../css/common.css">
+</head>
+
+<body>
+    <header>
+        <a href="../index.html">Home</a>
+        <a href="../client.html">Try Online</a>
+        <a href="../gallery.html">Gallery</a>
+        <a href="./index.html">Docs</a>
+        <a href="https://github.com/microsoft/morphcharts">GitHub</a>
+    </header>
+
+    <h1>Simple Client</h1>
+    <p>
+        This sample is a minimal web page to render a MorphCharts scene in a browser. It creates a WebGPU ray-tracing
+        renderer, loads a
+        spec, and runs a render loop. An additional sample shows how to add an <a
+            href="./simpleclientcamera.html">interactive camera</a>.
+    </p>
+    <p>
+        Before starting, make sure you have the
+        <a href="./prerequisites.html">prerequisites</a> in place.
+    </p>
+
+    <h2 id="overview">Overview</h2>
+    <ol>
+        <li>Import the necessary modules.</li>
+        <li>Add a <code>&lt;canvas&gt;</code> element to the page.</li>
+        <li>Create and initialize a renderer for the canvas.</li>
+        <li>Create a scene from a spec.</li>
+        <li>Pass the scene to the renderer.</li>
+        <li>Run a render loop.</li>
+    </ol>
+    <h2 id="complete-example">Complete Example</h2>
+    <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;script type="importmap"&gt;
+    {
+        "imports": {
+            "core": "https://microsoft.github.io/morphcharts/lib/morphcharts-core.js",
+            "spec": "https://microsoft.github.io/morphcharts/lib/morphcharts-spec.js",
+            "webgpuraytrace": "https://microsoft.github.io/morphcharts/lib/morphcharts-webgpuraytrace.js"
+        }
+    }
+    &lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;!-- Add a canvas --&gt;
+    &lt;canvas id="canvas" width="1280" height="720"&gt;&lt;/canvas&gt;
+
+    &lt;script type="module"&gt;
+        // Module imports
+        import * as Core from 'core';
+        import * as Spec from 'spec';
+        import * as WebGPURenderer from 'webgpuraytrace';
+
+        // Create the renderer
+        const canvas = document.getElementById('canvas');
+        const renderer = new WebGPURenderer.Main(canvas);
+
+        // Initialize the renderer
+        await renderer.initializeAsync();
+
+        // Parse a spec
+        const specJSON = {
+            "width": 640,
+            "height": 360,
+            "marks": [
+                {
+                    "type": "rect",
+                    "geometry": "sphere",
+                    "material": "glossy",
+                    "encode": {
+                        "enter": {
+                            "xc": {"value": 320},
+                            "yc": {"value": 180},
+                            "width": {"value": 360}
+                        }
+                    }
+                },
+                {
+                    "type": "rect",
+                    "encode": {
+                        "enter": {
+                            "xc": {"value": 320},
+                            "width": {"value": 1280},
+                            "depth": {"value": 1280},
+                            "fill": {"value": "white"}
+                        }
+                    }
+                }
+            ]
+        };
+        const plot = await Spec.Plot.fromJSONAsync(specJSON);
+        const scene = await plot.parse();
+
+        // Load the scene
+        renderer.loadScene(scene);
+
+        // Run a render loop
+        const maxSamples = 1000;
+        let previousTime = performance.now();
+        function tick(currentTime) {
+            const elapsed = currentTime - previousTime;
+            previousTime = currentTime;
+            renderer.updateAsync(elapsed);
+            renderer.renderAsync(elapsed);
+            if (renderer.frameCount &lt; maxSamples) {
+                requestAnimationFrame(tick);
+            }
+        }
+        requestAnimationFrame(tick);
+    &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+    <figure>
+        <img src="../img/simpleclient1.jpg" alt="Rendered result — a sphere on a white ground plane">
+        <figcaption>Rendered result — a sphere on a white ground plane.</figcaption>
+    </figure>
+
+    <h2 id="step-by-step">Step-by-Step</h2>
+
+    <h3 id="canvas">Canvas</h3>
+    <p>
+        Add a <code>&lt;canvas&gt;</code> element to the page with a <code>width</code> and <code>height</code> attribute.
+    </p>
+    <pre><code>&lt;canvas id="canvas" width="1280" height="720"&gt;&lt;/canvas&gt;</code></pre>
+
+    <h3 id="module-imports">Module Imports</h3>
+    <pre><code>&lt;script type="importmap"&gt;
+{
+    "imports": {
+        "core": "https://microsoft.github.io/morphcharts/lib/morphcharts-core.js",
+        "spec": "https://microsoft.github.io/morphcharts/lib/morphcharts-spec.js",
+        "webgpuraytrace": "https://microsoft.github.io/morphcharts/lib/morphcharts-webgpuraytrace.js"
+    }
+}
+&lt;/script&gt;</code></pre>
+    <pre><code>import * as Core from 'core';
+import * as Spec from 'spec';
+import * as WebGPURenderer from 'webgpuraytrace';</code></pre>
+    <p>
+        The import map and module descriptions are discussed in the
+        <a href="./prerequisites.html#es-modules">prerequisites</a>.
+    </p>
+
+    <h3 id="create-renderer">Create the Renderer</h3>
+    <p>
+        This example uses the WebGPU ray-tracing renderer. The constructor reads
+        reads the <code>canvas</code> <code>width</code> and <code>height</code> attributes to set
+        the render target size:
+    </p>
+    <pre><code>const renderer = new WebGPURenderer.Main(canvas);</code></pre>
+    <p>
+        If necessary, you can override the defaults with an options object:
+    </p>
+    <pre><code>const renderer = new WebGPURenderer.Main(canvas, {
+    width: 1920,
+    height: 1080,
+    renderMode: "raytrace", // default
+});</code></pre>
+
+    <h3 id="initialize-renderer">Initialize the Renderer</h3>
+    <pre><code>await renderer.initializeAsync();</code></pre>
+    <p>
+        This performs one-time setup for the renderer (e.g. GPU device creation
+        for WebGPU) and initializes default resources needed for rendering.
+    </p>
+
+    <h3 id="parse-spec">Parse a Spec</h3>
+    <p>Here is a minimal spec — a sphere on a white ground plane:</p>
+    <pre><code>const specJSON = {
+    "width": 640,
+    "height": 360,
+    "marks": [
+        {
+            "type": "rect",
+            "geometry": "sphere",
+            "material": "glossy",
+            "encode": {
+                "enter": {
+                    "xc": {"value": 320},
+                    "yc": {"value": 180},
+                    "width": {"value": 360}
+                }
+            }
+        },
+        {
+            "type": "rect",
+            "encode": {
+                "enter": {
+                    "xc": {"value": 320},
+                    "width": {"value": 1280},
+                    "depth": {"value": 1280},
+                    "fill": {"value": "white"}
+                }
+            }
+        }
+    ]
+};</code></pre>
+    <p>Parse the <code>specJSON</code> and create a <code>scene</code>:</p>
+    <pre><code>const plot = await Spec.Plot.fromJSONAsync(specJSON);
+const scene = await plot.parse();</code></pre>
+
+    <h3 id="load-scene">Load the Scene</h3>
+    <pre><code>renderer.loadScene(scene);</code></pre>
+    <p>
+        Loading a scene resets the renderer's visual collections and populates them from the scene.
+    </p>
+
+    <h3 id="render-loop">Render Loop</h3>
+    <pre><code>const maxSamples = 1000;
+let previousTime = performance.now();
+function tick(currentTime) {
+    const elapsed = currentTime - previousTime;
+    previousTime = currentTime;
+    renderer.updateAsync(elapsed);
+    renderer.renderAsync(elapsed);
+    if (renderer.frameCount &lt; maxSamples) {
+        requestAnimationFrame(tick);
+    }
+}
+requestAnimationFrame(tick);</code></pre>
+    <p>
+        Each frame calls <code>updateAsync</code> (updates state) and <code>renderAsync</code> (dispatches a render
+        pass) on the renderer.
+    </p>
+    <p>
+        The ray-tracing renderer accumulates samples over multiple frames, so
+        you typically run the loop until <code>renderer.frameCount</code>
+        reaches a desired quality level (<code>maxSamples</code> in this example).
+    </p>
+
+    <footer>
+        <span>© 2025 Microsoft</span>
+        <a href="https://go.microsoft.com/fwlink/?LinkId=521839">Privacy &amp; Cookies</a>
+        <a href="https://go.microsoft.com/fwlink/?linkid=2259814">Consumer Health Privacy</a>
+        <a href="https://www.microsoft.com/trademarks">Trademarks</a>
+        <a href="https://www.microsoft.com/en-us/servicesagreement/">Terms of Use</a>
+    </footer>
+    <script src="../js/copy.js"></script>
+</body>
+
+</html>
