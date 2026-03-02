@@ -47,15 +47,8 @@ export class Area extends Mark {
 
         // Segment
         let segmentIds: Float32Array;
-        let segmentColors: Core.ColorRGBA[];
         if (this.encode.segmentId) {
             segmentIds = group.values(this.encode.segmentId, dataset);
-            segmentColors = new Array(dataset.length);
-            for (let i = 0; i < dataset.length; i++) {
-                const rgba: Core.ColorRGBA = [0, 0, 0, 0];
-                Core.Color.numberToColorRGBA(segmentIds[i], rgba);
-                segmentColors[i] = rgba;
-            }
         }
 
         // TODO: Support Xc, Yc, Zc to allow center-alignment in band scales without needed to add band offset
@@ -151,7 +144,7 @@ export class Area extends Mark {
             maxBoundsY: scaling * (plot.height - group.y),
             minBoundsZ: -scaling * group.z,
             maxBoundsZ: scaling * (plot.depth - group.z),
-            segmentColors: segmentColors,
+            segmentIds: segmentIds,
             params: [
                 { index: 0, values: a },
                 { index: 1, values: b },

@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license. 
 
-import { Color, ColorRGBA } from "./color.js";
 import { Pick } from "./pick.js";
 import { UnitVertex } from "./vertex.js";
 
@@ -14,7 +13,7 @@ export interface IBuffer {
     ids: ArrayLike<number>;
     length: number;
     unitType: string;
-    idColors: ArrayLike<number>;
+    pickIds: ArrayLike<number>;
     dataView: DataView;
     vertices: ArrayBuffer;
     lookup: { [index: number]: number };
@@ -39,7 +38,7 @@ export interface ITransitionBufferOptions {
 
 export interface ITransitionBuffer {
     unitType: string;
-    idColors: ArrayLike<number>;
+    pickIds: ArrayLike<number>;
     time: number;
     duration: number;
     stagger: number;
@@ -58,14 +57,14 @@ export class Buffer implements IBuffer {
     protected _ids: ArrayLike<number>;
     protected _length: number;
     protected _unitType: string; // TODO: Compute shader would support per-unit types
-    protected _idColors: Float32Array;
+    protected _pickIds: Uint32Array;
     protected _vertices: ArrayBuffer;
     protected _dataView: DataView;
     protected _lookup: { [index: number]: number };
     public get lookup() { return this._lookup; } // Index from id
     public get ids() { return this._ids; }
     public get length() { return this._length; }
-    public get idColors() { return this._idColors; }
+    public get pickIds() { return this._pickIds; }
     public get unitType() { return this._unitType; }
     public set unitType(value: string) { if (this._unitType != value) { this._hasChanged = true; this._unitType = value; } }
     public get dataView() { return this._dataView; }
@@ -76,22 +75,14 @@ export class Buffer implements IBuffer {
         this._ids = options.ids;
         this._length = options.ids.length;
         this._unitType = "box";
-        this._idColors = new Float32Array(this._length * 4);
+        this._pickIds = new Uint32Array(this._length);
         this._vertices = new ArrayBuffer(this._length * UnitVertex.SIZE_BYTES);
         this._dataView = new DataView(this._vertices);
         this._lookup = {};
         for (let i = 0; i < this._length; i++) {
             const id = options.ids[i];
             this._lookup[id] = i;
-
-            // Id colors
-            const pickId = Pick.nextPickId;
-            const rgba: ColorRGBA = [0, 0, 0, 0];
-            Color.numberToColorRGBA(pickId, rgba);
-            this._idColors[i * 4] = rgba[0];
-            this._idColors[i * 4 + 1] = rgba[1];
-            this._idColors[i * 4 + 2] = rgba[2];
-            this._idColors[i * 4 + 3] = rgba[3];
+            this._pickIds[i] = Pick.nextPickId;
         }
         this._hasChanged = true;
     }
@@ -154,7 +145,7 @@ export class TransitionBuffer implements ITransitionBuffer {
     public get currentBuffer() { return this._isBuffer1Current ? this._buffer1 : this._buffer2; }
     public get previousBuffer() { return this._isBuffer1Current ? this._buffer2 : this._buffer1; }
     public get pickIdLookup() { return this._pickIdLookup; } // Id from pickId
-    public get idColors() { return this._buffer1.idColors; }
+    public get pickIds() { return this._buffer1.pickIds; }
     public swap(): void { this._isBuffer1Current = !this._isBuffer1Current; }
     public hasChangedCallback: () => void;
 

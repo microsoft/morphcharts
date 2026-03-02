@@ -127,8 +127,8 @@ export interface ILabelSetOptions {
     materials?: Material[];
 
     // Segment
-    segmentColor?: ColorRGBA;
-    segmentColors?: ColorRGBA[];
+    segmentId?: number;
+    segmentIds?: ArrayLike<number>;
 }
 
 export class LabelSet {
@@ -258,12 +258,12 @@ export class LabelSet {
     public set materials(value: Material[]) { if (this._materials != value) { this._materials = value; this._hasChanged = true; } }
 
     // Segment
-    protected _segmentColor: ColorRGBA;
-    public get segmentColor(): ColorRGBA { return this._segmentColor; }
-    public set segmentColor(value: ColorRGBA) { if (this._segmentColor != value) { this._segmentColor = value; this._hasChanged = true; } }
-    protected _segmentColors: ColorRGBA[];
-    public get segmentColors(): ColorRGBA[] { return this._segmentColors; }
-    public set segmentColors(value: ColorRGBA[]) { if (this._segmentColors != value) { this._segmentColors = value; this._hasChanged = true; } }
+    protected _segmentId: number;
+    public get segmentId(): number { return this._segmentId; }
+    public set segmentId(value: number) { if (this._segmentId != value) { this._segmentId = value; this._hasChanged = true; } }
+    protected _segmentIds: ArrayLike<number>;
+    public get segmentIds(): ArrayLike<number> { return this._segmentIds; }
+    public set segmentIds(value: ArrayLike<number>) { if (this._segmentIds != value) { this._segmentIds = value; this._hasChanged = true; } }
 
     // Alignment
     protected _horizontalAlignment: string;
@@ -378,8 +378,8 @@ export class LabelSet {
         this._materials = options.materials;
 
         // Segment
-        this._segmentColor = options.segmentColor;
-        this._segmentColors = options.segmentColors;
+        this._segmentId = options.segmentId;
+        this._segmentIds = options.segmentIds;
 
         // Changed
         this._hasChanged = true;
@@ -557,17 +557,15 @@ export class LabelSetVisual implements ILabelSetVisual {
                     // Material
                     const material = this._labelSet.material || (this._labelSet.materials && this._labelSet.materials[i]);
 
-                    // Segment
-                    let segment: ColorRGBA;
-                    if (this._labelSet.segmentColor) {
-                        segment = this._labelSet.segmentColor;
+                    // Segment — always write a unique pick ID color; register mapping if user segment ID provided
+                    const pickId = Pick.nextPickId;
+                    const segment: ColorRGBA = [0, 0, 0, 0];
+                    Color.numberToColorRGBA(pickId, segment);
+                    if (this._labelSet.segmentId !== undefined) {
+                        Pick.register(pickId, this._labelSet.segmentId);
                     }
-                    else if (this._labelSet.segmentColors) {
-                        segment = this._labelSet.segmentColors[i];
-                    }
-                    else {
-                        segment = [0, 0, 0, 0];
-                        Color.numberToColorRGBA(Pick.nextPickId, segment);
+                    else if (this._labelSet.segmentIds) {
+                        Pick.register(pickId, this._labelSet.segmentIds[i]);
                     }
 
                     // Glyphs

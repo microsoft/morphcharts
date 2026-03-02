@@ -183,15 +183,8 @@ export class Rule extends Mark {
 
         // Segment
         let segmentIds: Float32Array;
-        let segmentColors: Core.ColorRGBA[];
         if (this.encode.segmentId) {
             segmentIds = group.values(this.encode.segmentId, dataset);
-            segmentColors = new Array(dataset.length);
-            for (let i = 0; i < dataset.length; i++) {
-                const rgba: Core.ColorRGBA = [0, 0, 0, 0];
-                Core.Color.numberToColorRGBA(segmentIds[i], rgba);
-                segmentColors[i] = rgba;
-            }
         }
 
         // Data source for reactive geometry
@@ -263,7 +256,7 @@ export class Rule extends Mark {
             maxBoundsY: scaling * (plot.height - group.y),
             minBoundsZ: -scaling * group.z,
             maxBoundsZ: scaling * (plot.depth - group.z),
-            segmentColors: segmentColors,
+            segmentIds: segmentIds,
         }
 
         // Materials
