@@ -22,6 +22,7 @@ export { Material, MaterialType } from "./material.js";
 export { MathUtils as Math } from "./math.js";
 export { vector2, vector3, vector4, quaternion, matrix3x3, matrix4x4 } from "./matrix.js";
 export { Palette, Palettes } from "./palette.js";
+export { Pick } from "./pick.js";
 export { PseudoRandom } from "./random.js";
 export { Ray } from "./ray.js";
 export { Renderer } from './renderer.js';

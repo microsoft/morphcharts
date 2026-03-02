@@ -134,6 +134,9 @@ export class Plot {
     public parse(): Promise<IScene> {
         return new Promise<IScene>(async (resolve, reject) => {
             try {
+                // Reset pick IDs and registrations for the new scene
+                Core.Pick.reset();
+
                 // Convert to core camera
                 // TODO: Use this.camera.type to construct the appropriate Core.Cameras subclass (e.g. OrthographicCamera)
                 const cameraOptions: Core.Cameras.IPerspectiveCameraOptions = {

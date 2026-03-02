@@ -879,7 +879,11 @@ export class Main extends Core.Renderer {
     private async _createLightsAsync(): Promise<void> {
         if (!this._lights || this._lights.length == 0) {
             // Clear previous light buffer if it exists
-            this._lightBuffer = null;
+            if (this._lightBuffer) {
+                this._lightBuffer = null;
+                // Need to recreate size independent resources so the bind group uses the empty light buffer
+                this._hasWorldChanged = true;
+            }
             console.log("No lights found");
             return;
         }

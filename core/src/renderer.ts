@@ -368,9 +368,12 @@ export abstract class Renderer {
         }
 
         // Lighting
+        this.lights = [];
         if (options.ambient) this.ambientColor = vector3.clone(options.ambient);
         if (options.background) this.backgroundColor = vector4.clone(options.background);
-        if (options.lights) this.lights = options.lights;
+        if (options.lights) {
+            this.lights = options.lights;
+        }
     }
 
     // Copy camera state from an interactive camera to the renderer

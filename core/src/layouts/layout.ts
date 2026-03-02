@@ -2,8 +2,9 @@
 // Licensed under the MIT license. 
 
 import { IBuffer } from "../buffer.js";
-import { ColorRGBA } from "../color.js";
+import { Color, ColorRGBA } from "../color.js";
 import { Config } from "../config.js";
+import { Pick } from "../pick.js";
 import { TextureType } from "../hittable.js";
 import { Material } from "../material.js";
 import { Quaternion, Vector3, Vector4 } from "../matrix.js";
@@ -75,8 +76,7 @@ export interface IVertexOptions {
     materials?: Material[];
 
     // Segment
-    segmentColor?: ColorRGBA;
-    segmentColors?: ColorRGBA[];
+    segmentIds?: ArrayLike<number>;
 
     // Unit-type specific params (scale-independent)
     params?: { index: number, values: ArrayLike<number> }[];
@@ -353,8 +353,14 @@ export abstract class LayoutBase {
             texScale[3] = options.texScale ? options.texScale[3] : options.texScales ? options.texScales[id * 4 + 3] : 1;
             UnitVertex.setTexScale(dataView, index, texScale);
 
-            // Segment
-            UnitVertex.setSegColor(dataView, index, options.segmentColor ? options.segmentColor : options.segmentColors ? options.segmentColors[id] : [buffer.idColors[id * 4], buffer.idColors[id * 4 + 1], buffer.idColors[id * 4 + 2], buffer.idColors[id * 4 + 3]]);
+            // Segment — always write the unique pick ID color; register mapping if user segment ID provided
+            const pickId = buffer.pickIds[id];
+            const pickColor: ColorRGBA = [0, 0, 0, 0];
+            Color.numberToColorRGBA(pickId, pickColor);
+            UnitVertex.setSegColor(dataView, index, pickColor);
+            if (options.segmentIds) {
+                Pick.register(pickId, options.segmentIds[id]);
+            }
         }
     }
 }
