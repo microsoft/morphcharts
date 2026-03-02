@@ -253,6 +253,7 @@ export abstract class LayoutBase {
         const texScale: Vector4 = [0, 0, 0, 0];
         const lookup = buffer.lookup;
         const dataView = buffer.dataView;
+        const pickColor: ColorRGBA = [0, 0, 0, 0];
         for (let i = 0; i < count; i++) {
             const id = ids[i + offset];
             const index = lookup[id];
@@ -355,7 +356,6 @@ export abstract class LayoutBase {
 
             // Segment — always write the unique pick ID color; register mapping if user segment ID provided
             const pickId = buffer.pickIds[id];
-            const pickColor: ColorRGBA = [0, 0, 0, 0];
             Color.numberToColorRGBA(pickId, pickColor);
             UnitVertex.setSegColor(dataView, index, pickColor);
             if (options.segmentIds) {
