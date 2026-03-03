@@ -318,7 +318,6 @@
         }
 
         .loading {
-            display: none;
             position: absolute;
             top: 50%;
             left: 50%;
@@ -328,6 +327,19 @@
             border: 1px solid gray;
             border-radius: 4px;
             pointer-events: none;
+            opacity: 0;
+        }
+
+        /* Compositor-driven opacity animation — runs off the main thread,
+           so the loading indicator becomes visible even during CPU-blocking work. */
+        .loading.pending {
+            animation: loading-show 1ms step-end 200ms forwards;
+        }
+
+        @keyframes loading-show {
+            to {
+                opacity: 1;
+            }
         }
     </style>
 </head>

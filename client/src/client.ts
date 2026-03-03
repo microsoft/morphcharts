@@ -20,6 +20,7 @@ export class Main {
     private _isRunning: boolean;
     private _animationFrame: number;
     private _previousTime: DOMHighResTimeStamp;
+    private _loadingShowDelay: number;
     private _loadingMinDisplay: number;
     private _loadingShownTime: number;
     private _loadingTimeout: ReturnType<typeof setTimeout> | null;
@@ -191,7 +192,8 @@ export class Main {
         }
 
         // Loading
-        this._loadingMinDisplay = 500; // ms minimum time to keep indicator visible
+        this._loadingShowDelay = 200; // ms before loading indicator appears (CSS animation delay)
+        this._loadingMinDisplay = 500; // ms minimum time to keep indicator visible once shown
         this._loadingShownTime = 0;
         this._loadingTimeout = null;
 
@@ -566,8 +568,9 @@ export class Main {
                 // Disable button until ready
                 this._startStopButton.disabled = true;
 
-                // Show loading indicator and yield to let the browser
-                // repaint before CPU-bound spec parsing begins
+                // Arm the loading indicator and yield so the browser can
+                // start the compositor-driven CSS animation before any
+                // CPU-bound spec parsing begins.
                 this._showLoading();
                 await new Promise(resolve => setTimeout(resolve, 0));
 
@@ -828,27 +831,45 @@ export class Main {
         console.log("render stop");
     }
 
-    /** Show the loading indicator immediately. */
+    /**
+     * Arm the loading indicator. A CSS compositor-driven animation makes
+     * it visible after {@link _loadingShowDelay} ms — even when the main
+     * thread is blocked by CPU-bound work.
+     */
     private _showLoading(): void {
         this._loadingShownTime = performance.now();
-        this._loadingContainer.style.display = "block";
+        this._loadingContainer.classList.add("pending");
     }
 
-    /** Hide the loading indicator, ensuring it was visible for a minimum time to avoid flash. */
+    /**
+     * Disarm / hide the loading indicator.
+     * - If the show-delay hasn't elapsed yet the indicator was never visible,
+     *   so we simply remove the CSS class (no flash).
+     * - If it became visible, we keep it on screen for at least
+     *   {@link _loadingMinDisplay} ms to avoid a brief flash.
+     */
     private _hideLoading(): void {
         if (this._loadingTimeout !== null) {
             clearTimeout(this._loadingTimeout);
             this._loadingTimeout = null;
         }
-        if (this._loadingContainer.style.display === "block") {
-            const remaining = this._loadingMinDisplay - (performance.now() - this._loadingShownTime);
+        if (!this._loadingContainer.classList.contains("pending")) { return; }
+
+        const elapsed = performance.now() - this._loadingShownTime;
+        if (elapsed < this._loadingShowDelay) {
+            // Animation hasn't fired yet — loading was never visible
+            this._loadingContainer.classList.remove("pending");
+        } else {
+            // Loading is visible — ensure minimum display time
+            const visibleTime = elapsed - this._loadingShowDelay;
+            const remaining = this._loadingMinDisplay - visibleTime;
             if (remaining > 0) {
                 this._loadingTimeout = setTimeout(() => {
                     this._loadingTimeout = null;
-                    this._loadingContainer.style.display = "none";
+                    this._loadingContainer.classList.remove("pending");
                 }, remaining);
             } else {
-                this._loadingContainer.style.display = "none";
+                this._loadingContainer.classList.remove("pending");
             }
         }
     }
