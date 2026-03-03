@@ -131,7 +131,14 @@ export class Plot {
     public static readonly MATERIAL_REFRACTIVE_INDEX = 1.5;
     public static readonly MATERIAL_DENSITY = 0;
 
-    public parse(): Promise<IScene> {
+    /** Create a scene from the plot — convenience wrapper that parses JSON and creates the scene in one call */
+    public static async createSceneAsync(plotJSON: any, options?: { datasets?: { [key: string]: string }, images?: { [key: string]: string } }): Promise<IScene> {
+        const plot = await Plot.fromJSONAsync(plotJSON, options);
+        return plot.createSceneAsync();
+    }
+
+    /** Create a scene from this plot's spec-level objects (camera, lights, marks) */
+    public createSceneAsync(): Promise<IScene> {
         return new Promise<IScene>(async (resolve, reject) => {
             try {
                 // Reset pick IDs and registrations for the new scene
@@ -259,5 +266,10 @@ export class Plot {
                 reject(error);
             }
         });
+    }
+
+    /** @deprecated Use {@link createSceneAsync} instead */
+    public parse(): Promise<IScene> {
+        return this.createSceneAsync();
     }
 }

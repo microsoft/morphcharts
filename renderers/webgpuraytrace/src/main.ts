@@ -263,66 +263,7 @@ export class Main extends Core.Renderer {
                     ]
                 };
                 this._computePipelineLayout = this._device.createPipelineLayout(computePipelineLayoutDescriptor);
-                const compute: GPUProgrammableStage = {
-                    module: computeModule,
-                    entryPoint: "main",
-                }
-                const computePipelineDescriptor: GPUComputePipelineDescriptor = {
-                    label: "Compute pipeline descriptor",
-                    layout: this._computePipelineLayout,
-                    compute: compute,
-                };
-                this._computePipeline = this._device.createComputePipeline(computePipelineDescriptor);
-
-                // Color pipeline
-                const computeColor: GPUProgrammableStage = {
-                    module: computeModule,
-                    entryPoint: "color",
-                }
-                const computeColorPipelineDescriptor: GPUComputePipelineDescriptor = {
-                    label: "Color pipeline descriptor",
-                    layout: this._computePipelineLayout,
-                    compute: computeColor,
-                };
-                this._computeColorPipeline = this._device.createComputePipeline(computeColorPipelineDescriptor);
-
-                // Normal, depth pipeline
-                const computeNormalDepth: GPUProgrammableStage = {
-                    module: computeModule,
-                    entryPoint: "normalDepth",
-                }
-                const computeNormalDepthPipelineDescriptor: GPUComputePipelineDescriptor = {
-                    label: "Normal, depth pipeline descriptor",
-                    layout: this._computePipelineLayout,
-                    compute: computeNormalDepth,
-                };
-                this._computeNormalDepthPipeline = this._device.createComputePipeline(computeNormalDepthPipelineDescriptor);
-
-                // Segment pipeline
-                const computeSegment: GPUProgrammableStage = {
-                    module: computeModule,
-                    entryPoint: "segment",
-                }
-                const computeSegmentPipelineDescriptor: GPUComputePipelineDescriptor = {
-                    label: "Segment pipeline descriptor",
-                    layout: this._computePipelineLayout,
-                    compute: computeSegment,
-                };
-                this._computeSegmentPipeline = this._device.createComputePipeline(computeSegmentPipelineDescriptor);
-
-                // Texture pipeline
-                const computeTexture: GPUProgrammableStage = {
-                    module: computeModule,
-                    entryPoint: "texture",
-                }
-                const computeTexturePipelineDescriptor: GPUComputePipelineDescriptor = {
-                    label: "Texture pipeline descriptor",
-                    layout: this._computePipelineLayout,
-                    compute: computeTexture,
-                };
-                this._computeTexturePipeline = this._device.createComputePipeline(computeTexturePipelineDescriptor);
-
-                // Clear pipeline
+                // Clear pipeline layout (needed before Promise.all)
                 const clearPipelineLayoutDescriptor: GPUPipelineLayoutDescriptor = {
                     label: "Clear pipeline layout descriptor",
                     bindGroupLayouts: [
@@ -332,18 +273,8 @@ export class Main extends Core.Renderer {
                     ]
                 };
                 const clearPipelineLayout: GPUPipelineLayout = this._device.createPipelineLayout(clearPipelineLayoutDescriptor);
-                const clear: GPUProgrammableStage = {
-                    module: computeModule,
-                    entryPoint: "clear"
-                }
-                const clearPipelineDescriptor: GPUComputePipelineDescriptor = {
-                    label: "Clear pipeline descriptor",
-                    layout: clearPipelineLayout,
-                    compute: clear
-                };
-                this._clearPipeline = this._device.createComputePipeline(clearPipelineDescriptor);
 
-                // Quad pipeline
+                // Quad shader module and layouts
                 const quadShaderDescriptor: GPUShaderModuleDescriptor = {
                     label: "Quad shader descriptor",
                     code: QuadWgsl
@@ -381,94 +312,111 @@ export class Main extends Core.Renderer {
                 const colorState: GPUColorTargetState = {
                     format: this._presentationFormat
                 };
-                const fragment: GPUFragmentState = {
-                    module: quadModule,
-                    entryPoint: "frag_main",
-                    targets: [colorState]
-                };
-                const quadPiplelineDescriptor: GPURenderPipelineDescriptor = {
-                    label: "Quad pipeline descriptor",
-                    layout: quadPipelineLayout,
-                    vertex: vertex,
-                    fragment: fragment,
-                    primitive: primitive
-                };
-                this._quadPipeline = this._device.createRenderPipeline(quadPiplelineDescriptor);
 
-                // Quad Normal
-                const fragmentNormal: GPUFragmentState = {
-                    module: quadModule,
-                    entryPoint: "frag_normal",
-                    targets: [colorState]
-                };
-                const quadNormalPipelineDescriptor: GPURenderPipelineDescriptor = {
-                    label: "Quad normal pipeline descriptor",
-                    layout: quadPipelineLayout,
-                    vertex: vertex,
-                    fragment: fragmentNormal,
-                    primitive: primitive,
-                };
-                this._quadNormalPipeline = this._device.createRenderPipeline(quadNormalPipelineDescriptor);
+                // Create all pipelines asynchronously in parallel to avoid blocking the main thread
+                const [
+                    computePipeline,
+                    computeColorPipeline,
+                    computeNormalDepthPipeline,
+                    computeSegmentPipeline,
+                    computeTexturePipeline,
+                    clearPipeline,
+                    quadPipeline,
+                    quadNormalPipeline,
+                    quadDepthPipeline,
+                    quadSegmentPipeline,
+                    quadTexturePipeline,
+                    quadEdgePipeline,
+                ] = await Promise.all([
+                    // Compute pipelines
+                    this._device.createComputePipelineAsync({
+                        label: "Compute pipeline descriptor",
+                        layout: this._computePipelineLayout,
+                        compute: { module: computeModule, entryPoint: "main" },
+                    }),
+                    this._device.createComputePipelineAsync({
+                        label: "Color pipeline descriptor",
+                        layout: this._computePipelineLayout,
+                        compute: { module: computeModule, entryPoint: "color" },
+                    }),
+                    this._device.createComputePipelineAsync({
+                        label: "Normal, depth pipeline descriptor",
+                        layout: this._computePipelineLayout,
+                        compute: { module: computeModule, entryPoint: "normalDepth" },
+                    }),
+                    this._device.createComputePipelineAsync({
+                        label: "Segment pipeline descriptor",
+                        layout: this._computePipelineLayout,
+                        compute: { module: computeModule, entryPoint: "segment" },
+                    }),
+                    this._device.createComputePipelineAsync({
+                        label: "Texture pipeline descriptor",
+                        layout: this._computePipelineLayout,
+                        compute: { module: computeModule, entryPoint: "texture" },
+                    }),
+                    this._device.createComputePipelineAsync({
+                        label: "Clear pipeline descriptor",
+                        layout: clearPipelineLayout,
+                        compute: { module: computeModule, entryPoint: "clear" },
+                    }),
+                    // Render pipelines
+                    this._device.createRenderPipelineAsync({
+                        label: "Quad pipeline descriptor",
+                        layout: quadPipelineLayout,
+                        vertex: vertex,
+                        fragment: { module: quadModule, entryPoint: "frag_main", targets: [colorState] },
+                        primitive: primitive,
+                    }),
+                    this._device.createRenderPipelineAsync({
+                        label: "Quad normal pipeline descriptor",
+                        layout: quadPipelineLayout,
+                        vertex: vertex,
+                        fragment: { module: quadModule, entryPoint: "frag_normal", targets: [colorState] },
+                        primitive: primitive,
+                    }),
+                    this._device.createRenderPipelineAsync({
+                        label: "Quad depth pipeline descriptor",
+                        layout: quadPipelineLayout,
+                        vertex: vertex,
+                        fragment: { module: quadModule, entryPoint: "frag_depth", targets: [colorState] },
+                        primitive: primitive,
+                    }),
+                    this._device.createRenderPipelineAsync({
+                        label: "Quad segment pipeline descriptor",
+                        layout: quadPipelineLayout,
+                        vertex: vertex,
+                        fragment: { module: quadModule, entryPoint: "frag_segment", targets: [colorState] },
+                        primitive: primitive,
+                    }),
+                    this._device.createRenderPipelineAsync({
+                        label: "Quad texture pipeline descriptor",
+                        layout: quadPipelineLayout,
+                        vertex: vertex,
+                        fragment: { module: quadModule, entryPoint: "frag_texture", targets: [colorState] },
+                        primitive: primitive,
+                    }),
+                    this._device.createRenderPipelineAsync({
+                        label: "Quad edge pipeline descriptor",
+                        layout: quadPipelineLayout,
+                        vertex: vertex,
+                        fragment: { module: quadModule, entryPoint: "frag_edge", targets: [colorState] },
+                        primitive: primitive,
+                    }),
+                ]);
 
-                // Quad Depth
-                const fragmentDepth: GPUFragmentState = {
-                    module: quadModule,
-                    entryPoint: "frag_depth",
-                    targets: [colorState]
-                };
-                const quadDepthPipelineDescriptor: GPURenderPipelineDescriptor = {
-                    label: "Quad depth pipeline descriptor",
-                    layout: quadPipelineLayout,
-                    vertex: vertex,
-                    fragment: fragmentDepth,
-                    primitive: primitive,
-                };
-                this._quadDepthPipeline = this._device.createRenderPipeline(quadDepthPipelineDescriptor);
-
-                // Quad segment
-                const fragmentSegment: GPUFragmentState = {
-                    module: quadModule,
-                    entryPoint: "frag_segment",
-                    targets: [colorState]
-                };
-                const quadSegmentPipelineDescriptor: GPURenderPipelineDescriptor = {
-                    label: "Quad segment pipeline descriptor",
-                    layout: quadPipelineLayout,
-                    vertex: vertex,
-                    fragment: fragmentSegment,
-                    primitive: primitive,
-                };
-                this._quadSegmentPipeline = this._device.createRenderPipeline(quadSegmentPipelineDescriptor);
-
-                // Quad texture
-                const fragmentTexture: GPUFragmentState = {
-                    module: quadModule,
-                    entryPoint: "frag_texture",
-                    targets: [colorState]
-                };
-                const quadTexturePipelineDescriptor: GPURenderPipelineDescriptor = {
-                    label: "Quad texture pipeline descriptor",
-                    layout: quadPipelineLayout,
-                    vertex: vertex,
-                    fragment: fragmentTexture,
-                    primitive: primitive,
-                };
-                this._quadTexturePipeline = this._device.createRenderPipeline(quadTexturePipelineDescriptor);
-
-                // Quad edge
-                const fragmentEdge: GPUFragmentState = {
-                    module: quadModule,
-                    entryPoint: "frag_edge",
-                    targets: [colorState]
-                };
-                const quadEdgePipelineDescriptor: GPURenderPipelineDescriptor = {
-                    label: "Quad edge pipeline descriptor",
-                    layout: quadPipelineLayout,
-                    vertex: vertex,
-                    fragment: fragmentEdge,
-                    primitive: primitive,
-                };
-                this._quadEdgePipeline = this._device.createRenderPipeline(quadEdgePipelineDescriptor);
+                // Assign compiled pipelines
+                this._computePipeline = computePipeline;
+                this._computeColorPipeline = computeColorPipeline;
+                this._computeNormalDepthPipeline = computeNormalDepthPipeline;
+                this._computeSegmentPipeline = computeSegmentPipeline;
+                this._computeTexturePipeline = computeTexturePipeline;
+                this._clearPipeline = clearPipeline;
+                this._quadPipeline = quadPipeline;
+                this._quadNormalPipeline = quadNormalPipeline;
+                this._quadDepthPipeline = quadDepthPipeline;
+                this._quadSegmentPipeline = quadSegmentPipeline;
+                this._quadTexturePipeline = quadTexturePipeline;
+                this._quadEdgePipeline = quadEdgePipeline;
 
                 console.log(`WebGPU resources initialized ${Core.Time.formatDuration(performance.now() - start)}`);
                 resolve();
@@ -618,6 +566,9 @@ export class Main extends Core.Renderer {
                 this._computeUniformBufferData.setMultisample(this._multisample);
                 break;
         }
+
+        // Id source
+        this._computeUniformBufferData.setIdSource(this._idSource === "pick" ? 1 : 0);
         this._device.queue.writeBuffer(this._computeUniformBuffer, 0, this._computeUniformBufferData.buffer, this._computeUniformBufferData.byteOffset, this._computeUniformBufferData.byteLength);
 
         // Quad

@@ -39,6 +39,7 @@ export class Config {
 
     // Render mode
     public static readonly renderMode: string = "raytrace";
+    public static readonly idSource: string = "segment";
 
     // Camera mode
     public static readonly cameraMode: string = "perspective";

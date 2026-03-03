@@ -7,7 +7,6 @@ import { Material } from "./material.js";
 import { AABB } from "./aabb.js";
 import { Bounds } from "./bounds.js";
 import { Constants } from "./constants.js";
-import { Config } from "./config.js";
 
 export const HittableType = {
     sphere: 0, // Default
@@ -50,6 +49,7 @@ export type TextureType = (typeof TextureType)[keyof typeof TextureType];
 export interface IHittableOptions {
     center: Vector3;
     segmentColor?: ColorRGBA;
+    pickColor?: ColorRGBA;
     material?: Material;
     textureType?: TextureType;
     texCoords?: Vector4; // x, y, x2, y2
@@ -64,6 +64,7 @@ export abstract class Hittable {
     public get bounds() { return this._bounds; }
 
     public segmentColor: ColorRGBA;
+    public pickColor: ColorRGBA;
     public material: Material;
     public textureType: number;
     public texCoords: Vector4;
@@ -75,7 +76,8 @@ export abstract class Hittable {
         this._bounds = new AABB();
 
         // Optional properties
-        this.segmentColor = options.segmentColor || [Config.backgroundColor[0], Config.backgroundColor[1], Config.backgroundColor[2], Config.backgroundColor[3]]; // Copy
+        this.segmentColor = options.segmentColor || [0, 0, 0, 0];
+        this.pickColor = options.pickColor || [0, 0, 0, 0];
         this.material = options.material || new Material();
         this.texCoords = options.texCoords || [0, 0, 1, 1];
         this.texScale = options.texScale || [1, 1, 1, 1];
@@ -87,6 +89,7 @@ export abstract class Hittable {
         buffer.setCenter(index, this._center);
         buffer.setMaterial(index, this.material);
         buffer.setSegmentColor(index, this.segmentColor);
+        buffer.setPickColor(index, this.pickColor);
         buffer.setTextureType(index, this.textureType);
         buffer.setTexCoords(index, this.texCoords);
         buffer.setTexScale(index, this.texScale);
@@ -426,6 +429,14 @@ export class HittableXyGlyph extends Hittable {
 //
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // |   96     |   97     |   98     |   99     |   100    |   101    |   102    |   103    |   104    |   105    |   106    |   107    |   108    |   109    |   110    |   111    |
+// |                pick color                 |                pick color                 |                pick color                 |                pick color                 |
+// |                     r                     |                     g                     |                     b                     |                     a                     |
+// |                    F32                    |                    F32                    |                    F32                    |                    F32                    |
+// | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 |
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// |   112    |   113    |   114    |   115    |   116    |   117    |   118    |   119    |   120    |   121    |   122    |   123    |   124    |   125    |   126    |   127    |
 // |                 texCoords                 |                 texCoords                 |                 texCoords                 |                 texCoords                 |
 // |                     x                     |                     y                     |                     z                     |                     w                     |
 // |                    F32                    |                    F32                    |                    F32                    |                    F32                    |
@@ -433,7 +444,7 @@ export class HittableXyGlyph extends Hittable {
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-// |   112    |   113    |   114    |   115    |   116    |   117    |   118    |   119    |   120    |   121    |   122    |   123    |   124    |   125    |   126    |   127    |
+// |   128    |   129    |   130    |   131    |   132    |   133    |   134    |   135    |   136    |   137    |   138    |   139    |   140    |   141    |   142    |   143    |
 // |                 texOffset                 |                 texOffset                 |                 texOffset                 |                 texOffset                 |
 // |                     x                     |                     y                     |                     z                     |                     w                     |
 // |                    F32                    |                    F32                    |                    F32                    |                    F32                    |
@@ -441,7 +452,7 @@ export class HittableXyGlyph extends Hittable {
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-// |   128    |   129    |   130    |   131    |   132    |   133    |   134    |   135    |   136    |   137    |   138    |   139    |   140    |   141    |   142    |   143    |
+// |   144    |   145    |   146    |   147    |   148    |   149    |   150    |   151    |   152    |   153    |   154    |   155    |   156    |   157    |   158    |   159    |
 // |                 texScale                  |                 texScale                  |                 texScale                  |                 texScale                  |
 // |                     x                     |                     y                     |                     z                     |                     w                     |
 // |                    F32                    |                    F32                    |                    F32                    |                    F32                    |
@@ -449,15 +460,15 @@ export class HittableXyGlyph extends Hittable {
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-// |   144    |   145    |   146    |   147    |   148    |   149    |   150    |   151    |   152    |   153    |   154    |   155    |   156    |   157    |   158    |   159    |
-// |                sdf buffer                 |                 sdf halo                  |               texture type                |          |          |          |          |
-// |                                           |                                           |                                           |          |          |          |          |
-// |                    F32                    |                    F32                    |                    F32                    |          |          |          |          |
+// |   160    |   161    |   162    |   163    |   164    |   165    |   166    |   167    |   168    |   169    |   170    |   171    |   172    |   173    |   174    |   175    |
+// |                sdf buffer                 |                 sdf halo                  |               texture type                |                                           |
+// |                                           |                                           |                                           |                                           |
+// |                    F32                    |                    F32                    |                    F32                    |                                           |
 // | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 |
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-// |   160    |   161    |   162    |   163    |   164    |   165    |   166    |   167    |   168    |   169    |   170    |   171    |   172    |   173    |   174    |   175    |
+// |   176    |   177    |   178    |   179    |   180    |   181    |   182    |   183    |   184    |   185    |   186    |   187    |   188    |   189    |   190    |   191    |
 // |                 parameter 1               |                 parameter 2               |                 parameter 3               |                 parameter 4               |
 // |                                           |                                           |                                           |                                           |
 // |                    F32                    |                    F32                    |                    F32                    |                    F32                    |
@@ -465,17 +476,17 @@ export class HittableXyGlyph extends Hittable {
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-// |   176    |   177    |   178    |   179    |   180    |   181    |   182    |   183    |   184    |   185    |   186    |   187    |   188    |   189    |   190    |   191    |
-// |              material color2              |              material color2              |              material color2              |          |          |          |          |
-// |                     r                     |                     g                     |                     b                     |          |          |          |          |
-// |                    F32                    |                    F32                    |                    F32                    |          |          |          |          |
+// |   192    |   193    |   194    |   195    |   196    |   197    |   198    |   199    |   200    |   201    |   202    |   203    |   204    |   205    |   206    |   207    |
+// |              material color2              |              material color2              |              material color2              |                                           |
+// |                     r                     |                     g                     |                     b                     |                                           |
+// |                    F32                    |                    F32                    |                    F32                    |                                           |
 // | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 |
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //
 
 
 export class HittableBufferData extends Float32Array {
-    public static readonly SIZE = 192 / 4;
+    public static readonly SIZE = 208 / 4;
     public static readonly PARAM_COUNT = 4;
 
     public readonly CENTER_OFFSET = 0 / 4;
@@ -490,14 +501,15 @@ export class HittableBufferData extends Float32Array {
     public readonly MATERIAL_FILL_OFFSET = 64 / 4;
     public readonly MATERIAL_REFRACTIVE_INDEX_OFFSET = 76 / 4;
     public readonly SEGMENT_COLOR1_OFFSET = 80 / 4;
-    public readonly TEXTURE_COORDS_OFFSET = 96 / 4;
-    public readonly TEXTURE_OFFSET_OFFSET = 112 / 4;
-    public readonly TEXTURE_SCALE_OFFSET = 128 / 4;
-    public readonly SDF_BUFFER_OFFSET = 144 / 4;
-    public readonly SDF_HALO_OFFSET = 148 / 4;
-    public readonly TEXTURE_TYPE_OFFSET = 152 / 4;
-    public readonly PARAM_OFFSET = 160 / 4;
-    public readonly MATERIAL_COLOR2_OFFSET = 176 / 4;
+    public readonly PICK_COLOR_OFFSET = 96 / 4;
+    public readonly TEXTURE_COORDS_OFFSET = 112 / 4;
+    public readonly TEXTURE_OFFSET_OFFSET = 128 / 4;
+    public readonly TEXTURE_SCALE_OFFSET = 144 / 4;
+    public readonly SDF_BUFFER_OFFSET = 160 / 4;
+    public readonly SDF_HALO_OFFSET = 164 / 4;
+    public readonly TEXTURE_TYPE_OFFSET = 168 / 4;
+    public readonly PARAM_OFFSET = 176 / 4;
+    public readonly MATERIAL_COLOR2_OFFSET = 192 / 4;
 
     public getUnitType(index: number) {
         return this[HittableBufferData.SIZE * index + this.UNIT_TYPE_OFFSET];
@@ -649,6 +661,21 @@ export class HittableBufferData extends Float32Array {
     }
     public setSegmentColor(index: number, value: ColorRGBA) {
         const offset = HittableBufferData.SIZE * index + this.SEGMENT_COLOR1_OFFSET;
+        this[offset] = value[0];
+        this[offset + 1] = value[1];
+        this[offset + 2] = value[2];
+        this[offset + 3] = value[3];
+    }
+
+    public getPickColor(index: number, value: ColorRGBA) {
+        const offset = HittableBufferData.SIZE * index + this.PICK_COLOR_OFFSET;
+        value[0] = this[offset];
+        value[1] = this[offset + 1];
+        value[2] = this[offset + 2];
+        value[3] = this[offset + 3];
+    }
+    public setPickColor(index: number, value: ColorRGBA) {
+        const offset = HittableBufferData.SIZE * index + this.PICK_COLOR_OFFSET;
         this[offset] = value[0];
         this[offset + 1] = value[1];
         this[offset + 2] = value[2];

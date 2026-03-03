@@ -40,6 +40,7 @@ export class Rect extends Mark {
             isInteractive: this.interactive,
         }
         const buffer = new Core.Buffer(bufferOptions);
+        Core.Pick.registerBuffer(buffer.pickIds, ids, dataset);
 
         // Unit type
         let unitType: string;

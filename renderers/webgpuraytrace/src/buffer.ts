@@ -63,6 +63,10 @@ export class BufferVisual extends Core.BufferVisual implements Core.IBufferVisua
                 const segment: Core.ColorRGBA = [0, 0, 0, 0];
                 Core.UnitVertex.getSegColor(buffer.dataView, i, segment);
 
+                // Pick color
+                const pick: Core.ColorRGBA = [0, 0, 0, 0];
+                Core.UnitVertex.getIdColor(buffer.dataView, i, pick);
+
                 // Texture
                 const textureType = Core.UnitVertex.getTextureType(buffer.dataView, i) as Core.TextureType;
                 const texCoords: Core.Vector4 = [0, 0, 0, 0];
@@ -81,6 +85,7 @@ export class BufferVisual extends Core.BufferVisual implements Core.IBufferVisua
                             center: position,
                             size: size,
                             segmentColor: segment,
+                            pickColor: pick,
                             material: material,
                             textureType: textureType,
                             texCoords: texCoords,
@@ -96,6 +101,7 @@ export class BufferVisual extends Core.BufferVisual implements Core.IBufferVisua
                             size: size,
                             rounding: rounding,
                             segmentColor: segment,
+                            pickColor: pick,
                             material: material,
                             textureType: textureType,
                             texCoords: texCoords,
@@ -113,6 +119,7 @@ export class BufferVisual extends Core.BufferVisual implements Core.IBufferVisua
                             thickness: parameters[0] || Math.min(size[0], size[1], size[2]) * 0.1, // Default to 10% of min size dimension if not specified
                             rounding: rounding,
                             segmentColor: segment,
+                            pickColor: pick,
                             material: material,
                             textureType: textureType,
                             texCoords: texCoords,
@@ -135,6 +142,7 @@ export class BufferVisual extends Core.BufferVisual implements Core.IBufferVisua
                             endAngle: parameters[2],
                             padding: parameters[3],
                             segmentColor: segment,
+                            pickColor: pick,
                             material: material,
                             textureType: textureType,
                             texCoords: texCoords,
@@ -151,6 +159,7 @@ export class BufferVisual extends Core.BufferVisual implements Core.IBufferVisua
                             height: size[1],
                             rotation: rotation,
                             segmentColor: segment,
+                            pickColor: pick,
                             material: material,
                             textureType: textureType,
                             texCoords: texCoords,
@@ -167,6 +176,7 @@ export class BufferVisual extends Core.BufferVisual implements Core.IBufferVisua
                             rounding: rounding,
                             rotation: rotation,
                             segmentColor: segment,
+                            pickColor: pick,
                             material: material,
                             textureType: textureType,
                             texCoords: texCoords,
@@ -183,6 +193,7 @@ export class BufferVisual extends Core.BufferVisual implements Core.IBufferVisua
                             height: size[1],
                             rounding: rounding,
                             segmentColor: segment,
+                            pickColor: pick,
                             material: material,
                             textureType: textureType,
                             texCoords: texCoords,
@@ -201,6 +212,7 @@ export class BufferVisual extends Core.BufferVisual implements Core.IBufferVisua
                             c: parameters[2], // c
                             d: parameters[3], // d
                             segmentColor: segment,
+                            pickColor: pick,
                             material: material,
                             textureType: textureType,
                             texCoords: texCoords,
@@ -223,6 +235,7 @@ export class BufferVisual extends Core.BufferVisual implements Core.IBufferVisua
                             endAngle: parameters[2],
                             padding: parameters[3],
                             segmentColor: segment,
+                            pickColor: pick,
                             material: material,
                             textureType: textureType,
                             texCoords: texCoords,
@@ -242,6 +255,7 @@ export class BufferVisual extends Core.BufferVisual implements Core.IBufferVisua
                             innerRadius: parameters[0],
                             rounding: rounding,
                             segmentColor: segment,
+                            pickColor: pick,
                             material: material,
                             textureType: textureType,
                             texCoords: texCoords,
@@ -256,6 +270,7 @@ export class BufferVisual extends Core.BufferVisual implements Core.IBufferVisua
                             center: position,
                             radius: size[0] * 0.5,
                             segmentColor: segment,
+                            pickColor: pick,
                             material: material,
                             textureType: textureType,
                             texCoords: texCoords,
@@ -269,6 +284,7 @@ export class BufferVisual extends Core.BufferVisual implements Core.IBufferVisua
                             center: position,
                             size: [size[0], size[1]],
                             segmentColor: segment,
+                            pickColor: pick,
                             material: material,
                             textureType: textureType,
                             texCoords: texCoords,
@@ -282,6 +298,7 @@ export class BufferVisual extends Core.BufferVisual implements Core.IBufferVisua
                             center: position,
                             size: [size[0], size[2]],
                             segmentColor: segment,
+                            pickColor: pick,
                             material: material,
                             textureType: textureType,
                             texCoords: texCoords,
@@ -295,6 +312,7 @@ export class BufferVisual extends Core.BufferVisual implements Core.IBufferVisua
                             center: position,
                             size: [size[1], size[2]],
                             segmentColor: segment,
+                            pickColor: pick,
                             material: material,
                             textureType: textureType,
                             texCoords: texCoords,
@@ -322,6 +340,7 @@ export class BufferVisual extends Core.BufferVisual implements Core.IBufferVisua
                         thickness: Math.min(size[0], size[1], size[2]) * 0.01, // Default to 1% of min size dimension if not specified
                         material: this._debugMaterial,
                         segmentColor: segment,
+                        pickColor: pick,
                         rounding: 0,
                     }));
                 }

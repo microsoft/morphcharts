@@ -4,7 +4,6 @@
 import { IBuffer } from "../buffer.js";
 import { Color, ColorRGBA } from "../color.js";
 import { Config } from "../config.js";
-import { Pick } from "../pick.js";
 import { TextureType } from "../hittable.js";
 import { Material } from "../material.js";
 import { Quaternion, Vector3, Vector4 } from "../matrix.js";
@@ -254,6 +253,7 @@ export abstract class LayoutBase {
         const lookup = buffer.lookup;
         const dataView = buffer.dataView;
         const pickColor: ColorRGBA = [0, 0, 0, 0];
+        const segColor: ColorRGBA = [0, 0, 0, 0];
         for (let i = 0; i < count; i++) {
             const id = ids[i + offset];
             const index = lookup[id];
@@ -354,13 +354,19 @@ export abstract class LayoutBase {
             texScale[3] = options.texScale ? options.texScale[3] : options.texScales ? options.texScales[id * 4 + 3] : 1;
             UnitVertex.setTexScale(dataView, index, texScale);
 
-            // Segment — always write the unique pick ID color; register mapping if user segment ID provided
+            // Pick color — always write the unique pick ID
             const pickId = buffer.pickIds[id];
             Color.numberToColorRGBA(pickId, pickColor);
-            UnitVertex.setSegColor(dataView, index, pickColor);
+            UnitVertex.setIdColor(dataView, index, pickColor);
+
+            // Segment color — use segmentId if provided, otherwise fall back to pickId
             if (options.segmentIds) {
-                Pick.register(pickId, options.segmentIds[id]);
+                Color.numberToColorRGBA(options.segmentIds[id], segColor);
+                UnitVertex.setSegColor(dataView, index, segColor);
+            } else {
+                UnitVertex.setSegColor(dataView, index, pickColor);
             }
+
         }
     }
 }

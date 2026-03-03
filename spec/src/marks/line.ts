@@ -154,6 +154,7 @@ export class Line extends Mark {
             isInteractive: this.interactive,
         }
         const buffer = new Core.Buffer(bufferOptions);
+        Core.Pick.registerBuffer(buffer.pickIds, ids, dataset);
         let unitType;
         switch (this.geometry && this.geometry.toLowerCase()) {
             default:

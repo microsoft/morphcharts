@@ -7,6 +7,7 @@ export { Color } from "./color.js";
 export { Dataset } from "./dataset.js";
 export { Expression } from "./expression.js";
 export { Light } from "./light.js";
+
 export { Plot } from "./plot.js";
 
 export type { IScene } from "./plot.js";
