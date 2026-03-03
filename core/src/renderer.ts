@@ -71,6 +71,16 @@ export abstract class Renderer {
     }
     public get renderMode(): string { return this._renderMode; }
 
+    // Id source (segment, pick)
+    protected _idSource: string;
+    public set idSource(value: string) {
+        if (this._idSource !== value) {
+            this._idSource = value;
+            this._hasRenderModeChanged = true;
+        }
+    }
+    public get idSource(): string { return this._idSource; }
+
     // Multisample
     protected _hasMultisampleChanged: boolean;
     protected _multisample: number;
@@ -270,6 +280,7 @@ export abstract class Renderer {
 
         // Render mode
         this._renderMode = options?.renderMode ?? Config.renderMode;
+        this._idSource = Config.idSource;
 
         // Multisample
         this._multisample = Config.multisample;

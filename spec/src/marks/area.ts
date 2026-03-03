@@ -119,6 +119,7 @@ export class Area extends Mark {
             isInteractive: this.interactive,
         }
         const buffer = new Core.Buffer(bufferOptions);
+        Core.Pick.registerBuffer(buffer.pickIds, ids, dataset);
         buffer.unitType = "quadsdf";
 
         // Layout

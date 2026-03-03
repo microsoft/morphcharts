@@ -100,7 +100,8 @@ struct Uniforms {                  // ---------------------------
     focusDistance: f32,            //          124      4     4
     multisample: f32,              //          128*     4     4
     cameraTypeId: f32,             //          132      4     4
-}                                  // padding  136      4     8
+    idSource: f32,                 //          136      4     4
+}                                  // padding  140      4     4
                                    // -------------------------
                                    //                  16   144
 
@@ -170,21 +171,22 @@ struct Hittable {                  // -------------------------
     materialColor1: vec3<f32>,     //           64*    16    12
     materialRefractiveIndex: f32,  //           76      4     4
     segmentColor: vec4<f32>,       //           80*    16    16    
-    texCoords: vec4<f32>,          //           96*    16    16
-    texOffset: vec4<f32>,          //          112*    16    12
-    texScale: vec4<f32>,           //          128*    16    12
-    sdfBuffer: f32,                //          144*     4     4
-    sdfHalo: f32,                  //          148      4     4
-    textureTypeId: f32,            //          152      4     4
-    _padding: f32,                 // padding  156      4     4
-    parameter0: f32,               //          160*     4     4
-    parameter1: f32,               //          164      4     4
-    parameter2: f32,               //          168      4     4
-    parameter3: f32,               //          172      4     4
-    materialColor2: vec3<f32>,     //          176*    16    12
-}                                  // padding  188      4     4
-                                   // -------------------------
-                                   //                  16   192
+    pickColor: vec4<f32>,          //           96*    16    16
+    texCoords: vec4<f32>,          //          112*    16    16
+    texOffset: vec4<f32>,          //          128*    16    16
+    texScale: vec4<f32>,           //          144*    16    16
+    sdfBuffer: f32,                //          160*     4     4
+    sdfHalo: f32,                  //          164      4     4
+    textureTypeId: f32,            //          168      4     4
+    _padding: f32,                 // padding  172      4     4
+    parameter0: f32,               //          176*     4     4
+    parameter1: f32,               //          180      4     4
+    parameter2: f32,               //          184      4     4
+    parameter3: f32,               //          188      4     4
+    materialColor2: vec3<f32>,     //          192*    16    12
+    _padding2: f32,                // padding  204      4     4
+}                                  // -------------------------
+                                   //                  16   208
 
                                    //       offest  align  size
 struct LinearBVHNode {             // -------------------------
@@ -2303,7 +2305,11 @@ fn segment(@builtin(global_invocation_id) globalId : vec3<u32>) {
     var hitRecord: HitRecord;
     if (hitBVH(ray, 0.00001f, 100f, &hitRecord)) {
         let hittable = hittableBuffer.hittables[hitRecord.id];
-        segment = hittable.segmentColor;
+        if (uniforms.idSource == 1f) {
+            segment = hittable.pickColor;
+        } else {
+            segment = hittable.segmentColor;
+        }
     }
     
     let index = globalId.x * 4u;
@@ -2376,6 +2382,7 @@ export class ComputeUniformBufferData extends Float32Array {
     public readonly FOCUS_DISTANCE_OFFSET = 124 / 4;
     public readonly MULTISAMPLE_OFFSET = 128 / 4;
     public readonly CAMERA_TYPE_ID_OFFSET = 132 / 4;
+    public readonly ID_SOURCE_OFFSET = 136 / 4;
 
     constructor() {
         super(ComputeUniformBufferData.SIZE)
@@ -2496,4 +2503,7 @@ export class ComputeUniformBufferData extends Float32Array {
 
     public getCameraTypeId() { return this[this.CAMERA_TYPE_ID_OFFSET]; }
     public setCameraTypeId(value: number) { this[this.CAMERA_TYPE_ID_OFFSET] = value; }
+
+    public getIdSource() { return this[this.ID_SOURCE_OFFSET]; }
+    public setIdSource(value: number) { this[this.ID_SOURCE_OFFSET] = value; }
 }

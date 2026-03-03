@@ -267,6 +267,12 @@ export class Text extends Mark {
             for (let i = 0; i < dataset.length; i++) { fontSizes[i] = scaling * Plot.FONT_SIZE; }
         }
 
+        // Segment
+        let segmentIds: Float32Array;
+        if (this.encode.segmentId) {
+            segmentIds = group.values(this.encode.segmentId, dataset);
+        }
+
         // Stroke
         let strokeWidths: Float32Array;
         if (this.encode.strokeWidth) {
@@ -316,6 +322,9 @@ export class Text extends Mark {
             positionScalingX: scaling,
             positionScalingY: scaling,
             positionScalingZ: scaling,
+
+            // Segment
+            segmentIds: segmentIds,
         };
 
         // Materials

@@ -20,8 +20,9 @@ export class Main {
     private _isRunning: boolean;
     private _animationFrame: number;
     private _previousTime: DOMHighResTimeStamp;
-    private _isLoadingTime: number;
-    private _minLoadingTime: number;
+    private _loadingMinDisplay: number;
+    private _loadingShownTime: number;
+    private _loadingTimeout: ReturnType<typeof setTimeout> | null;
 
     // Spec
     private _samplesPopup: HTMLDivElement;
@@ -189,12 +190,13 @@ export class Main {
             }
         }
 
-        // Loading time
-        this._isLoadingTime = 0; // ms
-        this._minLoadingTime = 500; // ms
+        // Loading
+        this._loadingMinDisplay = 500; // ms minimum time to keep indicator visible
+        this._loadingShownTime = 0;
+        this._loadingTimeout = null;
 
         // Initialize
-        this._initialize();
+        this._initializeAsync();
     }
 
     private _resize(width: number, height: number): void {
@@ -207,7 +209,7 @@ export class Main {
         this._camera.height = height;
     }
 
-    private async _initialize(): Promise<void> {
+    private async _initializeAsync(): Promise<void> {
         const start = performance.now();
 
         // Renderer
@@ -383,12 +385,14 @@ export class Main {
         const colorOptions = document.getElementById("colorOptions") as HTMLDivElement;
         const edgeOptions = document.getElementById("edgeOptions") as HTMLDivElement;
         const depthOptions = document.getElementById("depthOptions") as HTMLDivElement;
+        const segmentOptions = document.getElementById("segmentOptions") as HTMLDivElement;
         const renderModeChanged = () => {
             // Hide all options
             raytraceOptions.style.display = "none";
             colorOptions.style.display = "none";
             edgeOptions.style.display = "none";
             depthOptions.style.display = "none";
+            segmentOptions.style.display = "none";
             // Show options for selected render mode
             switch (this._renderer.renderMode) {
                 case "raytrace":
@@ -402,6 +406,9 @@ export class Main {
                     break;
                 case "depth":
                     depthOptions.style.display = "flex";
+                    break;
+                case "segment":
+                    segmentOptions.style.display = "flex";
                     break;
             }
         };
@@ -419,6 +426,16 @@ export class Main {
             if (radio.checked) { this._renderer.renderMode = radio.value; }
         }
         renderModeChanged();
+
+        // Id source
+        const idSourceRadioGroup = document.getElementsByName("idSource") as NodeListOf<HTMLInputElement>;
+        for (let i = 0; i < idSourceRadioGroup.length; i++) {
+            const radio = idSourceRadioGroup[i] as HTMLInputElement;
+            radio.addEventListener("change", () => {
+                this._renderer.idSource = radio.value;
+            });
+            if (radio.checked) { this._renderer.idSource = radio.value; }
+        }
 
         // Camera mode options
         const perspectiveOptions = document.getElementById("perspectiveOptions") as HTMLDivElement;
@@ -546,13 +563,16 @@ export class Main {
         // Start, stop
         this._startStopButton.onclick = async () => {
             if (this._startStopButton.value == "Start") {
+                // Disable button until ready
                 this._startStopButton.disabled = true;
 
-                // Show loading if starting takes a while
+                // Show loading indicator and yield to let the browser
+                // repaint before CPU-bound spec parsing begins
                 this._showLoading();
+                await new Promise(resolve => setTimeout(resolve, 0));
 
-                // Allow button to update to disabled
-                setTimeout(async () => await this._startAsync());
+                // Start rendering
+                await this._startAsync();
             }
             else {
                 this._stop();
@@ -564,7 +584,6 @@ export class Main {
     private _sampleLoaded(spec: string): void {
         this._editor.content = spec;
         this._hasSpecChanged = true;
-        this._isLoadingTime = 0;
     }
 
     private async _loadSampleAsync(path: string): Promise<void> {
@@ -723,8 +742,8 @@ export class Main {
                     // Parse plot specification
                     this._plot = await Spec.Plot.fromJSONAsync(plotJSON, { datasets: this._data.datasets, images: this._data.images });
 
-                    // Parse scene
-                    this._scene = await this._plot.parse();
+                    // Create scene
+                    this._scene = await this._plot.createSceneAsync();
 
                     // Update data
                     this._data.update(this._plot);
@@ -809,22 +828,27 @@ export class Main {
         console.log("render stop");
     }
 
+    /** Show the loading indicator immediately. */
     private _showLoading(): void {
-        if (this._isLoadingTime < this._minLoadingTime) {
-            this._loadingContainer.style.display = "block";
-        }
+        this._loadingShownTime = performance.now();
+        this._loadingContainer.style.display = "block";
     }
+
+    /** Hide the loading indicator, ensuring it was visible for a minimum time to avoid flash. */
     private _hideLoading(): void {
-        // Ensure loading is shown for at least a short time
-        if (this._loadingContainer.style.display == "block") {
-            if (this._isLoadingTime < this._minLoadingTime) {
-                setTimeout(() => {
+        if (this._loadingTimeout !== null) {
+            clearTimeout(this._loadingTimeout);
+            this._loadingTimeout = null;
+        }
+        if (this._loadingContainer.style.display === "block") {
+            const remaining = this._loadingMinDisplay - (performance.now() - this._loadingShownTime);
+            if (remaining > 0) {
+                this._loadingTimeout = setTimeout(() => {
+                    this._loadingTimeout = null;
                     this._loadingContainer.style.display = "none";
-                    this._isLoadingTime = this._minLoadingTime;
-                }, this._minLoadingTime - this._isLoadingTime);
+                }, remaining);
             } else {
                 this._loadingContainer.style.display = "none";
-                this._isLoadingTime = this._minLoadingTime;
             }
         }
     }

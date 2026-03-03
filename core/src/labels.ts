@@ -557,16 +557,11 @@ export class LabelSetVisual implements ILabelSetVisual {
                     // Material
                     const material = this._labelSet.material || (this._labelSet.materials && this._labelSet.materials[i]);
 
-                    // Segment — always write a unique pick ID color; register mapping if user segment ID provided
+                    // Pick / segment — write the unique pick ID color to both channels
                     const pickId = Pick.nextPickId;
-                    const segment: ColorRGBA = [0, 0, 0, 0];
-                    Color.numberToColorRGBA(pickId, segment);
-                    if (this._labelSet.segmentId !== undefined) {
-                        Pick.register(pickId, this._labelSet.segmentId);
-                    }
-                    else if (this._labelSet.segmentIds) {
-                        Pick.register(pickId, this._labelSet.segmentIds[i]);
-                    }
+                    const pickColorRGBA: ColorRGBA = [0, 0, 0, 0];
+                    Color.numberToColorRGBA(pickId, pickColorRGBA);
+
 
                     // Glyphs
                     const dataView = this._labelSet.dataView;
@@ -625,8 +620,21 @@ export class LabelSetVisual implements ILabelSetVisual {
                         // Materials
                         if (material) { UnitVertex.setMaterial(dataView, glyphs, material); }
 
-                        // Segment
-                        UnitVertex.setSegColor(dataView, glyphs, segment);
+                        // Pick / segment colors
+                        UnitVertex.setIdColor(dataView, glyphs, pickColorRGBA);
+
+                        // Segment color — use segmentId/segmentIds if provided, otherwise fall back to pickId
+                        if (this._labelSet.segmentIds) {
+                            const segColorRGBA: ColorRGBA = [0, 0, 0, 0];
+                            Color.numberToColorRGBA(this._labelSet.segmentIds[i], segColorRGBA);
+                            UnitVertex.setSegColor(dataView, glyphs, segColorRGBA);
+                        } else if (this._labelSet.segmentId != null) {
+                            const segColorRGBA: ColorRGBA = [0, 0, 0, 0];
+                            Color.numberToColorRGBA(this._labelSet.segmentId, segColorRGBA);
+                            UnitVertex.setSegColor(dataView, glyphs, segColorRGBA);
+                        } else {
+                            UnitVertex.setSegColor(dataView, glyphs, pickColorRGBA);
+                        }
 
                         // Texture coordinates
                         UnitVertex.setTexCoords(dataView, glyphs, glyph.texCoords);

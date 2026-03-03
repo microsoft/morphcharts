@@ -67,7 +67,7 @@
         // Initialize the renderer
         await renderer.initializeAsync();
 
-        // Parse a spec
+        // Parse a spec and create a scene
         const specJSON = {
             "width": 640,
             "height": 360,
@@ -97,8 +97,7 @@
                 }
             ]
         };
-        const plot = await Spec.Plot.fromJSONAsync(specJSON);
-        const scene = await plot.parse();
+        const scene = await Spec.Plot.createSceneAsync(specJSON);
 
         // Load the scene
         renderer.loadScene(scene);
@@ -206,8 +205,7 @@ import * as WebGPURenderer from 'webgpuraytrace';</code></pre>
     ]
 };</code></pre>
     <p>Parse the <code>specJSON</code> and create a <code>scene</code>:</p>
-    <pre><code>const plot = await Spec.Plot.fromJSONAsync(specJSON);
-const scene = await plot.parse();</code></pre>
+    <pre><code>const scene = await Spec.Plot.createSceneAsync(specJSON);</code></pre>
 
     <h3 id="load-scene">Load the Scene</h3>
     <pre><code>renderer.loadScene(scene);</code></pre>
