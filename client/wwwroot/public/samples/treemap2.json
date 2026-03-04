@@ -1,6 +1,6 @@
 {    
-  "title": "3D Flat Treemap",
-  "description": "A 3D non-hierarchical treemap",
+  "title": "Non-Hierarchical Treemap",
+  "description": "A non-hierarchical treemap",
   "width": 640,
   "height": 180,
   "depth": 360,

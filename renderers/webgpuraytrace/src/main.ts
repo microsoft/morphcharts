@@ -72,6 +72,9 @@ export class Main extends Core.Renderer {
     // Visual collections
     private _hasWorldChanged: boolean;
     public bufferVisuals: BufferVisual[];
+
+    // Callbacks
+    public deviceLostCallback: (reason: string, message: string) => void;
     public transitionBufferVisuals: TransitionBufferVisual[];
     public labelSetVisuals: LabelSetVisual[];
 
@@ -117,44 +120,44 @@ export class Main extends Core.Renderer {
     public get isSupported() { return navigator.gpu !== undefined; }
 
     private async _initializeAPIAsync(): Promise<boolean> {
-        return new Promise<boolean>(async (resolve, reject) => {
-            try {
-                const start = window.performance.now();
-                const gpu: GPU = navigator.gpu;
-                this._presentationFormat = gpu.getPreferredCanvasFormat();
-                this._adapter = await gpu.requestAdapter();
-                const gpuDeviceDescriptor: GPUDeviceDescriptor = {
-                    requiredLimits: {
-                        // Max storage buffer size
-                        maxStorageBufferBindingSize: 134217728,
+        try {
+            const start = window.performance.now();
+            const gpu: GPU = navigator.gpu;
+            this._presentationFormat = gpu.getPreferredCanvasFormat();
+            this._adapter = await gpu.requestAdapter();
+            const gpuDeviceDescriptor: GPUDeviceDescriptor = {
+                requiredLimits: {
+                    // Max storage buffer size
+                    maxStorageBufferBindingSize: 134217728,
 
-                        // Match workgroups per dimension to shader
-                        maxComputeWorkgroupsPerDimension: 256,
-                    }
-                };
-                this._device = await this._adapter.requestDevice(gpuDeviceDescriptor);
-                this._maxComputeWorkgroupsPerDimension = this._device.limits.maxComputeWorkgroupsPerDimension;
-                this._queue = this._device.queue;
-                this._context = this._canvas.getContext("webgpu");
+                    // Match workgroups per dimension to shader
+                    maxComputeWorkgroupsPerDimension: 256,
+                }
+            };
+            this._device = await this._adapter.requestDevice(gpuDeviceDescriptor);
+            this._maxComputeWorkgroupsPerDimension = this._device.limits.maxComputeWorkgroupsPerDimension;
+            this._queue = this._device.queue;
+            this._context = this._canvas.getContext("webgpu");
 
-                // TODO: Handle lost context
-                this._device.lost.then(() => {
-                    console.log("GPU lost");
-                });
-                console.log(`WebGPU API initialized ${Core.Time.formatDuration(performance.now() - start)}`);
-                resolve(true);
-            } catch (error) {
-                console.log("WebGPU initialization failed", error);
-                reject(error);
-            }
-        });
+            this._device.lost.then((info: GPUDeviceLostInfo) => {
+                this._isInitialized = false;
+                const reason = info.reason ?? "unknown";
+                const message = info.message ?? "";
+                console.log(`GPU device lost ${reason} ${message}`);
+                if (this.deviceLostCallback) { this.deviceLostCallback(reason, message); }
+            });
+            console.log(`WebGPU API initialized ${Core.Time.formatDuration(performance.now() - start)}`);
+            return true;
+        } catch (error) {
+            console.log("WebGPU initialization failed", error);
+            throw error;
+        }
     }
 
     // TODO: Return boolean
     private async _initializeResourcesAsync(): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
-            try {
-                const start = window.performance.now();
+        try {
+            const start = window.performance.now();
 
                 // Canvas
                 const canvasConfig: GPUCanvasConfiguration = {
@@ -313,7 +316,13 @@ export class Main extends Core.Renderer {
                     format: this._presentationFormat
                 };
 
-                // Create all pipelines asynchronously in parallel to avoid blocking the main thread
+                // Require async pipeline creation
+                if (!this._device.createComputePipelineAsync || !this._device.createRenderPipelineAsync) {
+                    const message = "WebGPU async pipeline creation is not supported by this browser.";
+                    console.log(message);
+                    throw new Error(message);
+                }
+
                 const [
                     computePipeline,
                     computeColorPipeline,
@@ -419,12 +428,10 @@ export class Main extends Core.Renderer {
                 this._quadEdgePipeline = quadEdgePipeline;
 
                 console.log(`WebGPU resources initialized ${Core.Time.formatDuration(performance.now() - start)}`);
-                resolve();
             } catch (error) {
                 console.log("WebGPU resource initialization failed", error);
-                reject(error);
+                throw error;
             }
-        });
     }
 
     public createBufferVisual(buffer: Core.IBuffer) {
@@ -488,12 +495,55 @@ export class Main extends Core.Renderer {
             await this._createWorldAsync();
             this._createSizeIndependentResources();
 
+            // GPU warm-up: force the GPU driver to JIT-compile every compute pipeline
+            // now, using real bind groups, rather than deferring to the first user-visible
+            // frame.  Without this, createComputePipelineAsync resolves on the CPU side
+            // (WGSL → IR) but the driver defers machine-code generation to first use,
+            // potentially causing GPU stalls and low frame rates.
+            await this._warmupPipelinesAsync();
+
             // Reset
             this.frameCount = 0;
 
             // Ready
             this._isInitialized = true;
         }
+    }
+
+    private async _warmupPipelinesAsync(): Promise<void> {
+        const start = window.performance.now();
+        const commandEncoder = this._device.createCommandEncoder({ label: "Warmup encoder" });
+
+        // Dispatch the main compute pipelines (all use the full 3-bind-group layout)
+        const computePassEncoder = commandEncoder.beginComputePass({ label: "Warmup compute pass" });
+        computePassEncoder.setBindGroup(0, this._computeBindGroup1);
+        computePassEncoder.setBindGroup(1, this._computeBindGroup2);
+        computePassEncoder.setBindGroup(2, this._computeBindGroup3);
+        const pipelines: GPUComputePipeline[] = [
+            this._computePipeline,
+            this._computeColorPipeline,
+            this._computeNormalDepthPipeline,
+            this._computeSegmentPipeline,
+            this._computeTexturePipeline,
+        ];
+        for (const pipeline of pipelines) {
+            computePassEncoder.setPipeline(pipeline);
+            computePassEncoder.dispatchWorkgroups(1, 1, 1);
+        }
+        computePassEncoder.end();
+        
+        // Dispatch the clear pipeline separately — its layout has null for @group(0)
+        const clearPassEncoder = commandEncoder.beginComputePass({ label: "Warmup clear pass" });
+        clearPassEncoder.setBindGroup(1, this._computeBindGroup2);
+        clearPassEncoder.setBindGroup(2, this._computeBindGroup3);
+        clearPassEncoder.setPipeline(this._clearPipeline);
+        clearPassEncoder.dispatchWorkgroups(1, 1, 1);
+        clearPassEncoder.end();
+        
+        this._queue.submit([commandEncoder.finish()]);
+        // Block until the GPU finishes so JIT compilation is complete before rendering starts
+        await this._queue.onSubmittedWorkDone();
+        console.log(`GPU pipeline warm-up  ${Core.Time.formatDuration(Math.round(window.performance.now() - start))}`);
     }
 
     public async renderAsync(elapsedTime: number): Promise<void> {

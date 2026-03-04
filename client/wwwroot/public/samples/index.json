@@ -1,154 +1,213 @@
 [
   {
     "title": "Bar Charts",
-    "description": "Bar chart visualizations in 2D and 3D",
+    "description": "Bar chart visualizations",
     "plots": [
-      {
-        "plot": "bar2.json",
-        "thumbnail": "bar2_raytrace_640x360.jpg",
-        "image": "bar2_raytrace_3840x2160.jpg",
-        "title": "3D Bar Chart",
-        "description": "A 3D bar chart"
-      },
       {
         "plot": "bar7.json",
         "thumbnail": "bar7_raytrace_640x360.jpg",
         "image": "bar7_raytrace_3840x2160.jpg",
-        "title": "3D Bar Chart",
-        "description": "A 3D bar chart"
+        "title": "Matrix Bar Chart",
+        "description": "A matrix bar chart"
       },
       {
         "plot": "bar4.json",
         "thumbnail": "bar4_raytrace_640x360.jpg",
         "image": "bar4_raytrace_3840x2160.jpg",
-        "title": "3D Stacked Bar Chart",
-        "description": "A 3D stacked bar chart"
+        "title": "Stacked Bar Chart",
+        "description": "A stacked bar chart"
+      },
+      {
+        "plot": "bar2.json",
+        "thumbnail": "bar2_raytrace_640x360.jpg",
+        "image": "bar2_raytrace_3840x2160.jpg",
+        "title": "Bar Chart",
+        "description": "A bar chart"
       },
       {
         "plot": "bar6.json",
         "thumbnail": "bar6_raytrace_640x360.jpg",
         "image": "bar6_raytrace_3840x2160.jpg",
-        "title": "3D Grouped Bar Chart",
-        "description": "A 3D grouped bar chart"
+        "title": "Grouped Bar Chart",
+        "description": "A grouped bar chart"
       },
       {
         "plot": "bar9.json",
         "thumbnail": "bar9_raytrace_640x360.jpg",
         "image": "bar9_raytrace_3840x2160.jpg",
-        "title": "3D Faceted Bar Chart",
-        "description": "A faceted 3D bar chart"
-      },
-      {
-        "plot": "bar1.json",
-        "thumbnail": "bar1_raytrace_640x360.jpg",
-        "image": "bar1_raytrace_3840x2160.jpg",
-        "title": "2D Bar Chart",
-        "description": "A 2D bar chart"
+        "title": "Faceted Bar Chart",
+        "description": "A faceted bar chart"
       },
       {
         "plot": "bar3.json",
         "thumbnail": "bar3_raytrace_640x360.jpg",
         "image": "bar3_raytrace_3840x2160.jpg",
-        "title": "2D Stacked Bar Chart",
-        "description": "A 2D stacked bar chart"
+        "title": "Stacked Bar Chart",
+        "description": "A stacked bar chart"
+      },
+      {
+        "plot": "bar1.json",
+        "thumbnail": "bar1_raytrace_640x360.jpg",
+        "image": "bar1_raytrace_3840x2160.jpg",
+        "title": "Bar Chart",
+        "description": "A bar chart"
       },
       {
         "plot": "bar5.json",
         "thumbnail": "bar5_raytrace_640x360.jpg",
         "image": "bar5_raytrace_3840x2160.jpg",
-        "title": "2D Grouped Bar Chart",
-        "description": "A 2D grouped bar chart"
+        "title": "Grouped Bar Chart",
+        "description": "A grouped bar chart"
       },
       {
         "plot": "bar8.json",
         "thumbnail": "bar8_raytrace_640x360.jpg",
         "image": "bar8_raytrace_3840x2160.jpg",
-        "title": "2D Faceted Bar Chart",
-        "description": "A faceted 2D bar chart"
+        "title": "Faceted Bar Chart",
+        "description": "A faceted bar chart"
+      },
+      {
+        "plot": "populationpyramid1.json",
+        "thumbnail": "populationpyramid1_raytrace_640x360.jpg",
+        "image": "populationpyramid1_raytrace_3840x2160.jpg",
+        "title": "Population Pyramid",
+        "description": "Population Pyramid of US Census from 1850 to 2000",
+        "notes": "<p>Note the <a href=\"https://en.wikipedia.org/wiki/1890_United_States_census#Data_availability\">missing data</a> for year 1890.</p><p>U.S. population counts by age group (0-90+ in 5-year intervals) and sex for each decade between 1850 and 2000, collected and harmonized from historical census records by IPUMS USA.</p><p>IPUMS updates and revises datasets over time, which may result in discrepancies with current IPUMS data.</p><p>Steven Ruggles, Katie Genadek, Ronald Goeken, Josiah Grover, and Matthew Sobek. Integrated Public Use Microdata Series: Version 6.0. Minneapolis: University of Minnesota, 2015. http://doi.org/10.18128/D010.V6.0</p><p>Data linked from <a href=\"https://github.com/vega/vega-datasets\">vega-datasets</a>.</p>"
       }
     ]
   },
   {
-    "title": "Treemaps",
-    "description": "Treemap visualizations, flat and hierarchical",
+    "title": "Tree Diagrams",
+    "description": "Treemaps, sunburst charts, circle packing, and other tree visualizations",
     "plots": [
       {
-        "plot": "treemap2.json",
-        "thumbnail": "treemap2_raytrace_640x360.jpg",
-        "image": "treemap2_raytrace_3840x2160.jpg",
-        "title": "3D Flat Treemap",
-        "description": "A 3D non-hierarchical treemap"
-      },
-      {
-        "plot": "treemap4.json",
-        "thumbnail": "treemap4_raytrace_640x360.jpg",
-        "image": "treemap4_raytrace_3840x2160.jpg",
-        "title": "3D Hierarchical Treemap",
-        "description": "A 3D hierarchical treemap"
+        "plot": "treemap7.json",
+        "thumbnail": "treemap7_raytrace_640x360.jpg",
+        "image": "treemap7_raytrace_3840x2160.jpg",
+        "title": "Hierarchical Treemap",
+        "description": "The Flare visualization library as a hierarchical treemap",
+        "notes": "<p>The labels have been rotated to follow the aspect ratio of the blocks. A <code>paddingOuter</code> creates a margin around groups of child blocks, leaving space for a label. Leaf node labels are scaled according the the block size.</p><p>Data linked from <a href=\"https://github.com/vega/vega-datasets\">vega-datasets</a>.</p>"
       },
       {
         "plot": "treemap6.json",
         "thumbnail": "treemap6_raytrace_640x360.jpg",
         "image": "treemap6_raytrace_3840x2160.jpg",
-        "title": "3D Flat Faceted Treemaps",
-        "description": "3D flat, faceted treemaps"
+        "title": "Non-Hierarchical Faceted Treemaps",
+        "description": "Non-hierarchical, faceted treemaps"
       },
       {
-        "plot": "treemap7.json",
-        "thumbnail": "treemap7_raytrace_640x360.jpg",
-        "image": "treemap7_raytrace_3840x2160.jpg",
-        "title": "3D Hierarchical Treemap",
-        "description": "Flare visualization library rendereed as a 3D hierarchical treemap",
-        "notes": "<p>The labels have been rotated to follow the aspect ratio of the blocks. A <code>paddingOuter</code> creates a margin around groups of child blocks, leaving space for a label. Leaf node labels are scaled according the the block size.</p><p>Data linked from <a href=\"https://github.com/vega/vega-datasets\">vega-datasets</a>.</p>"
+        "plot": "treemap4.json",
+        "thumbnail": "treemap4_raytrace_640x360.jpg",
+        "image": "treemap4_raytrace_3840x2160.jpg",
+        "title": "Hierarchical Treemap",
+        "description": "A hierarchical treemap"
       },
       {
-        "plot": "treemap1.json",
-        "thumbnail": "treemap1_raytrace_640x360.jpg",
-        "image": "treemap1_raytrace_3840x2160.jpg",
-        "title": "2D Flat Treemap",
-        "description": "A 2D non-hierarchical treemap"
-      },
-      {
-        "plot": "treemap3.json",
-        "thumbnail": "treemap3_raytrace_640x360.jpg",
-        "image": "treemap3_raytrace_3840x2160.jpg",
-        "title": "2D Hierarchical Treemap",
-        "description": "A 2D hierarchical treemap"
+        "plot": "treemap2.json",
+        "thumbnail": "treemap2_raytrace_640x360.jpg",
+        "image": "treemap2_raytrace_3840x2160.jpg",
+        "title": "Non-Hierarchical Treemap",
+        "description": "A non-hierarchical treemap"
       },
       {
         "plot": "treemap5.json",
         "thumbnail": "treemap5_raytrace_640x360.jpg",
         "image": "treemap5_raytrace_3840x2160.jpg",
-        "title": "2D Flat Faceted Treemaps",
-        "description": "2D flat, faceted treemaps"
+        "title": "Non-Hierarchical Faceted Treemaps",
+        "description": "A non-hierarchical, faceted treemaps"
+      },
+      {
+        "plot": "treemap3.json",
+        "thumbnail": "treemap3_raytrace_640x360.jpg",
+        "image": "treemap3_raytrace_3840x2160.jpg",
+        "title": "Hierarchical Treemap",
+        "description": "A hierarchical treemap"
+      },
+      {
+        "plot": "treemap1.json",
+        "thumbnail": "treemap1_raytrace_640x360.jpg",
+        "image": "treemap1_raytrace_3840x2160.jpg",
+        "title": "Non-Hierarchical Treemap",
+        "description": "A non-hierarchical treemap"
+      },
+      {
+        "plot": "circlepack2.json",
+        "thumbnail": "circlepack2_raytrace_640x360.jpg",
+        "image": "circlepack2_raytrace_3840x2160.jpg",
+        "title": "Circle Packing Chart",
+        "description": "The Flare visualization library as a circle packing chart",
+        "notes": "<p>Note the use of the <code>sort</code> property in the <code>pack</code> transform to sort the data by the <code>size</code> column. This results in more efficient packing than using the data in its original order.</p><p>Data linked from <a href=\"https://github.com/vega/vega-datasets\">vega-datasets</a>.</p>"
+      },
+      {
+        "plot": "circlepack1.json",
+        "thumbnail": "circlepack1_raytrace_640x360.jpg",
+        "image": "circlepack1_raytrace_3840x2160.jpg",
+        "title": "Circle Packing Chart",
+        "description": "A circle packing chart"
+      },
+      {
+        "plot": "sunburst2.json",
+        "thumbnail": "sunburst2_raytrace_640x360.jpg",
+        "image": "sunburst2_raytrace_3840x2160.jpg",
+        "title": "Sunburst Chart",
+        "description": "The Flare visualization library as a sunburst chart with rotated labels",
+        "notes": "Data linked from <a href=\"https://github.com/vega/vega-datasets\">vega-datasets</a>."
+      },
+      {
+        "plot": "sunburst1.json",
+        "thumbnail": "sunburst1_raytrace_640x360.jpg",
+        "image": "sunburst1_raytrace_3840x2160.jpg",
+        "title": "Sunburst Chart",
+        "description": "A sunburst chart with rotated labels"
       }
     ]
   },
   {
-    "title": "Line Charts",
-    "description": "Line chart visualizations",
+    "title": "Line & Area Charts",
+    "description": "Line and area chart visualizations",
     "plots": [
+      {
+        "plot": "area2.json",
+        "thumbnail": "area2_raytrace_640x360.jpg",
+        "image": "area2_raytrace_3840x2160.jpg",
+        "title": "Multi Series Area Chart",
+        "description": "A multi series area chart"
+      },
+      {
+        "plot": "area1.json",
+        "thumbnail": "area1_raytrace_640x360.jpg",
+        "image": "area1_raytrace_3840x2160.jpg",
+        "title": "Multi Series Area Chart",
+        "description": "A multi series area chart"
+      },
+      {
+        "plot": "area3.json",
+        "thumbnail": "area3_raytrace_640x360.jpg",
+        "image": "area3_raytrace_3840x2160.jpg",
+        "title": "Stacked Area Chart",
+        "description": "A stacked area chart"
+      },
       {
         "plot": "line4.json",
         "thumbnail": "line4_raytrace_640x360.jpg",
         "image": "line4_raytrace_3840x2160.jpg",
-        "title": "Multi Series 3D Line Chart",
-        "description": "A multi series 3D line chart"
-      },
-      {
-        "plot": "line5.json",
-        "thumbnail": "line5_raytrace_640x360.jpg",
-        "image": "line5_raytrace_3840x2160.jpg",
-        "title": "3D Lissajous Curve",
-        "description": "A 3D line chart Lissajous curve generator",
-        "notes": "<p>The curve are defined by three parametric <code>sin</code> functions, and drawn as a line with <code>rows</code> line segments, and thickness <code>strokeWidth</code>. Since the line segments are cylinders, spheres are also drawn at the endpoints to avoid gaps.</p><p>Try varying <code>a</code>, <code>b</code>, and <code>c</code> for different effects. The color can be varied using a scale along the <code>t</code> field (uncomment the <code>_fill</code> and <code>_stroke</code> properties).</p>"
+        "title": "Multi Series Line Chart",
+        "description": "A multi series line chart"
       },
       {
         "plot": "line2.json",
         "thumbnail": "line2_raytrace_640x360.jpg",
         "image": "line2_raytrace_3840x2160.jpg",
-        "title": "Multi Series 3D Line Chart",
-        "description": "A multi series 3D line chart"
+        "title": "Multi Series Line Chart",
+        "description": "A multi series line chart"
+      },
+      {
+        "plot": "line5.json",
+        "thumbnail": "line5_raytrace_640x360.jpg",
+        "image": "line5_raytrace_3840x2160.jpg",
+        "title": "Lissajous Curve",
+        "description": "A Lissajous curve generator",
+        "notes": "<p>The curve are defined by three parametric <code>sin</code> functions, and drawn as a line with <code>rows</code> line segments, and thickness <code>strokeWidth</code>. Since the line segments are cylinders, spheres are also drawn at the endpoints to avoid gaps.</p><p>Try varying <code>a</code>, <code>b</code>, and <code>c</code> for different effects. The color can be varied using a scale along the <code>t</code> field (uncomment the <code>_fill</code> and <code>_stroke</code> properties).</p>"
       },
       {
         "plot": "line1.json",
@@ -161,35 +220,71 @@
         "plot": "line3.json",
         "thumbnail": "line3_raytrace_640x360.jpg",
         "image": "line3_raytrace_3840x2160.jpg",
-        "title": "Multi Series Faceted 2D Line Chart",
-        "description": "A multi series faceted 2D line chart"
+        "title": "Faceted Line Chart",
+        "description": "A faceted line chart"
       }
     ]
   },
   {
-    "title": "Area Charts",
-    "description": "Area chart visualizations",
+    "title": "Unit Charts",
+    "description": "Unit chart visualizations",
     "plots": [
       {
-        "plot": "area2.json",
-        "thumbnail": "area2_raytrace_640x360.jpg",
-        "image": "area2_raytrace_3840x2160.jpg",
-        "title": "Multi Series 3D Area Chart",
-        "description": "A multi series 3D area chart"
+        "plot": "bar11.json",
+        "thumbnail": "bar11_raytrace_640x360.jpg",
+        "image": "bar11_raytrace_3840x2160.jpg",
+        "title": "Unit Histogram",
+        "description": "A unit histogram",
+        "notes": "<p>Some randomness has been introduced into the stack positions.</p><p>Includes an accent light.</p>"
       },
       {
-        "plot": "area1.json",
-        "thumbnail": "area1_raytrace_640x360.jpg",
-        "image": "area1_raytrace_3840x2160.jpg",
-        "title": "Multi Series 3D Area Chart",
-        "description": "A multi series 3D area chart"
+        "plot": "histogram1.json",
+        "thumbnail": "histogram1_raytrace_640x360.jpg",
+        "image": "histogram1_raytrace_3840x2160.jpg",
+        "title": "Unit Histogram",
+        "description": "A unit histogram of the sum of rolling 2 dice, highlighting doubles"
       },
       {
-        "plot": "area3.json",
-        "thumbnail": "area3_raytrace_640x360.jpg",
-        "image": "area3_raytrace_3840x2160.jpg",
-        "title": "Multi Series 2D Stacked Area Chart",
-        "description": "A multi series 2D stacked area chart"
+        "plot": "histogram2.json",
+        "thumbnail": "histogram2_raytrace_640x360.jpg",
+        "image": "histogram2_raytrace_3840x2160.jpg",
+        "title": "Unit Histogram",
+        "description": "A unit histogram of a 2D normal distribution using the Box-Muller transform, showing standard deviations as color"
+      },
+      {
+        "plot": "bar10.json",
+        "thumbnail": "bar10_raytrace_640x360.jpg",
+        "image": "bar10_raytrace_3840x2160.jpg",
+        "title": "Unit Histogram",
+        "description": "A unit histogram"
+      },
+      {
+        "plot": "messystack1.json",
+        "thumbnail": "messystack1_raytrace_640x360.jpg",
+        "image": "messystack1_raytrace_3840x2160.jpg",
+        "title": "Messy Stack",
+        "description": "A stack of labelled blocks with random size and rotation"
+      }
+    ]
+  },
+  {
+    "title": "Network Diagrams",
+    "description": "Network visualizations",
+    "plots": [
+      {
+        "plot": "adjacencymatrix1.json",
+        "thumbnail": "adjacencymatrix1_raytrace_640x360.jpg",
+        "image": "adjacencymatrix1_raytrace_3840x2160.jpg",
+        "title": "Adjacency Matrix",
+        "description": "An adjacency matrix showing character co-occurrence in Les Misérables",
+        "notes": "<p>This visualization shows character relationships in Victor Hugo's novel, <a href=\"https://en.wikipedia.org/wiki/Les_Mis%C3%A9rables\">Les Misérables</a>. The data is a network, where nodes represent characters in the novel, and edges represent two characters appearing in the same chapter. While this data can be drawn as a node-link graph, this chart is an adjacency matrix. Since co-occurrences are not directed, the chart is symmetrical. The characters are ordered according to a clustering algorithm which detects character communities, rather than alphabetically, or by total co-occurrences.</p><p>Data linked from <a href=\"https://github.com/vega/vega-datasets\">vega-datasets</a>.</p><p><a href=\"https://www-cs-faculty.stanford.edu/~knuth/sgb.html\">D. E. Knuth, The Stanford GraphBase: A Platform for Combinatorial Computing, Addison-Wesley, Reading, MA (1993)</a>.</p>"
+      },
+      {
+        "plot": "nodelink1.json",
+        "thumbnail": "nodelink1_raytrace_640x360.jpg",
+        "image": "nodelink1_raytrace_3840x2160.jpg",
+        "title": "Node Link",
+        "description": "Regular dodecahedron as a node link chart"
       }
     ]
   },
@@ -221,112 +316,6 @@
     ]
   },
   {
-    "title": "Histograms",
-    "description": "Histogram and unit stack visualizations",
-    "plots": [
-      {
-        "plot": "populationpyramid1.json",
-        "thumbnail": "populationpyramid1_raytrace_640x360.jpg",
-        "image": "populationpyramid1_raytrace_3840x2160.jpg",
-        "title": "3D Population Pyramid",
-        "description": "3D Population Pyramid of US Census from 1850 to 2000",
-        "notes": "<p>Note the <a href=\"https://en.wikipedia.org/wiki/1890_United_States_census#Data_availability\">missing data</a> for year 1890.</p><p>U.S. population counts by age group (0-90+ in 5-year intervals) and sex for each decade between 1850 and 2000, collected and harmonized from historical census records by IPUMS USA.</p><p>IPUMS updates and revises datasets over time, which may result in discrepancies with current IPUMS data.</p><p>Steven Ruggles, Katie Genadek, Ronald Goeken, Josiah Grover, and Matthew Sobek. Integrated Public Use Microdata Series: Version 6.0. Minneapolis: University of Minnesota, 2015. http://doi.org/10.18128/D010.V6.0</p><p>Data linked from <a href=\"https://github.com/vega/vega-datasets\">vega-datasets</a>.</p>"
-      },
-      {
-        "plot": "bar11.json",
-        "thumbnail": "bar11_raytrace_640x360.jpg",
-        "image": "bar11_raytrace_3840x2160.jpg",
-        "title": "3D Unit Histogram",
-        "description": "A 3D unit histogram. Some randomness introduced into the stack positions. Includes an accent light."
-      },
-      {
-        "plot": "histogram1.json",
-        "thumbnail": "histogram1_raytrace_640x360.jpg",
-        "image": "histogram1_raytrace_3840x2160.jpg",
-        "title": "3D Unit Histogram",
-        "description": "A unit histogram of the sum of rolling 2 dice, highlighting doubles"
-      },
-      {
-        "plot": "histogram2.json",
-        "thumbnail": "histogram2_raytrace_640x360.jpg",
-        "image": "histogram2_raytrace_3840x2160.jpg",
-        "title": "3D Histogram",
-        "description": "3D histogram of a 2D normal distribution using the Box-Muller transform, showing standard deviations as color"
-      },
-      {
-        "plot": "bar10.json",
-        "thumbnail": "bar10_raytrace_640x360.jpg",
-        "image": "bar10_raytrace_3840x2160.jpg",
-        "title": "2D Unit Histogram",
-        "description": "A 2D unit histogram"
-      }
-    ]
-  },
-  {
-    "title": "Network Graphs",
-    "description": "Node-link and network visualizations",
-    "plots": [
-      {
-        "plot": "sunburst1.json",
-        "thumbnail": "sunburst1_raytrace_640x360.jpg",
-        "image": "sunburst1_raytrace_3840x2160.jpg",
-        "title": "3D Sunburst Chart",
-        "description": "3D Sunburst chart with rotated labels"
-      },
-      {
-        "plot": "sunburst2.json",
-        "thumbnail": "sunburst2_raytrace_640x360.jpg",
-        "image": "sunburst2_raytrace_3840x2160.jpg",
-        "title": "3D Sunburst Chart",
-        "description": "Flare visualization library rendereed as a 3D sunburst chart with rotated labels",
-        "notes": "Data linked from <a href=\"https://github.com/vega/vega-datasets\">vega-datasets</a>."
-      },
-      {
-        "plot": "circlepack1.json",
-        "thumbnail": "circlepack1_raytrace_640x360.jpg",
-        "image": "circlepack1_raytrace_3840x2160.jpg",
-        "title": "Circle Pack 3D",
-        "description": "3D Circle packing chart"
-      },
-      {
-        "plot": "circlepack2.json",
-        "thumbnail": "circlepack2_raytrace_640x360.jpg",
-        "image": "circlepack2_raytrace_3840x2160.jpg",
-        "title": "Circle Pack 3D",
-        "description": "Flare visualization library rendereed as a 3D circle packing chart",
-        "notes": "<p>Note the use of the <code>sort</code> property in the <code>pack</code> transform to sort the data by the <code>size</code> column. This results in more efficient packing than using the data in its original order.</p><p>Data linked from <a href=\"https://github.com/vega/vega-datasets\">vega-datasets</a>.</p>"
-      },
-      {
-        "plot": "adjacencymatrix1.json",
-        "thumbnail": "adjacencymatrix1_raytrace_640x360.jpg",
-        "image": "adjacencymatrix1_raytrace_3840x2160.jpg",
-        "title": "3D Adjacency Matrix",
-        "description": "A 3D adjacency matrix showing character co-occurrence in Les Misérables",
-        "notes": "<p>This visualization shows character relationships in Victor Hugo's novel, <a href=\"https://en.wikipedia.org/wiki/Les_Mis%C3%A9rables\">Les Misérables</a>. The data is a network, where nodes represent characters in the novel, and edges represent two characters appearing in the same chapter. While this data can be drawn as a node-link graph, this chart is an adjacency matrix. Since co-occurrences are not directed, the chart is symmetrical. The characters are ordered according to a clustering algorithm which detects character communities, rather than alphabetically, or by total co-occurrences.</p><p>Data linked from <a href=\"https://github.com/vega/vega-datasets\">vega-datasets</a>.</p><p><a href=\"https://www-cs-faculty.stanford.edu/~knuth/sgb.html\">D. E. Knuth, The Stanford GraphBase: A Platform for Combinatorial Computing, Addison-Wesley, Reading, MA (1993)</a>.</p>"
-      },
-      {
-        "plot": "nodelink1.json",
-        "thumbnail": "nodelink1_raytrace_640x360.jpg",
-        "image": "nodelink1_raytrace_3840x2160.jpg",
-        "title": "Node Link 3D",
-        "description": "3D Node link chart"
-      }
-    ]
-  },
-  {
-    "title": "Miscellaneous",
-    "description": "Miscellaneous visualizations",
-    "plots": [
-      {
-        "plot": "messystack1.json",
-        "thumbnail": "messystack1_raytrace_640x360.jpg",
-        "image": "messystack1_raytrace_3840x2160.jpg",
-        "title": "Messy Stack",
-        "description": "A stack of labelled blocks with random size and rotation"
-      }
-    ]
-  },
-  {
     "title": "Primitives & Materials",
     "description": "Geometric primitives and materials for marks",
     "plots": [
@@ -334,36 +323,36 @@
         "plot": "primitives1.json",
         "thumbnail": "primitives1_raytrace_640x360.jpg",
         "image": "primitives1_raytrace_3840x2160.jpg",
-        "title": "Geometric primitives",
-        "description": "Geometric primitives for marks"
+        "title": "Geometric Primitives",
+        "description": "A selection of geometric primitives"
       },
       {
         "plot": "primitives2.json",
         "thumbnail": "primitives2_raytrace_640x360.jpg",
         "image": "primitives2_raytrace_3840x2160.jpg",
         "title": "Materials",
-        "description": "Materials"
+        "description": "A selection of materials"
       },
       {
         "plot": "primitives3.json",
         "thumbnail": "primitives3_raytrace_640x360.jpg",
         "image": "primitives3_raytrace_3840x2160.jpg",
-        "title": "Textures",
-        "description": "Textures"
+        "title": "Texture Types",
+        "description": "A selection of texture types"
       },
       {
         "plot": "primitives4.json",
         "thumbnail": "primitives4_raytrace_640x360.jpg",
         "image": "primitives4_raytrace_3840x2160.jpg",
-        "title": "Textured Geometric Primitives",
-        "description": "Textured geometric primitives for marks"
+        "title": "Textured Primitives",
+        "description": "A selection of textured geometric primitives"
       },
       {
         "plot": "bar12.json",
         "thumbnail": "bar12_raytrace_640x360.jpg",
         "image": "bar12_raytrace_3840x2160.jpg",
-        "title": "Textured 3D Bar Chart",
-        "description": "A 3D bar chart with aligned checker textures"
+        "title": "Textured Bar Chart",
+        "description": "A bar chart with checker textures"
       }
     ]
   }

@@ -1,6 +1,6 @@
 {
-  "title": "3D Lissajous Curve",
-  "description": "A 3D line chart Lissajous curve generator",
+  "title": "Lissajous Curve",
+  "description": "A Lissajous curve generator",
 
   "width": 640,
   "height": 360,

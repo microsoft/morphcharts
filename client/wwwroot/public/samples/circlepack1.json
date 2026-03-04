@@ -1,6 +1,6 @@
 { 
-  "title": "3D Circle Packing", 
-  "description": "3D Circle packing chart",
+  "title": "Circle Packing Chart", 
+  "description": "A circle packing chart",
 
   "width": 640,
   "depth": 640,

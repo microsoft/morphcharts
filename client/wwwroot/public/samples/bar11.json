@@ -1,6 +1,6 @@
 {   
-  "title": "3D Unit Stack Histogram",
-  "description": "A 3D unit stack histogram. Some randomness introduced into the stack positions. Includes an accent light.",
+  "title": "Unit Histogram",
+  "description": "A unit histogram",
   "width": 640,
   "height": 360,
   "depth": 48,

@@ -192,32 +192,21 @@ export class Main {
         }
 
         // Loading
-        this._loadingShowDelay = 200; // ms before loading indicator appears (CSS animation delay)
+        this._loadingShowDelay = 200;
+        document.documentElement.style.setProperty("--loading-show-delay", `${this._loadingShowDelay}ms`);
         this._loadingMinDisplay = 500; // ms minimum time to keep indicator visible once shown
         this._loadingShownTime = 0;
         this._loadingTimeout = null;
 
-        // Initialize
-        this._initializeAsync();
-    }
+        // Renderer (sync object creation — GPU init runs in _initializeAsync)
+        this._renderer = new WebGPURenderer.Main(this._canvas);
+        this._renderer.deviceLostCallback = (reason, message) => {
+            this._stop();
+            this._startStopButton.disabled = true;
+            this._showError(`GPU device lost (${reason}). Please reload the page.${message ? " " + message : ""}`);
+        };
 
-    private _resize(width: number, height: number): void {
-        console.log(`resize ${width}x${height}`);
-        this._renderer.width = width;
-        this._renderer.height = height;
-        this._canvas.width = width;
-        this._canvas.height = height;
-        this._camera.width = width;
-        this._camera.height = height;
-    }
-
-    private async _initializeAsync(): Promise<void> {
-        const start = performance.now();
-
-        // Renderer
-        await this._initializeRendererAsync();
-
-        // Create a default camera
+        // Camera
         const cameraOptions: Core.Cameras.IAltAzimuthPerspectiveCameraOptions = {
             width: this._renderer.width,
             height: this._renderer.height,
@@ -283,9 +272,47 @@ export class Main {
         sizeChanged();
         this._canvas.style.display = "block"; // Show canvas
 
-        // Initialize UI
-        await this._initializePlotsAsync();
-        this._intializeRenderOptions();
+        // Editor
+        this._startStopButton = document.getElementById("startStopButton") as HTMLButtonElement;
+        this._loadingContainer = document.getElementById("loadingContainer") as HTMLDivElement;
+        this._includeCameraCheckbox = document.getElementById("cameraIncludeCheckbox") as HTMLInputElement;
+        const lines = document.getElementById("lines") as HTMLDivElement;
+        const content = document.getElementById("content") as HTMLTextAreaElement;
+        this._editor = new Editor(lines, content);
+        this._editor.changedCallback = () => {
+            console.log("spec changed");
+            this._hasSpecChanged = true;
+            this._updateDebug(0);
+
+            // Disable start button if no spec
+            if (!this._isRunning) {
+                this._startStopButton.disabled = this._editor.content.trim().length == 0;
+            }
+        };
+        this._error = document.getElementById("error") as HTMLDivElement;
+
+        // Start, stop
+        this._startStopButton.onclick = async () => {
+            if (this._startStopButton.value == "Start") {
+                // Disable button until ready
+                this._startStopButton.disabled = true;
+
+                // Arm the loading indicator and yield so the browser can
+                // start the compositor-driven CSS animation before any
+                // CPU-bound spec parsing begins.
+                this._showLoading();
+                await new Promise(resolve => setTimeout(resolve, 0));
+
+                // Start rendering
+                await this._startAsync();
+            }
+            else {
+                this._stop();
+            }
+        }
+
+        // Render options, data, tiles
+        this._initializeRenderOptions();
         this._initializeData();
         this._initializeTiles();
 
@@ -303,7 +330,73 @@ export class Main {
         // Update UI with default settings
         this._updateUI();
 
+        // Start async initialization (GPU + sample loading in parallel)
+        this._initializeAsync();
+    }
+
+    private _resize(width: number, height: number): void {
+        console.log(`resize ${width}x${height}`);
+        this._renderer.width = width;
+        this._renderer.height = height;
+        this._canvas.width = width;
+        this._canvas.height = height;
+        this._camera.width = width;
+        this._camera.height = height;
+    }
+
+    private async _initializeAsync(): Promise<void> {
+        const start = performance.now();
+
+        // GPU initialization and sample loading run in parallel
+        const sample = new URLSearchParams(window.location.search).get("plot");
+        await Promise.all([
+            // GPU: adapter, device, pipeline compilation
+            this._renderer.initializeAsync({
+                atlasOptions: { width: 4096, height: 4096, type: "font" },
+                glyphRasterizerOptions: {
+                    size: 192,
+                    border: 0x18,     // 24px
+                    edgeValue: Core.Config.sdfBuffer,
+                    maxDistance: 0x40, // 64px
+                },
+            }),
+            // Sample: load initial spec from querystring or use empty spec
+            this._loadInitialSampleAsync(sample),
+            // Gallery: load sample index and build gallery grid
+            this._loadGalleryAsync(),
+        ]);
+
         console.log(`client initialized ${Core.Time.formatDuration((performance.now() - start))}`);
+    }
+
+    private async _loadInitialSampleAsync(sample: string | null): Promise<void> {
+        const emptySpec = "{}";
+        if (sample) {
+            const value = sample.toLowerCase().endsWith(".json") ? sample : `${sample}.json`;
+            try {
+                const text = await fetch(`samples/${value}`).then(response => response.text());
+                this._sampleLoaded(text);
+            }
+            catch (error) {
+                console.log("error loading sample from querystring", error);
+                this._sampleLoaded(emptySpec);
+            }
+        }
+        else { this._sampleLoaded(emptySpec); }
+    }
+
+    private async _loadGalleryAsync(): Promise<void> {
+        this._samplesPopup = document.getElementById("samplesPopup") as HTMLDivElement;
+        const samplesCloseButton = document.getElementById("samplesCloseButton") as HTMLButtonElement;
+        samplesCloseButton.onclick = () => { this._samplesPopup.style.display = "none"; };
+        const samplesContainer = document.getElementById("samples") as HTMLDivElement;
+        const categories = await Common.loadSampleIndex("samples/index.json");
+        Common.renderGalleryGrid(samplesContainer, categories, async (plot) => {
+            this._samplesPopup.style.display = "none";
+            await this._loadSampleAsync(`samples/${plot.plot}`);
+        });
+        const samplesButton = document.getElementById("samplesButton") as HTMLAnchorElement;
+        samplesButton.onclick = () => { this._samplesPopup.style.display = "flex"; };
     }
 
     private _initializeData(): void {
@@ -311,7 +404,7 @@ export class Main {
         this._data = new Data(dataTab);
     }
 
-    private _intializeRenderOptions(): void {
+    private _initializeRenderOptions(): void {
         // Max frames
         this._samplesLabel = document.getElementById("samplesLabel") as HTMLLabelElement;
         this._maxSamplesText = document.getElementById("maxSamplesText") as HTMLInputElement;
@@ -507,82 +600,6 @@ export class Main {
     }
 
 
-    private async _initializePlotsAsync(): Promise<void> {
-        const start = performance.now();
-
-        // UI
-        this._startStopButton = document.getElementById("startStopButton") as HTMLButtonElement;
-        this._loadingContainer = document.getElementById("loadingContainer") as HTMLDivElement;
-        this._includeCameraCheckbox = document.getElementById("cameraIncludeCheckbox") as HTMLInputElement;
-
-        // Editor
-        const lines = document.getElementById("lines") as HTMLDivElement;
-        const content = document.getElementById("content") as HTMLTextAreaElement;
-        this._editor = new Editor(lines, content);
-        this._editor.changedCallback = () => {
-            console.log("spec changed");
-            this._hasSpecChanged = true;
-            this._updateDebug(0);
-
-            // Disable start button if no spec
-            if (!this._isRunning) {
-                this._startStopButton.disabled = this._editor.content.trim().length == 0;
-            }
-        };
-        this._error = document.getElementById("error") as HTMLDivElement;
-
-        // Load initial sample from querystring
-        const emptySpec = "{}";
-        const urlParams = new URLSearchParams(window.location.search);
-        const sample = urlParams.get("plot");
-        if (sample) {
-            const value = sample.toLowerCase().endsWith(".json") ? sample : `${sample}.json`;
-            // Try to fetch sample and add to editor
-            try {
-                const text = await fetch(`samples/${value}`).then(response => response.text());
-                this._sampleLoaded(text);
-            }
-            catch (error) {
-                console.log("error loading sample from querystring", error);
-                this._sampleLoaded(emptySpec);
-            }
-        }
-        else { this._sampleLoaded(emptySpec); }
-
-        // Samples popup
-        this._samplesPopup = document.getElementById("samplesPopup") as HTMLDivElement;
-        const samplesCloseButton = document.getElementById("samplesCloseButton") as HTMLButtonElement;
-        samplesCloseButton.onclick = () => { this._samplesPopup.style.display = "none"; };
-        const samplesContainer = document.getElementById("samples") as HTMLDivElement;
-        const categories = await Common.loadSampleIndex("samples/index.json");
-        Common.renderGalleryGrid(samplesContainer, categories, async (plot) => {
-            this._samplesPopup.style.display = "none";
-            await this._loadSampleAsync(`samples/${plot.plot}`);
-        });
-        const samplesButton = document.getElementById("samplesButton") as HTMLAnchorElement;
-        samplesButton.onclick = () => { this._samplesPopup.style.display = "flex"; };
-
-        // Start, stop
-        this._startStopButton.onclick = async () => {
-            if (this._startStopButton.value == "Start") {
-                // Disable button until ready
-                this._startStopButton.disabled = true;
-
-                // Arm the loading indicator and yield so the browser can
-                // start the compositor-driven CSS animation before any
-                // CPU-bound spec parsing begins.
-                this._showLoading();
-                await new Promise(resolve => setTimeout(resolve, 0));
-
-                // Start rendering
-                await this._startAsync();
-            }
-            else {
-                this._stop();
-            }
-        }
-        console.log(`plots initialized ${Core.Time.formatDuration((performance.now() - start))}`);
-    }
 
     private _sampleLoaded(spec: string): void {
         this._editor.content = spec;
@@ -590,23 +607,17 @@ export class Main {
     }
 
     private async _loadSampleAsync(path: string): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            try {
-                fetch(path)
-                    .then(response => response.text())
-                    .then(async sample => {
-                        this._sampleLoaded(sample);
-                        resolve();
-                    });
-            }
-            catch (error) {
-                console.log("error loading sample", error);
-                reject(error);
-            }
+        try {
+            const response = await fetch(path);
+            const sample = await response.text();
+            this._sampleLoaded(sample);
+        }
+        catch (error) {
+            console.log("error loading sample", error);
+        }
 
-            // Close samples popup
-            this._samplesPopup.style.display = "none";
-        });
+        // Close samples popup
+        this._samplesPopup.style.display = "none";
     }
 
     private _updateUI(): void {
@@ -662,10 +673,6 @@ export class Main {
             // Depth
             this._debug.depthMin = this._renderer.depthMin;
             this._debug.depthMax = this._renderer.depthMax;
-
-            // Editor
-            this._debug.editorLineCount = this._editor.currentLines;
-            this._debug.editorLineNumber = this._editor.currentLine;
 
             // Update
             this._debug.update();
@@ -731,91 +738,85 @@ export class Main {
     }
 
     private async _startAsync(): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
-            // Clear errors
-            this._error.innerText = "";
-            this._error.style.display = "none";
+        // Clear errors
+        this._hideError();
 
-            try {
-                // Plot specification
-                if (this._hasSpecChanged) {
-                    // Check for valid JSON
-                    const plotJSON = this._editor.parseJSON();
+        try {
+            // Plot specification
+            if (this._hasSpecChanged) {
+                // Check for valid JSON
+                const plotJSON = this._editor.parseJSON();
 
-                    // Parse plot specification
-                    this._plot = await Spec.Plot.fromJSONAsync(plotJSON, { datasets: this._data.datasets, images: this._data.images });
+                // Parse plot specification
+                this._plot = await Spec.Plot.fromJSONAsync(plotJSON, { datasets: this._data.datasets, images: this._data.images });
 
-                    // Create scene
-                    this._scene = await this._plot.createSceneAsync();
+                // Create scene
+                this._scene = await this._plot.createSceneAsync();
 
-                    // Update data
-                    this._data.update(this._plot);
+                // Update data
+                this._data.update(this._plot);
 
-                    // Update signals
-                    this._updateSignals(this._plot);
+                // Update signals
+                this._updateSignals(this._plot);
 
-                    // Initialize scene
-                    this._initializeScene(this._scene, this._includeCameraCheckbox.checked);
+                // Initialize scene
+                this._initializeScene(this._scene, this._includeCameraCheckbox.checked);
 
-                    // Update UI with scene settings
-                    this._updateUI();
+                // Update UI with scene settings
+                this._updateUI();
 
-                    // Reset changed flag for valid spec
-                    this._hasSpecChanged = false;
-                }
-
-                // Ensure valid spec, and marks exist
-                if (this._renderer.bufferVisuals.length > 0 ||
-                    this._renderer.labelSetVisuals.length > 0 ||
-                    this._renderer.imageVisuals.length > 0) {
-
-                    // Tiles
-                    this._tilesX = parseInt(this._tilesXText.value);
-                    this._tilesY = parseInt(this._tilesYText.value);
-                    this._tileOffsetX = parseInt(this._tileOffsetXText.value);
-                    this._tileOffsetY = parseInt(this._tileOffsetYText.value);
-                    if (isNaN(this._tilesX) || isNaN(this._tilesY) || isNaN(this._tileOffsetX) || isNaN(this._tileOffsetY)) { throw new Error("invalid tile settings"); }
-                    this._renderer.tilesX = this._tilesX;
-                    this._renderer.tilesY = this._tilesY;
-                    this._renderer.tileOffsetX = this._tileOffsetX;
-                    this._renderer.tileOffsetY = this._tileOffsetY;
-                    const totalTiles = this._tilesX * this._tilesY;
-                    const tileIndex = this._tileOffsetY * this._tilesX + this._tileOffsetX + 1;
-
-                    // UI
-                    this._startStopButton.value = "Stop";
-                    this._startStopButton.disabled = false;
-                    this._cameraResetButton.disabled = false;
-
-                    // Reset manipulation
-                    this._mouseWheel.reset();
-
-                    // Allow re-run if maximum framecount has been reached
-                    if (this._renderer.frameCount >= this._maxSamplesPerPixel) {
-                        this._renderer.frameCount = 0;
-                    }
-
-                    // Start render loop
-                    this._isRunning = true;
-                    this._previousTime = performance.now();
-                    this._animationFrame = requestAnimationFrame(async (currentTime: DOMHighResTimeStamp) => await this._tickAsync(currentTime));
-                    this._captureButton.disabled = false
-                    console.log("render start");
-                    if (totalTiles > 1) { console.log(`tile [${this._tileOffsetX},${this._tileOffsetY}] (${tileIndex} of ${totalTiles})`); }
-                }
-                else {
-                    console.log("no marks to render");
-                    this._stop();
-                }
-                resolve();
+                // Reset changed flag for valid spec
+                this._hasSpecChanged = false;
             }
-            catch (error) {
-                this._error.innerText = error;
-                this._error.style.display = "block";
+
+            // Ensure valid spec, and marks exist
+            if (this._renderer.bufferVisuals.length > 0 ||
+                this._renderer.labelSetVisuals.length > 0 ||
+                this._renderer.imageVisuals.length > 0) {
+
+                // Tiles
+                this._tilesX = parseInt(this._tilesXText.value);
+                this._tilesY = parseInt(this._tilesYText.value);
+                this._tileOffsetX = parseInt(this._tileOffsetXText.value);
+                this._tileOffsetY = parseInt(this._tileOffsetYText.value);
+                if (isNaN(this._tilesX) || isNaN(this._tilesY) || isNaN(this._tileOffsetX) || isNaN(this._tileOffsetY)) { throw new Error("invalid tile settings"); }
+                this._renderer.tilesX = this._tilesX;
+                this._renderer.tilesY = this._tilesY;
+                this._renderer.tileOffsetX = this._tileOffsetX;
+                this._renderer.tileOffsetY = this._tileOffsetY;
+                const totalTiles = this._tilesX * this._tilesY;
+                const tileIndex = this._tileOffsetY * this._tilesX + this._tileOffsetX + 1;
+
+                // UI
+                this._startStopButton.value = "Stop";
+                this._startStopButton.disabled = false;
+                this._cameraResetButton.disabled = false;
+
+                // Reset manipulation
+                this._mouseWheel.reset();
+
+                // Allow re-run if maximum framecount has been reached
+                if (this._renderer.frameCount >= this._maxSamplesPerPixel) {
+                    this._renderer.frameCount = 0;
+                }
+
+                // Start render loop
+                this._isRunning = true;
+                this._previousTime = performance.now();
+                this._animationFrame = requestAnimationFrame(async (currentTime: DOMHighResTimeStamp) => await this._tickAsync(currentTime));
+                this._captureButton.disabled = false
+                console.log("render start");
+                if (totalTiles > 1) { console.log(`tile [${this._tileOffsetX},${this._tileOffsetY}] (${tileIndex} of ${totalTiles})`); }
+            }
+            else {
+                console.log("no marks to render");
                 this._stop();
-                reject(error);
             }
-        });
+        }
+        catch (error) {
+            this._showError(error);
+            this._stop();
+        }
     }
 
     private _stop(): void {
@@ -872,6 +873,16 @@ export class Main {
                 this._loadingContainer.classList.remove("pending");
             }
         }
+    }
+
+    private _showError(message: string): void {
+        this._error.innerText = message;
+        this._error.style.display = "block";
+    }
+
+    private _hideError(): void {
+        this._error.innerText = "";
+        this._error.style.display = "none";
     }
 
     private async _tickAsync(currentTime: DOMHighResTimeStamp): Promise<void> {
@@ -978,23 +989,6 @@ export class Main {
                 this._camera.zoom(this._manipulationProcessor.scaleDelta, this._manipulationProcessor.centroid[0], this._manipulationProcessor.centroid[1]);
             }
         }
-    }
-
-    private async _initializeRendererAsync(): Promise<void> {
-        const start = performance.now();
-
-        // Initialize the renderer with high-quality font settings
-        this._renderer = new WebGPURenderer.Main(this._canvas);
-        await this._renderer.initializeAsync({
-            atlasOptions: { width: 4096, height: 4096, type: "font" },
-            glyphRasterizerOptions: {
-                size: 192,
-                border: 0x18,     // 24px
-                edgeValue: Core.Config.sdfBuffer,
-                maxDistance: 0x40, // 64px
-            },
-        });
-        console.log(`renderer initialized ${Core.Time.formatDuration((performance.now() - start))}`);
     }
 
     private _capture(blob: Blob, filename: string): void {

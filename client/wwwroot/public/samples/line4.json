@@ -1,6 +1,6 @@
 {
-  "title": "Multi Series 3D Line Chart",
-  "description": "A multi series 3D line chart",
+  "title": "Multi Series Line Chart",
+  "description": "A multi series line chart",
   "width": 640,
   "height": 90,
   "depth": 640,
@@ -158,7 +158,8 @@
               "z": {"scale": "z", "field": "series", "offset": {"scale": "z", "band": 0.5}},
               "strokeWidth": {"scale": "z", "band": 0.01},
               "strokeDepth": {"scale": "z", "band": 1},
-              "stroke": {"scale": "fill", "field": "y"}
+              "stroke": {"scale": "fill", "field": "y"},
+              "segmentId": {"field": "series"}
             }
           }
         }

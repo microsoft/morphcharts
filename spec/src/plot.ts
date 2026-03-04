@@ -64,15 +64,14 @@ export class Plot {
 
     // Create a specification from a JSON string
     public static async fromJSONAsync(plotJSON: any, options?: { datasets?: { [key: string]: string }, images?: { [key: string]: string } }): Promise<Plot> {
-        return new Promise<Plot>(async (resolve, reject) => {
-            const start = performance.now();
-            try {
-                const datasets = options?.datasets || {};
-                const images = options?.images || {};
-                const plot = new Plot();
+        const start = performance.now();
+        try {
+            const datasets = options?.datasets || {};
+            const images = options?.images || {};
+            const plot = new Plot();
 
-                // Create a top-level group mark
-                plot.root = await Group.fromJSONAsync(plot, null, datasets, images, plotJSON);
+            // Create a top-level group mark
+            plot.root = await Group.fromJSONAsync(plot, null, datasets, images, plotJSON);
 
                 // Dimensions,
                 plot.size = plotJSON.size || 1;
@@ -104,13 +103,12 @@ export class Plot {
                 }
                 
                 console.log(`plot parsed ${Core.Time.formatDuration((performance.now() - start))}`);
-                resolve(plot);
+                return plot;
             }
             catch (error) {
                 console.log("error parsing plot JSON", error);
-                reject(error);
+                throw error;
             }
-        });
     }
 
     // Defaults
@@ -138,11 +136,10 @@ export class Plot {
     }
 
     /** Create a scene from this plot's spec-level objects (camera, lights, marks) */
-    public createSceneAsync(): Promise<IScene> {
-        return new Promise<IScene>(async (resolve, reject) => {
-            try {
-                // Reset pick IDs and registrations for the new scene
-                Core.Pick.reset();
+    public async createSceneAsync(): Promise<IScene> {
+        try {
+            // Reset pick IDs and registrations for the new scene
+            Core.Pick.reset();
 
                 // Convert to core camera
                 // TODO: Use this.camera.type to construct the appropriate Core.Cameras subclass (e.g. OrthographicCamera)
@@ -259,13 +256,12 @@ export class Plot {
 
                 // Top-level (group) mark
                 this.root.process(this, scene);
-                resolve(scene);
+                return scene;
             }
             catch (error) {
                 console.log("error creating scene", error);
-                reject(error);
+                throw error;
             }
-        });
     }
 
     /** @deprecated Use {@link createSceneAsync} instead */

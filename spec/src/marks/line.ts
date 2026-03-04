@@ -250,10 +250,9 @@ export class Line extends Mark {
     }
 
     public static async fromJSONAsync(group: Group, markJSON: any): Promise<Line> {
-        return new Promise<Line>(async (resolve, reject) => {
-            try {
-                const mark = new Line(group);
-                mark._fromJSONAsync(markJSON);
+        try {
+            const mark = new Line(group);
+            mark._fromJSONAsync(markJSON);
 
                 // Encodings
                 mark.encode = new MarkEncodings();
@@ -282,12 +281,11 @@ export class Line extends Mark {
                         if (encodeJSON.segmentId) { mark.encode.segmentId = MarkEncodingValue.fromJSON(mark, group, encodeJSON.segmentId); }
                     }
                 }
-                resolve(mark);
-            }
-            catch (error) {
-                console.log("error parsing line mark JSON", error);
-                reject(error);
-            }
-        });
+            return mark;
+        }
+        catch (error) {
+            console.log("error parsing line mark JSON", error);
+            throw error;
+        }
     }
 }

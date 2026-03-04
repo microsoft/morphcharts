@@ -358,6 +358,10 @@ export class LinearBVHNodeBufferData extends Float32Array {
     public readonly N_PRIMITIVES_OFFSET = 32 / 4;
     public readonly AXIS_OFFSET = 36 / 4;
 
+    constructor(arg: number | ArrayBuffer | SharedArrayBuffer | ArrayLike<number>) {
+        super(arg as ArrayBuffer);
+    }
+
     public getCenter(index: number, value: Vector3): void {
         const offset = LinearBVHNodeBufferData.SIZE * index + this.CENTER_OFFSET;
         value[0] = this[offset];

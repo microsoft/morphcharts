@@ -1,6 +1,6 @@
 {
-  "title": "2D Normal Distribution Histogram",
-  "description": "2D normal distribution histogram using Box-Muller transform, showing standard deviations as color",
+  "title": "Unit Histogram",
+  "description": "A unit histogram of a 2D normal distribution using the Box-Muller transform, showing standard deviations as color",
  
   "height": 360,
 
