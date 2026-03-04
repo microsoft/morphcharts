@@ -1,6 +1,6 @@
 {
-  "title": "Multi Series 2D Stacked Area Chart",
-  "description": "A multi series 2D stacked area chart",
+  "title": "Stacked Area Chart",
+  "description": "A stacked area chart",
   "width": 640,
   "height": 360,
   "depth": 50,
@@ -53,7 +53,7 @@
     {
       "name": "depth",
       "type": "linear",
-      "range": [1,50],
+      "range": [1,{"signal": "depth"}],
       "domain": {"data": "table", "field": "series"},
       "reverse": true
     }
@@ -95,10 +95,10 @@
               "x": {"scale": "x", "field": "x"},
               "y": {"scale": "y", "field": "y0"},
               "y2": {"scale": "y", "field": "y1"},
-              "z": {"signal": "depth/2"},
-              "depth": {"signal": "depth"},
-              "_depth": {"scale": "depth", "field": "series"},
-              "fill": {"scale": "fill", "field": "series"}
+              "z": {"signal": "0", "offset": {"scale": "depth", "field": "series", "mult": 0.5}},
+              "depth": {"scale": "depth", "field": "series"},
+              "fill": {"scale": "fill", "field": "series"},
+              "segmentId": {"field": "series", "offset": 1}
             }
           }
         }

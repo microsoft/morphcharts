@@ -1,6 +1,6 @@
 {
-  "title": "3D Sunburst Chart", 
-  "description": "3D Sunburst chart with rotated labels",
+  "title": "Sunburst Chart", 
+  "description": "The Flare visualization library as a sunburst chart with rotated labels",
 
   "width": 640,
   "depth": 640,

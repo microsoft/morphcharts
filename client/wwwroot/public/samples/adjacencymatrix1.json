@@ -1,6 +1,6 @@
 {
-  "title": "Les Misérables Co-occurrences",
-  "description": "A co-occurrence matrix of Les Misérables characters",
+  "title": "Adjacency Matrix",
+  "description": "An adjacency matrix showing character co-occurrence in Les Misérables",
 
   "width": 640,
   "height": 120,

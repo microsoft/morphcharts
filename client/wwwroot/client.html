@@ -242,9 +242,6 @@
             background-color: whitesmoke;
         }
 
-        /* about tab */
-        /* .about {} */
-
         /* samples */
         .samplesPopup {
             display: none;
@@ -279,6 +276,7 @@
             top: 0;
             left: 0;
             font-family: monospace;
+            font-size: 0.85em;
             color: white;
             background-color: black;
             opacity: 0.8;
@@ -331,9 +329,10 @@
         }
 
         /* Compositor-driven opacity animation — runs off the main thread,
-           so the loading indicator becomes visible even during CPU-blocking work. */
+           so the loading indicator becomes visible even during CPU-blocking work.
+           --loading-show-delay is set from TypeScript to keep the value in sync. */
         .loading.pending {
-            animation: loading-show 1ms step-end 200ms forwards;
+            animation: loading-show 1ms step-end var(--loading-show-delay) forwards;
         }
 
         @keyframes loading-show {
@@ -365,7 +364,6 @@
                     <div class="tabButton" tabindex="0">Tiles</div>
                     <!-- <div class="tabButton" tabindex="0">Animation</div> -->
                     <!-- <div class="tabButton" tabindex="0">Textures</div> -->
-                    <div class="tabButton" tabindex="0">About</div>
                     <div style="flex-grow: 1; border-bottom: 1px solid gray;"></div>
                 </div>
                 <!-- plot tab -->
@@ -403,6 +401,11 @@
                 <!-- render tab -->
                 <div class="tab">
                     <div style="display: flex; flex-direction: column; gap: 12px; padding: 4px;">
+                        <!-- debug -->
+                        <div style="display: flex; flex-direction: row;">
+                            <input type="checkbox" id="debugCheckbox" checked /><label class="checkboxLabel"
+                                for="debugCheckbox">Debug</label>
+                        </div>
                         <!-- image size -->
                         <div style="display: flex; flex-direction: column; gap: 4px;">
                             <label class="heading">Size</label>
@@ -431,7 +434,7 @@
                         </div>
                         <!-- render mode -->
                         <div style="display: flex; flex-direction: column; gap: 4px;">
-                            <label class="heading">Render Mode</label>
+                            <label class="heading">Mode</label>
                             <div
                                 style="display: flex; flex-direction: row; align-items: baseline; gap: 8px; flex-wrap: wrap;">
                                 <div><input type="radio" name="renderMode" id="modeRaytrace" value="raytrace"
@@ -541,7 +544,7 @@
                         </div>
                         <!-- camera mode -->
                         <div style="display: flex; flex-direction: column; gap: 4px;">
-                            <label class="heading">Camera Mode</label>
+                            <label class="heading">Camera</label>
                             <div
                                 style="display: flex; flex-direction: row; align-items: baseline; gap: 8px; flex-wrap: wrap;">
                                 <div><input type="radio" name="cameraMode" id="modePerspective" value="perspective"
@@ -646,17 +649,6 @@
                 <!-- <div class="tab"></div> -->
                 <!-- textures tab -->
                 <!-- <div class="tab"></div> -->
-                <!-- about tab -->
-                <div class="tab">
-                    <div style="display: flex; flex-direction: column; gap: 12px; padding: 4px;">
-                        <div class="about">MorphCharts Client</div>
-                        <!-- debug -->
-                        <div style="display: flex; flex-direction: row;">
-                            <input type="checkbox" id="debugCheckbox" checked /><label class="checkboxLabel"
-                                for="debugCheckbox">Debug</label>
-                        </div>
-                    </div>
-                </div>
                 <!-- error -->
                 <div id="error" class="error"></div>
             </div>
@@ -672,25 +664,21 @@
     <!-- debug -->
     <div id="debugContainer" class="debugContainer">
         <!-- render -->
-        <div><label for="debugRenderFrames">FRM TOT</label><span id="debugRenderFrameCount"></span></div>
+        <div><label>FRM TOT</label><span id="debugRenderFrameCount"></span></div>
         <!-- camera -->
-        <div><label for="debugCameraPosition">CAM POS</label><span id="debugCameraPosition"></span></div>
-        <div><label for="debugCameraRight">CAM RHT</label><span id="debugCameraRight"></span></div>
-        <div><label for="debugCameraUp">CAM UP </label><span id="debugCameraUp"></span></div>
-        <div><label for="debugCameraForward">CAM FWD</label><span id="debugCameraForward"></span></div>
-        <div><label for="debugCameraManipulationOrigin">CAM ORI</label><span id="debugCameraManipulationOrigin"></span>
-        </div>
-        <div><label for="debugWorldPosition">WLD POS</label><span id="debugWorldPosition"></span></div>
-        <div><label for="debugCameraDistance">CAM DST</label><span id="debugCameraDistance"></span></div>
-        <div><label for="debugCameraFov">CAM FOV</label><span id="debugCameraFov"></span></div>
-        <div><label for="debugCameraAperture">CAM DOF</label><span id="debugCameraAperture"></span></div>
-        <div><label for="debugCameraFocus">CAM FOC</label><span id="debugCameraFocus"></span></div>
+        <div><label>CAM POS</label><span id="debugCameraPosition"></span></div>
+        <div><label>CAM RHT</label><span id="debugCameraRight"></span></div>
+        <div><label>CAM UP </label><span id="debugCameraUp"></span></div>
+        <div><label>CAM FWD</label><span id="debugCameraForward"></span></div>
+        <div><label>CAM ORI</label><span id="debugCameraManipulationOrigin"></span></div>
+        <div><label>WLD POS</label><span id="debugWorldPosition"></span></div>
+        <div><label>CAM DST</label><span id="debugCameraDistance"></span></div>
+        <div><label>CAM FOV</label><span id="debugCameraFov"></span></div>
+        <div><label>CAM DOF</label><span id="debugCameraAperture"></span></div>
+        <div><label>CAM FOC</label><span id="debugCameraFocus"></span></div>
         <!-- depth -->
-        <div><label for="debugDepthMin">DEP MIN</label><span id="debugDepthMin"></span></div>
-        <div><label for="debugDepthMax">DEP MAX</label><span id="debugDepthMax"></span></div>
-        <!-- editor -->
-        <div><label for="debugEditorLineCount">EDT LIN</label><span id="debugEditorLineCount"></span></div>
-        <div><label for="debugEditorLineNumber">EDT ROW</label><span id="debugEditorLineNumber"></span></div>
+        <div><label>DEP MIN</label><span id="debugDepthMin"></span></div>
+        <div><label>DEP MAX</label><span id="debugDepthMax"></span></div>
     </div>
     <!-- samples -->
     <div id="samplesPopup" class="samplesPopup">

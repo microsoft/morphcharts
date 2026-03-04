@@ -485,10 +485,9 @@ export class Group extends Mark {
     }
 
     public static async fromJSONAsync(plot: Plot, group: Group, datasets: { [key: string]: string }, images: { [key: string]: string }, markJSON: any): Promise<Group> {
-        return new Promise<Group>(async (resolve, reject) => {
-            try {
-                const mark = new Group(group);
-                await mark._fromJSONAsync(markJSON);
+        try {
+            const mark = new Group(group);
+            await mark._fromJSONAsync(markJSON);
 
                 // Datasets
                 mark.datasets = {};
@@ -570,20 +569,18 @@ export class Group extends Mark {
                     // No facets, just a single group mark
                     await this._fromJSONAsync(mark, plot, group, datasets, images, markJSON);
                 }
-                resolve(mark);
+                return mark;
             }
             catch (error) {
                 console.log("error parsing group mark JSON", error);
-                reject(error);
+                throw error;
             }
-        });
     }
 
     protected static async _fromJSONAsync(mark: Group, plot: Plot, group: Group, datasets: { [key: string]: string }, images: { [key: string]: string }, markJSON: any): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
-            try {
-                // Create config
-                if (group) {
+        try {
+            // Create config
+            if (group) {
                     // Share config with parent group
                     mark.config = group.config;
                 }
@@ -839,12 +836,10 @@ export class Group extends Mark {
                     }
                 }
                 console.log(`added group mark`);
-                resolve();
             }
             catch (error) {
                 console.log("error parsing group mark JSON", error);
-                reject(error);
+                throw error;
             }
-        });
     }
 }

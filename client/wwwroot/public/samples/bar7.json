@@ -1,6 +1,6 @@
 {
-  "title": "3D Stacked Bar Chart",
-  "description": "A 3D stacked bar chart",
+  "title": "Matrix Bar Chart",
+  "description": "A matrix bar chart",
   "width": 640,
   "height": 240,
   "depth": 180,

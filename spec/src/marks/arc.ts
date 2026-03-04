@@ -267,10 +267,9 @@ export class Arc extends Mark {
     }
 
     public static async fromJSONAsync(group: Group, markJSON: any): Promise<Arc> {
-        return new Promise<Arc>(async (resolve, reject) => {
-            try {
-                const mark = new Arc(group);
-                mark._fromJSONAsync(markJSON);
+        try {
+            const mark = new Arc(group);
+            mark._fromJSONAsync(markJSON);
 
                 // Encodings
                 mark.encode = new MarkEncodings();
@@ -313,12 +312,11 @@ export class Arc extends Mark {
                         if (encodeJSON.segmentId) { mark.encode.segmentId = MarkEncodingValue.fromJSON(mark, group, encodeJSON.segmentId); }
                     }
                 }
-                resolve(mark);
-            }
-            catch (error) {
-                console.log("error parsing arc mark JSON", error);
-                reject(error);
-            }
-        });
+            return mark;
+        }
+        catch (error) {
+            console.log("error parsing arc mark JSON", error);
+            throw error;
+        }
     }
 }

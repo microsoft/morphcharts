@@ -401,10 +401,9 @@ export class Text extends Mark {
     }
 
     public static async fromJSONAsync(group: Group, markJSON: any): Promise<Text> {
-        return new Promise<Text>(async (resolve, reject) => {
-            try {
-                const mark = new Text(group);
-                mark._fromJSONAsync(markJSON);
+        try {
+            const mark = new Text(group);
+            mark._fromJSONAsync(markJSON);
 
                 // Number format
                 if (markJSON.numberFormat) {
@@ -477,12 +476,11 @@ export class Text extends Mark {
                         if (encodeJSON.segmentId) { mark.encode.segmentId = MarkEncodingValue.fromJSON(mark, group, encodeJSON.segmentId); }
                     }
                 }
-                resolve(mark);
-            }
-            catch (error) {
-                console.log("error parsing text mark JSON", error);
-                reject(error);
-            }
-        });
+            return mark;
+        }
+        catch (error) {
+            console.log("error parsing text mark JSON", error);
+            throw error;
+        }
     }
 }

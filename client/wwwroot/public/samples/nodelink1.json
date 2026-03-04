@@ -1,6 +1,6 @@
 {
-  "title": "Node Link 3D",
-  "description": "3D Node link chart",
+  "title": "Node Link",
+  "description": "Regular dodecahedron as a node link chart",
 
   "width": 640,
   "height": 640,

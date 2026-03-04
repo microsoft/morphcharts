@@ -1,6 +1,6 @@
 {
-  "title": "3D Hierarchical Treemap",
-  "description": "A 3D hierarchical treemap",
+  "title": "Hierarchical Treemap",
+  "description": "A hierarchical treemap",
   "width": 640,
   "height": 180,
   "depth": 360,

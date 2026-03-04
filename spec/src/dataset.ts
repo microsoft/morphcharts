@@ -33,10 +33,9 @@ export class Dataset extends Core.Data.Dataset {
     }
 
     public static async fromJSONAsync(plot: Plot, group: Group, datasets: { [key: string]: string }, datasetJSON: any): Promise<void> {
-        return new Promise<void>(async (resolve, reject) => {
-            try {
-                const start = performance.now();
-                const name = datasetJSON.name; // Required
+        try {
+            const start = performance.now();
+            const name = datasetJSON.name; // Required
 
                 // Explicit column types
                 const parse = datasetJSON.parse;
@@ -71,7 +70,7 @@ export class Dataset extends Core.Data.Dataset {
                     dataset = group.getDataset(datasetJSON.source);
                     if (!dataset) {
                         console.log(`source dataset ${datasetJSON.source} not found`);
-                        reject(`source dataset ${datasetJSON.source} not found`);
+                        throw new Error(`source dataset ${datasetJSON.source} not found`);
                     }
 
                     // Existing datasets are readonly and should be cloned during transforms
@@ -133,7 +132,7 @@ export class Dataset extends Core.Data.Dataset {
                                 const response = await fetch(datasetJSON.url);
                                 if (!response.ok) {
                                     console.log(`error loading ${format} data ${name} url ${datasetJSON.url}`, response.statusText);
-                                    reject(`${datasetJSON.url} ${response.statusText.toLowerCase()}`);
+                                    throw new Error(`${datasetJSON.url} ${response.statusText.toLowerCase()}`);
                                 }
                                 else {
                                     let text = await response.text();
@@ -183,7 +182,7 @@ export class Dataset extends Core.Data.Dataset {
                             }
                             catch (error) {
                                 console.log(`error loading ${format} data ${name} url ${datasetJSON.url}`, error);
-                                reject(error);
+                                throw error;
                             }
                             break;
                         default:
@@ -330,12 +329,10 @@ export class Dataset extends Core.Data.Dataset {
                 }
                 group.datasets[name] = dataset;
                 console.log(`added data ${name} ${dataset.headings.length} columns ${dataset.rows.length} rows ${Core.Time.formatDuration(performance.now() - start)}`);
-                resolve();
             }
             catch (error) {
                 console.log("error parsing dataset  JSON", error);
-                reject(error);
+                throw error;
             }
-        });
     }
 }

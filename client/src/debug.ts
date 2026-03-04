@@ -4,102 +4,93 @@
 import * as Core from "core";
 
 export class Debug {
-  // Renderer
-  private _renderFrameCount: HTMLSpanElement;
-  public renderFrameCount: number;
+  // DOM elements
+  private _renderFrameCountSpan: HTMLSpanElement;
+  private _cameraPositionSpan: HTMLSpanElement;
+  private _cameraRightSpan: HTMLSpanElement;
+  private _cameraUpSpan: HTMLSpanElement;
+  private _cameraForwardSpan: HTMLSpanElement;
+  private _cameraManipulationOriginSpan: HTMLSpanElement;
+  private _cameraDistanceSpan: HTMLSpanElement;
+  private _cameraFovSpan: HTMLSpanElement;
+  private _cameraApertureSpan: HTMLSpanElement;
+  private _cameraFocusSpan: HTMLSpanElement;
+  private _worldPositionSpan: HTMLSpanElement;
+  private _depthMinSpan: HTMLSpanElement;
+  private _depthMaxSpan: HTMLSpanElement;
 
-  // Editor
-  private _editorLineCount: HTMLSpanElement;
-  public editorLineCount: number;
-  private _editorLineNumber: HTMLSpanElement;
-  public editorLineNumber: number;
+  // Backing fields (always safe defaults)
+  private _renderFrameCount = 0;
+  private _cameraPosition: Core.Vector3 = [0, 0, 0];
+  private _cameraRight: Core.Vector3 = [0, 0, 0];
+  private _cameraUp: Core.Vector3 = [0, 0, 0];
+  private _cameraForward: Core.Vector3 = [0, 0, 0];
+  private _cameraManipulationOrigin: Core.Vector3 = [0, 0, 0];
+  private _cameraFov = 0;
+  private _cameraAperture = 0;
+  private _cameraFocusDistance = 0;
+  private _worldPosition: Core.Vector3 = [0, 0, 0];
+  private _depthMin = 0;
+  private _depthMax = 0;
 
-  // Camera
-  private _cameraPosition: HTMLSpanElement;
-  public cameraPosition: Core.Vector3;
-  private _cameraRight: HTMLSpanElement;
-  public cameraRight: Core.Vector3;
-  private _cameraUp: HTMLSpanElement;
-  public cameraUp: Core.Vector3;
-  private _cameraForward: HTMLSpanElement;
-  public cameraForward: Core.Vector3;
-  private _cameraManipulationOrigin: HTMLSpanElement;
-  public cameraManipulationOrigin: Core.Vector3;
-  private _cameraDistance: HTMLSpanElement;
-  private _cameraFov: HTMLSpanElement;
-  public cameraFov: number;
-  private _cameraAperture: HTMLSpanElement;
-  public cameraAperture: number;
-  private _cameraFocus: HTMLSpanElement;
-  public cameraFocusDistance: number;
-
-  // World
-  private _worldPosition: HTMLSpanElement;
-  public worldPosition: Core.Vector3;
-
-  // Depth
-  private _depthMin: HTMLSpanElement;
-  private _depthMax: HTMLSpanElement;
-  public depthMin: number;
-  public depthMax: number;
+  // Setters — silently ignore undefined/null values
+  public set renderFrameCount(value: number) { if (value != null) { this._renderFrameCount = value; } }
+  public set cameraPosition(value: Core.Vector3) { if (value != null) { this._cameraPosition = value; } }
+  public set cameraRight(value: Core.Vector3) { if (value != null) { this._cameraRight = value; } }
+  public set cameraUp(value: Core.Vector3) { if (value != null) { this._cameraUp = value; } }
+  public set cameraForward(value: Core.Vector3) { if (value != null) { this._cameraForward = value; } }
+  public set cameraManipulationOrigin(value: Core.Vector3) { if (value != null) { this._cameraManipulationOrigin = value; } }
+  public set cameraFov(value: number) { if (value != null) { this._cameraFov = value; } }
+  public set cameraAperture(value: number) { if (value != null) { this._cameraAperture = value; } }
+  public set cameraFocusDistance(value: number) { if (value != null) { this._cameraFocusDistance = value; } }
+  public get worldPosition(): Core.Vector3 { return this._worldPosition; }
+  public set worldPosition(value: Core.Vector3) { if (value != null) { this._worldPosition = value; } }
+  public set depthMin(value: number) { if (value != null) { this._depthMin = value; } }
+  public set depthMax(value: number) { if (value != null) { this._depthMax = value; } }
 
   constructor() {
     // Renderer
-    this._renderFrameCount = document.getElementById("debugRenderFrameCount") as HTMLSpanElement;
+    this._renderFrameCountSpan = document.getElementById("debugRenderFrameCount") as HTMLSpanElement;
 
     // Camera
-    this._cameraPosition = document.getElementById("debugCameraPosition") as HTMLSpanElement;
-    this.cameraPosition = [0, 0, 0];
-    this._cameraRight = document.getElementById("debugCameraRight") as HTMLSpanElement;
-    this.cameraRight = [0, 0, 0];
-    this._cameraUp = document.getElementById("debugCameraUp") as HTMLSpanElement;
-    this.cameraUp = [0, 0, 0];
-    this._cameraForward = document.getElementById("debugCameraForward") as HTMLSpanElement;
-    this.cameraForward = [0, 0, 0];
-    this._cameraManipulationOrigin = document.getElementById("debugCameraManipulationOrigin") as HTMLSpanElement;
-    this.cameraManipulationOrigin = [0, 0, 0];
-    this._cameraDistance = document.getElementById("debugCameraDistance") as HTMLSpanElement;
-    this._cameraFov = document.getElementById("debugCameraFov") as HTMLSpanElement;
-    this._cameraAperture = document.getElementById("debugCameraAperture") as HTMLSpanElement;
-    this._cameraFocus = document.getElementById("debugCameraFocus") as HTMLSpanElement;
+    this._cameraPositionSpan = document.getElementById("debugCameraPosition") as HTMLSpanElement;
+    this._cameraRightSpan = document.getElementById("debugCameraRight") as HTMLSpanElement;
+    this._cameraUpSpan = document.getElementById("debugCameraUp") as HTMLSpanElement;
+    this._cameraForwardSpan = document.getElementById("debugCameraForward") as HTMLSpanElement;
+    this._cameraManipulationOriginSpan = document.getElementById("debugCameraManipulationOrigin") as HTMLSpanElement;
+    this._cameraDistanceSpan = document.getElementById("debugCameraDistance") as HTMLSpanElement;
+    this._cameraFovSpan = document.getElementById("debugCameraFov") as HTMLSpanElement;
+    this._cameraApertureSpan = document.getElementById("debugCameraAperture") as HTMLSpanElement;
+    this._cameraFocusSpan = document.getElementById("debugCameraFocus") as HTMLSpanElement;
 
     // World
-    this._worldPosition = document.getElementById("debugWorldPosition") as HTMLSpanElement;
-    this.worldPosition = [0, 0, 0];
+    this._worldPositionSpan = document.getElementById("debugWorldPosition") as HTMLSpanElement;
 
     // Depth
-    this._depthMin = document.getElementById("debugDepthMin") as HTMLSpanElement;
-    this._depthMax = document.getElementById("debugDepthMax") as HTMLSpanElement;
-
-    // Editor
-    this._editorLineCount = document.getElementById("debugEditorLineCount") as HTMLSpanElement;
-    this._editorLineNumber = document.getElementById("debugEditorLineNumber") as HTMLSpanElement;
+    this._depthMinSpan = document.getElementById("debugDepthMin") as HTMLSpanElement;
+    this._depthMaxSpan = document.getElementById("debugDepthMax") as HTMLSpanElement;
   }
 
   public update(): void {
     // Renderer
-    this._renderFrameCount.innerText = this.renderFrameCount.toString();
+    this._renderFrameCountSpan.innerText = this._renderFrameCount.toString().padStart(5, " ");
 
     // Camera
-    this._cameraPosition.innerText = `[${this.cameraPosition[0].toFixed(4).padStart(8, " ")},${this.cameraPosition[1].toFixed(4).padStart(8, " ")},${this.cameraPosition[2].toFixed(4).padStart(8, " ")}]`;
-    this._cameraRight.innerText = `[${this.cameraRight[0].toFixed(4).padStart(8, " ")},${this.cameraRight[1].toFixed(4).padStart(8, " ")},${this.cameraRight[2].toFixed(4).padStart(8, " ")}]`;
-    this._cameraUp.innerText = `[${this.cameraUp[0].toFixed(4).padStart(8, " ")},${this.cameraUp[1].toFixed(4).padStart(8, " ")},${this.cameraUp[2].toFixed(4).padStart(8, " ")}]`;
-    this._cameraForward.innerText = `[${this.cameraForward[0].toFixed(4).padStart(8, " ")},${this.cameraForward[1].toFixed(4).padStart(8, " ")},${this.cameraForward[2].toFixed(4).padStart(8, " ")}]`;
-    this._cameraManipulationOrigin.innerText = `[${this.cameraManipulationOrigin[0].toFixed(4).padStart(8, " ")},${this.cameraManipulationOrigin[1].toFixed(4).padStart(8, " ")},${this.cameraManipulationOrigin[2].toFixed(4).padStart(8, " ")}]`;
-    this._cameraDistance.innerText = (Core.vector3.distance(this.cameraPosition, this.cameraManipulationOrigin)).toFixed(3).padStart(6, " ");
-    this._cameraFov.innerText = `${Math.round(this.cameraFov * Core.Constants.DEGREES_PER_RADIAN).toString().padStart(3, " ")}°`;
-    this._cameraAperture.innerText = `${(this.cameraAperture * 1000).toFixed(1).padStart(4, " ")}mm`;
-    this._cameraFocus.innerText = `${(this.cameraFocusDistance).toFixed(3).padStart(6, " ")}`;
+    this._cameraPositionSpan.innerText = `${this._cameraPosition[0].toFixed(4).padStart(10, " ")} ${this._cameraPosition[1].toFixed(4).padStart(10, " ")} ${this._cameraPosition[2].toFixed(4).padStart(10, " ")}`;
+    this._cameraRightSpan.innerText = `${this._cameraRight[0].toFixed(4).padStart(10, " ")} ${this._cameraRight[1].toFixed(4).padStart(10, " ")} ${this._cameraRight[2].toFixed(4).padStart(10, " ")}`;
+    this._cameraUpSpan.innerText = `${this._cameraUp[0].toFixed(4).padStart(10, " ")} ${this._cameraUp[1].toFixed(4).padStart(10, " ")} ${this._cameraUp[2].toFixed(4).padStart(10, " ")}`;
+    this._cameraForwardSpan.innerText = `${this._cameraForward[0].toFixed(4).padStart(10, " ")} ${this._cameraForward[1].toFixed(4).padStart(10, " ")} ${this._cameraForward[2].toFixed(4).padStart(10, " ")}`;
+    this._cameraManipulationOriginSpan.innerText = `${this._cameraManipulationOrigin[0].toFixed(4).padStart(10, " ")} ${this._cameraManipulationOrigin[1].toFixed(4).padStart(10, " ")} ${this._cameraManipulationOrigin[2].toFixed(4).padStart(10, " ")}`;
+    this._cameraDistanceSpan.innerText = (Core.vector3.distance(this._cameraPosition, this._cameraManipulationOrigin)).toFixed(3).padStart(9, " ");
+    this._cameraFovSpan.innerText = `${Math.round(this._cameraFov * Core.Constants.DEGREES_PER_RADIAN).toFixed(1).padStart(7, " ")}°`;
+    this._cameraApertureSpan.innerText = `${(this._cameraAperture * 1000).toFixed(1).padStart(7, " ")}mm`;
+    this._cameraFocusSpan.innerText = `${(this._cameraFocusDistance).toFixed(3).padStart(9, " ")}`;
 
     // World
-    this._worldPosition.innerText = `[${this.worldPosition[0].toFixed(4).padStart(8, " ")},${this.worldPosition[1].toFixed(4).padStart(8, " ")},${this.worldPosition[2].toFixed(4).padStart(8, " ")}]`;
+    this._worldPositionSpan.innerText = `${this._worldPosition[0].toFixed(4).padStart(10, " ")} ${this._worldPosition[1].toFixed(4).padStart(10, " ")} ${this._worldPosition[2].toFixed(4).padStart(10, " ")}`;
 
     // Depth
-    this._depthMin.innerText = `${this.depthMin.toFixed(2).padStart(5, " ")}`;
-    this._depthMax.innerText = `${this.depthMax.toFixed(2).padStart(5, " ")}`;
-
-    // Editor
-    this._editorLineCount.innerText = this.editorLineCount.toString().padStart(4, " ");
-    this._editorLineNumber.innerText = this.editorLineNumber.toString().padStart(4, " ");
+    this._depthMinSpan.innerText = `${this._depthMin.toFixed(2).padStart(8, " ")}`;
+    this._depthMaxSpan.innerText = `${this._depthMax.toFixed(2).padStart(8, " ")}`;
   }
 }

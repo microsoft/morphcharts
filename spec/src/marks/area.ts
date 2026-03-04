@@ -207,10 +207,9 @@ export class Area extends Mark {
     }
 
     public static async fromJSONAsync(group: Group, markJSON: any): Promise<Area> {
-        return new Promise<Area>(async (resolve, reject) => {
-            try {
-                const mark = new Area(group);
-                mark._fromJSONAsync(markJSON);
+        try {
+            const mark = new Area(group);
+            mark._fromJSONAsync(markJSON);
 
                 // Encodings
                 mark.encode = new MarkEncodings();
@@ -239,12 +238,11 @@ export class Area extends Mark {
                         if (encodeJSON.segmentId) { mark.encode.segmentId = MarkEncodingValue.fromJSON(mark, group, encodeJSON.segmentId); }
                     }
                 }
-                resolve(mark);
-            }
-            catch (error) {
-                console.log("error parsing area mark JSON", error);
-                reject(error);
-            }
-        });
+            return mark;
+        }
+        catch (error) {
+            console.log("error parsing area mark JSON", error);
+            throw error;
+        }
     }
 }

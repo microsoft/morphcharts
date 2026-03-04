@@ -110,7 +110,7 @@ figure img {
 
 figcaption {
     margin-top: 8px;
-    font-size: 0.9em;
+    font-size: 0.85em;
     color: gray;
     counter-increment: figure;
 }

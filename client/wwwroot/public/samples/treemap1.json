@@ -1,6 +1,6 @@
 {    
-  "title": "2D Flat Treemap",
-  "description": "A 2D non-hierarchical treemap",
+  "title": "Non-Hierarchical Treemap",
+  "description": "A non-hierarchical treemap",
   "width": 640,
   "height": 360,
   "depth": 60,

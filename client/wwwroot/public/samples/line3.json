@@ -1,6 +1,6 @@
 {
-  "title": "Multi Series Facetted 2D Line Chart",
-  "description": "A multi series facetted 2D line chart",
+  "title": "Faceted Line Chart",
+  "description": "A faceted line chart",
     
   "signals": [
     {"name": "side", "value": 100},

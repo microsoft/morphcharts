@@ -538,10 +538,9 @@ export class Rect extends Mark {
     }
 
     public static async fromJSONAsync(group: Group, markJSON: any): Promise<Rect> {
-        return new Promise<Rect>(async (resolve, reject) => {
-            try {
-                const mark = new Rect(group);
-                mark._fromJSONAsync(markJSON);
+        try {
+            const mark = new Rect(group);
+            mark._fromJSONAsync(markJSON);
 
                 // Encodings
                 mark.encode = new MarkEncodings();
@@ -596,12 +595,11 @@ export class Rect extends Mark {
                         if (encodeJSON.segmentId) { mark.encode.segmentId = MarkEncodingValue.fromJSON(mark, group, encodeJSON.segmentId); }
                     }
                 }
-                resolve(mark);
-            }
-            catch (error) {
-                console.log("error parsing rect mark JSON", error);
-                reject(error);
-            }
-        });
+            return mark;
+        }
+        catch (error) {
+            console.log("error parsing rect mark JSON", error);
+            throw error;
+        }
     }
 }

@@ -1,17 +1,12 @@
 {
-  "title": "Multi Series 3D Line Chart",
-  "description": "A multi series 3D line chart",
+  "title": "Multi Series Line Chart",
+  "description": "A multi series line chart",
   "width": 640,
   "height": 360,
   "depth": 640,
   
   "camera": {"position": [1, 0.5, 1.75], "target": [0, -0.1, 0.1]},
-  
-  "signals": [
-    {"name": "series", "value": 100},
-    {"name": "rows", "value": 10}
-  ],
-  
+    
   "data": [
     {
       "name": "table",
@@ -38,13 +33,23 @@
     {
       "name": "z",
       "type": "band",
-      "padding": 0.8,
+      "padding": 0.2,
       "domain": {
         "data": "table", 
         "field": "series",
         "sort": {"field": "y", "op": "mean",  "order": "descending"}
       },
       "range": "depth"
+    },
+    {
+      "name": "fill",
+      "type": "ordinal",
+      "domain": {
+        "data": "table", 
+        "field": "series",
+        "sort": {"field": "y", "op": "mean"}
+      },
+      "range": {"scheme": "category20"}
     }
   ],
 
@@ -121,7 +126,6 @@
       "marks": [
         {
           "type": "line",
-          "geometry": "cylinder",
           "from": {"data": "series"},
           "encode": {
             "enter": {
@@ -129,8 +133,28 @@
               "y": {"scale": "y", "field": "y"},
               "z": {"scale": "z", "field": "series"},
               "depth": {"scale": "z", "band": 1},
-              "strokeWidth": {"value": 2},
-              "segmentId": {"field": "series", "offset": 1}
+              "strokeWidth": {"value": 1},
+              "strokeDepth": {"scale": "z", "band": 1},
+              "stroke": {"scale": "fill", "field": "series"},
+              "segmentId": {"field": "series"}
+            }
+          }
+        },
+        {
+          "type": "rect",
+          "geometry": "cylindersdf",
+          "from": {"data": "series"},
+          "encode": {
+            "enter": {
+              "xc": {"scale": "x", "field": "x"},
+              "yc": {"scale": "y", "field": "y"},
+              "zc": {"scale": "z", "field": "series"},
+              "depth": {"scale": "z", "band": 1},
+              "width": {"value": 1},
+              "height": {"scale": "z", "band": 1},
+              "angleX": {"value": 90},
+              "fill": {"scale": "fill", "field": "series"},
+              "segmentId": {"field": "series"}
             }
           }
         }

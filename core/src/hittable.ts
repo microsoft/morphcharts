@@ -511,6 +511,10 @@ export class HittableBufferData extends Float32Array {
     public readonly PARAM_OFFSET = 176 / 4;
     public readonly MATERIAL_COLOR2_OFFSET = 192 / 4;
 
+    constructor(arg: number | ArrayBuffer | SharedArrayBuffer | ArrayLike<number>) {
+        super(arg as ArrayBuffer);
+    }
+
     public getUnitType(index: number) {
         return this[HittableBufferData.SIZE * index + this.UNIT_TYPE_OFFSET];
     }
