@@ -18,6 +18,7 @@ window.onload = () => { new Main(); };
 export class Main {
     private _canvas: HTMLCanvasElement;
     private _isRunning: boolean;
+    private _initializePromise: Promise<void>;
     private _animationFrame: number;
     private _previousTime: DOMHighResTimeStamp;
     private _loadingShowDelay: number;
@@ -206,6 +207,9 @@ export class Main {
             this._showError(`GPU device lost (${reason}). Please reload the page.${message ? " " + message : ""}`);
         };
 
+        // Eagerly destroy GPU resources on page unload to avoid browser hang
+        window.addEventListener("beforeunload", () => this._renderer.dispose());
+
         // Camera
         const cameraOptions: Core.Cameras.IAltAzimuthPerspectiveCameraOptions = {
             width: this._renderer.width,
@@ -283,8 +287,8 @@ export class Main {
             console.log("spec changed");
             this._hasSpecChanged = true;
             this._updateDebug(0);
+            this._hideError();
 
-            // Disable start button if no spec
             if (!this._isRunning) {
                 this._startStopButton.disabled = this._editor.content.trim().length == 0;
             }
@@ -331,7 +335,7 @@ export class Main {
         this._updateUI();
 
         // Start async initialization (GPU + sample loading in parallel)
-        this._initializeAsync();
+        this._initializePromise = this._initializeAsync();
     }
 
     private _resize(width: number, height: number): void {
@@ -740,6 +744,9 @@ export class Main {
     private async _startAsync(): Promise<void> {
         // Clear errors
         this._hideError();
+
+        // Wait for GPU initialization if still in progress
+        await this._initializePromise;
 
         try {
             // Plot specification
