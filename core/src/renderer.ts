@@ -28,6 +28,11 @@ export interface ISceneOptions {
 
 export abstract class Renderer {
     protected _isInitialized: boolean; // Ready to call render()
+    public get isInitialized(): boolean { return this._isInitialized; }
+
+    public dispose(): void {
+        this._isInitialized = false;
+    }
 
     // Glyph rasterizer visual (created during initialization, used by loadScene for label sets)
     // This references an atlas visual in atlasVisuals — do not remove that atlas visual without replacing this

@@ -4,11 +4,11 @@
     "description": "Bar chart visualizations",
     "plots": [
       {
-        "plot": "bar7.json",
-        "thumbnail": "bar7_raytrace_640x360.jpg",
-        "image": "bar7_raytrace_3840x2160.jpg",
-        "title": "Matrix Bar Chart",
-        "description": "A matrix bar chart"
+        "plot": "bar2.json",
+        "thumbnail": "bar2_raytrace_640x360.jpg",
+        "image": "bar2_raytrace_3840x2160.jpg",
+        "title": "Bar Chart",
+        "description": "A bar chart"
       },
       {
         "plot": "bar4.json",
@@ -18,11 +18,11 @@
         "description": "A stacked bar chart"
       },
       {
-        "plot": "bar2.json",
-        "thumbnail": "bar2_raytrace_640x360.jpg",
-        "image": "bar2_raytrace_3840x2160.jpg",
-        "title": "Bar Chart",
-        "description": "A bar chart"
+        "plot": "bar7.json",
+        "thumbnail": "bar7_raytrace_640x360.jpg",
+        "image": "bar7_raytrace_3840x2160.jpg",
+        "title": "Matrix Bar Chart",
+        "description": "A matrix bar chart"
       },
       {
         "plot": "bar6.json",
