@@ -33,6 +33,7 @@ export const HittableType = {
     yzRect: 21,
     xyGlyph: 22,
     xyRotatedGlyph: 23,
+    constantMedium: 24,
 } as const;
 export type HittableType = (typeof HittableType)[keyof typeof HittableType];
 
@@ -379,6 +380,32 @@ export class HittableXyGlyph extends Hittable {
     }
 }
 
+export interface IHittableConstantMediumOptions extends IHittableOptions {
+    boundary: Hittable;
+}
+
+export class HittableConstantMedium extends Hittable {
+    private _boundary: Hittable;
+    public get boundary() { return this._boundary; }
+
+    constructor(options: IHittableConstantMediumOptions) {
+        super(options);
+        this._boundary = options.boundary;
+
+        // Copy bounds from boundary
+        this._bounds = this._boundary.bounds;
+    }
+
+    public toBuffer(buffer: HittableBufferData, index: number) {
+        // Set buffer from boundary
+        this._boundary.toBuffer(buffer, index);
+
+        // Copy typeId to boundaryType
+        buffer.setBoundaryType(index, buffer.getUnitType(index));
+        buffer.setUnitType(index, HittableType.constantMedium);
+    }
+}
+
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // |    0     |    1     |    2     |    3     |    4     |    5     |    6     |    7     |    8     |    9     |   10     |   11     |   12     |   13     |   14     |   15     |
 // |                   center                  |                   center                  |                   center                  |                 unit type                 |
@@ -508,6 +535,7 @@ export class HittableBufferData extends Float32Array {
     public readonly SDF_BUFFER_OFFSET = 160 / 4;
     public readonly SDF_HALO_OFFSET = 164 / 4;
     public readonly TEXTURE_TYPE_OFFSET = 168 / 4;
+    public readonly BOUNDARY_TYPE_OFFSET = 172 / 4;
     public readonly PARAM_OFFSET = 176 / 4;
     public readonly MATERIAL_COLOR2_OFFSET = 192 / 4;
 
@@ -741,6 +769,13 @@ export class HittableBufferData extends Float32Array {
     }
     public setSdfHalo(index: number, value: number) {
         this[HittableBufferData.SIZE * index + this.SDF_HALO_OFFSET] = value;
+    }
+
+    public getBoundaryType(index: number) {
+        return this[HittableBufferData.SIZE * index + this.BOUNDARY_TYPE_OFFSET];
+    }
+    public setBoundaryType(index: number, value: number) {
+        this[HittableBufferData.SIZE * index + this.BOUNDARY_TYPE_OFFSET] = value;
     }
 
     public getParam(index: number, paramIndex: number): number {

@@ -194,40 +194,42 @@ export class Ordinal extends Scale {
                     break;
             }
         }
-        if (Array.isArray(rangeJSON)) {
-            // Parse array of color values
-            range.colors = [];
-            for (let i = 0; i < rangeJSON.length; i++) {
-                const color = Color.parse(rangeJSON[i]);
-                if (color) { range.colors.push(color); }
-            }
-            range.min = 0;
-            range.max = Math.max(range.colors.length - 1, domain.max);
-        }
-        else if (rangeJSON.scheme) {
+        if (rangeJSON.scheme) {
             range.scheme = rangeJSON.scheme;
-            // Check for valid name
-            const palette = Core.Palettes[range.scheme];
-            if (palette) {
-                switch (palette.type) {
-                    case "qualitative":
-                        range.min = 0;
-                        // Allow colors to wrap
-                        range.max = Math.max(palette.colors.length - 1, domain.max);
-                        break;
-                    default:
-                        range.min = 0;
-                        range.max = domain.max;
+            if (Array.isArray(range.scheme)) {
+                // Parse array of color values
+                range.colors = [];
+                for (let i = 0; i < range.scheme.length; i++) {
+                    const color = Color.parse(range.scheme[i]);
+                    if (color) { range.colors.push(color); }
+                }
+                range.min = 0;
+                range.max = Math.max(range.colors.length - 1, domain.max);
+            }
+            else {
+                // Check for valid name
+                const palette = Core.Palettes[range.scheme];
+                if (palette) {
+                    switch (palette.type) {
+                        case "qualitative":
+                            range.min = 0;
+                            // Allow colors to wrap
+                            range.max = Math.max(palette.colors.length - 1, domain.max);
+                            break;
+                        default:
+                            range.min = 0;
+                            range.max = domain.max;
 
-                        // Create a color scheme from the palette which maps to the domain
-                        range.colors = [];
-                        const step = 1 / (domain.max - domain.min + 1);
-                        for (let i = 0; i <= domain.max; i++) {
-                            const position = (i + 0.5) * step;
-                            const color = Core.Palette.sample(palette.colors, position, true);
-                            range.colors.push(color);
-                        }
-                        break;
+                            // Create a color scheme from the palette which maps to the domain
+                            range.colors = [];
+                            const step = 1 / (domain.max - domain.min + 1);
+                            for (let i = 0; i <= domain.max; i++) {
+                                const position = (i + 0.5) * step;
+                                const color = Core.Palette.sample(palette.colors, position, true);
+                                range.colors.push(color);
+                            }
+                            break;
+                    }
                 }
             }
         }

@@ -2,6 +2,7 @@
 // Licensed under the MIT license. 
 
 import * as Core from "core";
+import { Color } from "../color.js";
 import { Group } from "../marks/group.js";
 import { Scale } from "./scale.js";
 
@@ -86,7 +87,23 @@ export class Quantile extends Scale {
         if (rangeJSON.scheme) {
             range.scheme = rangeJSON.scheme;
             if (Array.isArray(range.scheme)) {
-                // TODO: Parse array of color values
+                // Parse array of color values
+                const userColors: Core.ColorRGB[] = [];
+                for (let i = 0; i < range.scheme.length; i++) {
+                    const color = Color.parse(range.scheme[i]);
+                    if (color) { userColors.push(color); }
+                }
+                if (userColors.length > 0) {
+                    range.min = 0;
+                    range.max = range.count - 1;
+                    range.colors = [];
+                    const step = 1 / range.count;
+                    for (let i = 0; i < range.count; i++) {
+                        const position = scaleJSON.reverse ? (range.count - i - 0.5) * step : (i + 0.5) * step;
+                        const color = Core.Palette.sample(userColors, position, true);
+                        range.colors.push(color);
+                    }
+                }
             }
             else {
                 // Check for valid name

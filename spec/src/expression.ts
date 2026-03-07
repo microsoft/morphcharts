@@ -212,6 +212,11 @@ export class Expression {
                 i += 5;
                 continue;
             }
+            if (expr.substring(i, i + 5) == "round") {
+                expression += "Math.round";
+                i += 5;
+                continue;
+            }
             if (expr.substring(i, i + 3) == "max") {
                 expression += "Math.max";
                 i += 3;
@@ -281,7 +286,7 @@ export class Expression {
 
             // String functions
             if (expr.substring(i, i + 5) == "split") {
-                expression += "split";
+                expression += "String.prototype.split.call";
                 i += 5;
                 continue;
             }
@@ -292,6 +297,11 @@ export class Expression {
             }
             if (expr.substring(i, i + 5) == "upper") {
                 expression += "String.prototype.toUpperCase.call";
+                i += 5;
+                continue;
+            }
+            if (expr.substring(i, i + 5) == "lower") {
+                expression += "String.prototype.toLowerCase.call";
                 i += 5;
                 continue;
             }

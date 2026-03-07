@@ -1,0 +1,198 @@
+{
+  "title": "Non-Hierarchical Faceted Treemaps",
+  "description": "The 2012 US Presidential election results by county as faceted treemaps",
+
+  "width": 640,
+  "height": 90,
+  "depth": 360,
+
+  "signals": [
+    {"name": "cols", "value": 10},
+    {"name": "rows", "value": 5}
+  ],
+
+  "camera": {"position": [0, 1.2, 0]},
+
+  "data": [
+    {
+      "name": "raw",
+      "url": "https://raw.githubusercontent.com/microsoft/SandDance/refs/heads/main/docs/sample-data/demovote.tsv"
+    },
+    {
+      "name": "counties",
+      "source": "raw",
+      "transform": [
+        {
+          "type": "aggregate",
+          "groupby": ["State", "County"],
+          "fields": ["TotalPop", "Obama"],
+          "ops": ["sum", "mean"],
+          "as": ["TotalPopCounty", "ObamaCounty"]
+        },
+        {
+          "type": "formula",
+          "expr": "slice(datum.County,0,indexof(datum.County,' County'))",
+          "as": "County2"
+        }
+      ]
+    },
+    {
+      "name": "states",
+      "source": "counties",
+      "transform": [
+        {"type": "aggregate", "groupby": ["State"]},
+        {"type": "collect", "sort": {"field": "State", "order": "ascending"}},
+        {"type": "identifier", "as": "StateIndex"},
+        {"type": "formula", "expr": "(datum.StateIndex-1)%cols","as": "Col"},
+        {"type": "formula", "expr": "floor((datum.StateIndex-1)/cols)", "as": "Row"}
+      ]
+    },
+    {
+      "name": "grid",
+      "source": "counties",
+      "transform": [
+        {
+          "type": "lookup",
+          "from": "states",
+          "key": "State",
+          "fields": ["State"],
+          "values": ["Col", "Row"],
+          "as": ["Col", "Row"]
+        }
+      ]
+    }
+  ],
+
+  "scales": [
+    {
+      "name": "col",
+      "type": "band",
+      "domain": {"data": "grid", "field": "Col", "sort": true},
+      "range": "width",
+      "padding": 0.1
+    },
+    {
+      "name": "row",
+      "type": "band",
+      "domain": {"data": "grid", "field": "Row", "sort": true},
+      "range": "depth",
+      "padding": 0.2
+    },
+    {
+      "name": "height",
+      "type": "linear",
+      "range": [1, {"signal": "height"}],
+      "domain": {"data": "grid", "field": "TotalPopCounty"}
+    },
+    {
+      "name": "fill",
+      "type": "linear",
+      "domain": [0, 1],
+      "range": {"scheme": "redblue"}
+    }
+  ],
+
+  "marks": [
+    {
+      "type": "text",
+      "from": {"data": "states"},
+      "encode": {
+        "enter": {
+          "x": {"scale": "col", "field": "Col", "band": 0.5},
+          "z": {"scale": "row", "field": "Row", "band": 1, "offset": 1},
+          "y": {"value": 0.01},
+          "angleX": {"value": 90},
+          "baseline": {"value": "top"},
+          "fontSize": {"value": 8},
+          "text": {"field": "State"},
+          "fill": {"value": "black"}
+        }
+      }
+    },
+    {
+      "type": "group",
+      "from": {"facet": {"data": "grid", "name": "facet", "groupby": "State"}},
+
+      "encode": {
+        "enter": {
+          "x": {"scale": "col", "field": "Col"},
+          "z": {"scale": "row", "field": "Row"},
+          "_strokeWidth": {"value": 0.5}
+        }
+      },
+
+      "signals": [
+        {"name": "width", "update": "bandwidth('col')"},
+        {"name": "depth", "update": "bandwidth('row')"}
+      ],
+
+      "data": [
+        {
+          "name": "treemap",
+          "source": "facet",
+          "transform": [
+            {
+              "type": "treemap",
+              "field": "TotalPopCounty",
+              "method": "squarify",
+              "size": [
+                {"signal": "width"},
+                {"signal": "depth"}
+              ],
+              "as": ["x0", "y0", "x1", "y1", "size"]
+            }
+          ]
+        }
+      ],
+
+      "marks": [
+        {
+          "type": "rect",
+          "material": "isotropic",
+          "from": {"data": "treemap"},
+          "encode": {
+            "enter": {
+              "x": {"field": "x0"},
+              "x2": {"field": "x1"},
+              "z": {"field": "y0"},
+              "z2": {"field": "y1"},
+              "y": {"value": 0},
+              "density": {"value": 1000},
+              "y2": {"scale": "height", "field": "TotalPopCounty"},
+              "fill": {"scale": "fill", "field": "ObamaCounty"}
+            }
+          }
+        },
+        {
+          "type": "text",
+          "from": {"data": "treemap"},
+          "encode": {
+            "enter": {
+              "x": {"signal": "(datum.x0+datum.x1)/2"},
+              "z": {"signal": "(datum.y0+datum.y1)/2"},
+              "y": {"scale": "height", "field": "TotalPopCounty", "offset": 0.01},
+              "angleX": {"value": 90},
+              "fontSize": {"signal": "min(8,(datum.x1-datum.x0)<(datum.y1-datum.y0)?min((datum.y1-datum.y0)/length(datum.County2)*1.6,(datum.x1-datum.x0)*0.9):min((datum.x1-datum.x0)/length(datum.County2)*1.6,(datum.y1-datum.y0)*0.9))"},
+              "angleY": {"signal": "(datum.x1-datum.x0)<(datum.y1-datum.y0)?-90:0"},
+              "text": {"field": "County2"},
+              "fill": {"value": "white"}
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "rect",
+      "geometry": "xzrect",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "zc": {"signal": "depth/2"},
+          "width": {"signal": "width*5"},
+          "depth": {"signal": "width*5"},
+          "fill": {"value": "white"}
+        }
+      }
+    }
+  ]
+}
