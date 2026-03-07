@@ -254,31 +254,6 @@ export class Point extends Scale {
                     break;
             }
         }
-        else if (rangeJSON.scheme) {
-            range.scheme = rangeJSON.scheme;
-            if (Array.isArray(range.scheme)) {
-                // TODO: Parse array of color values
-            }
-            else {
-                // Check for valid name
-                const palette = Core.Palettes[range.scheme];
-                if (palette) {
-                    switch (palette.type) {
-                        case "sequentialsinglehue":
-                        case "sequentialmultihue":
-                        case "diverging":
-                            range.min = 0;
-                            range.max = 1;
-                            break;
-                        case "qualitative":
-                            range.min = 0;
-                            // Allow colors to wrap
-                            range.max = Math.max(palette.colors.length - 1, domain.max);
-                            break;
-                    }
-                }
-            }
-        }
         return point;
     }
 }

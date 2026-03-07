@@ -505,94 +505,12 @@ export class Main extends Core.Renderer {
             await this._createWorldAsync();
             this._createSizeIndependentResources();
 
-            // GPU warm-up: force the GPU driver to JIT-compile every compute pipeline
-            // now, using real bind groups, rather than deferring to the first user-visible
-            // frame.  Without this, createComputePipelineAsync resolves on the CPU side
-            // (WGSL → IR) but the driver defers machine-code generation to first use,
-            // potentially causing GPU stalls and low frame rates.
-            await this._warmupPipelinesAsync();
-
             // Reset
             this.frameCount = 0;
 
             // Ready
             this._isInitialized = true;
         }
-    }
-
-    private async _warmupPipelinesAsync(): Promise<void> {
-        const start = window.performance.now();
-        const warmupIterations = 3;
-
-        // Use realistic dispatch size matching actual render dimensions
-        const computeDispatchCount = Math.min(Math.ceil(this._width * this._height / 256), this._maxComputeWorkgroupsPerDimension);
-
-        for (let i = 0; i < warmupIterations; i++) {
-            const iterationStart = window.performance.now();
-            const commandEncoder = this._device.createCommandEncoder({ label: `Warmup encoder ${i}` });
-
-            // Warm up all compute pipelines with real bind groups and realistic dispatch sizes
-            const computePassEncoder = commandEncoder.beginComputePass({ label: `Warmup compute pass ${i}` });
-            computePassEncoder.setBindGroup(0, this._computeBindGroup1);
-            computePassEncoder.setBindGroup(1, this._computeBindGroup2);
-            computePassEncoder.setBindGroup(2, this._computeBindGroup3);
-            const computePipelines: GPUComputePipeline[] = [
-                this._computePipeline,
-                this._computeColorPipeline,
-                this._computeNormalDepthPipeline,
-                this._computeSegmentPipeline,
-                this._computeTexturePipeline,
-            ];
-            for (const pipeline of computePipelines) {
-                computePassEncoder.setPipeline(pipeline);
-                computePassEncoder.dispatchWorkgroups(computeDispatchCount, 1, 1);
-            }
-            computePassEncoder.end();
-
-            // Warm up the clear pipeline separately — its layout has null for @group(0)
-            const clearPassEncoder = commandEncoder.beginComputePass({ label: `Warmup clear pass ${i}` });
-            clearPassEncoder.setBindGroup(1, this._computeBindGroup2);
-            clearPassEncoder.setBindGroup(2, this._computeBindGroup3);
-            clearPassEncoder.setPipeline(this._clearPipeline);
-            clearPassEncoder.dispatchWorkgroups(computeDispatchCount, 1, 1);
-            clearPassEncoder.end();
-
-            // Warm up all render (quad) pipelines
-            const colorAttachment: GPURenderPassColorAttachment = {
-                view: this._context.getCurrentTexture().createView(),
-                clearValue: { r: 0, g: 0, b: 0, a: 0 },
-                loadOp: "clear",
-                storeOp: "store",
-            };
-            const renderPassDescriptor: GPURenderPassDescriptor = {
-                colorAttachments: [colorAttachment],
-            };
-            const renderPipelines: GPURenderPipeline[] = [
-                this._quadPipeline,
-                this._quadNormalPipeline,
-                this._quadDepthPipeline,
-                this._quadSegmentPipeline,
-                this._quadTexturePipeline,
-                this._quadEdgePipeline,
-            ];
-            for (const pipeline of renderPipelines) {
-                const renderPassEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
-                renderPassEncoder.setPipeline(pipeline);
-                renderPassEncoder.setBindGroup(0, this._quadBindGroup1);
-                renderPassEncoder.setBindGroup(1, this._quadBindGroup2);
-                renderPassEncoder.draw(6, 1, 0, 0);
-                renderPassEncoder.end();
-            }
-
-            this._queue.submit([commandEncoder.finish()]);
-            await this._queue.onSubmittedWorkDone();
-            console.log(`GPU warm-up iteration ${i} ${Core.Time.formatDuration(Math.round(window.performance.now() - iterationStart))}`);
-        }
-
-        // Brief delay for driver background optimization threads to settle
-        await new Promise(resolve => setTimeout(resolve, 100));
-
-        console.log(`GPU pipeline warm-up total (${warmupIterations} iterations, ${computeDispatchCount} workgroups) ${Core.Time.formatDuration(Math.round(window.performance.now() - start))}`);
     }
 
     public async renderAsync(elapsedTime: number): Promise<void> {

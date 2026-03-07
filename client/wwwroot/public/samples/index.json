@@ -131,6 +131,14 @@
         "description": "A non-hierarchical treemap"
       },
       {
+        "plot": "treemap8.json",
+        "thumbnail": "treemap8_raytrace_640x360.jpg",
+        "image": "treemap8_raytrace_3840x2160.jpg",
+        "title": "Non-Hierarchical Faceted Treemaps",
+        "description": "The 2012 US Presidential election results by county as faceted treemaps",
+        "notes": "<p>Each state is a separate treemap, with each county sized according to its total population, and colored according to the percentage of votes for Obama (blue) to Romney (red). The heights of the blocks also represent total population. Only the continental US is included and the states are ordered alphabetically. </p><p>The labels have been rotated to follow the aspect ratio of the blocks, and scaled to the block size (with a maximum font size). The word &quot;County&quot; has been removed from each county for clarity.</p><p>Data linked from <a href=\"https://github.com/microsoft/sanddance\">SandDance</a>.</p>"
+      },
+      {
         "plot": "circlepack2.json",
         "thumbnail": "circlepack2_raytrace_640x360.jpg",
         "image": "circlepack2_raytrace_3840x2160.jpg",

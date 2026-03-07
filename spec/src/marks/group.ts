@@ -105,40 +105,32 @@ export class Group extends Mark {
         else if (scale) {
             const range = scale.range;
             if (range) {
-                const scheme = range.scheme;
-                if (scale.type == "ordinal" && range.colors) {
-                    // Use colors array
+                if (range.colors && range.colors.length > 0) {
+                    // Colors pre-built at scale setup time (from named scheme or color array)
                     const value = this.value(markEncodingValue, dataset, i);
-                    return range.colors[value % range.colors.length];
-                }
-                else if (scheme) {
-                    if (Array.isArray(scheme)) {
-                        // Parse color values
+                    switch (scale.type) {
+                        // Continuous scales: interpolate across color array
+                        case "linear":
+                            return Core.Palette.sample(range.colors, value, true);
+                        // Discrete/discretizing scales: index lookup
+                        default:
+                            return range.colors[value % range.colors.length];
                     }
-                    else {
-                        // Check for valid name
-                        const palette = Core.Palettes[scheme.toLowerCase()];
-                        let colorValue: Core.ColorRGB;
-                        if (palette) {
-                            const value = this.value(markEncodingValue, dataset, i);
-                            switch (scale.type) {
-                                // Continuous scales
-                                case "linear":
-                                    colorValue = Core.Palette.sample(palette.colors, value, true);
-                                    break;
-                                // Discrete scales
-                                case "ordinal":
-                                    colorValue = palette.colors[value % palette.colors.length];
-                                    break;
-                                // Discretizing scales
-                                case "quantile":
-                                    colorValue = range.colors[value];
-                                    break;
-                                case "quantize":
-                                    break;
-                            }
+                }
+                const scheme = range.scheme;
+                if (scheme && typeof scheme === "string") {
+                    // Named scheme: palette lookup at render time
+                    const palette = Core.Palettes[scheme.toLowerCase()];
+                    if (palette) {
+                        const value = this.value(markEncodingValue, dataset, i);
+                        switch (scale.type) {
+                            // Continuous scales: interpolate
+                            case "linear":
+                                return Core.Palette.sample(palette.colors, value, true);
+                            // Discrete scales: index lookup
+                            default:
+                                return palette.colors[value % palette.colors.length];
                         }
-                        if (colorValue) { return colorValue; }
                     }
                 }
             }

@@ -323,6 +323,21 @@ export class BufferVisual extends Core.BufferVisual implements Core.IBufferVisua
                         break;
                 }
 
+                // Constant medium (isotropic material wraps boundary hittable)
+                if (material.type == Core.MaterialType.isotropic) {
+                    hittable = new Core.HittableConstantMedium({
+                        center: position,
+                        boundary: hittable,
+                        segmentColor: segment,
+                        pickColor: pick,
+                        material: material,
+                        textureType: textureType,
+                        texCoords: texCoords,
+                        texScale: texScale,
+                        texOffset: texOffset,
+                    });
+                }
+
                 // Add
                 this.hittables.push(hittable);
 

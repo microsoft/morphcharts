@@ -58,7 +58,7 @@ export class ScaleRange {
     public step: number;
 
     // Color
-    public scheme: string; // A color scheme name
-    public colors: Core.ColorRGB[]; // An array of color values
+    public scheme: string | string[]; // A color scheme name or array of color values
+    public colors: Core.ColorRGB[]; // An array of parsed color values
     public count: number; // For quantile/quantize scales, defaults to cardinaility of the domain
 }

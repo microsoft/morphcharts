@@ -13,7 +13,7 @@ export { Constants } from './constants.js';
 export { Font } from "./font.js";
 export { GlyphRasterizer, GlyphRasterizerVisual } from "./glyph.js";
 export { Hex } from "./hex.js";
-export { Hittable, HittableBufferData, TextureType, HittableType, HittableSphere, HittableBox, HittableCylinder, HittableHexPrism, HittableXyRect, HittableXzRect, HittableYzRect, HittableXyGlyph } from "./hittable.js";
+export { Hittable, HittableBufferData, TextureType, HittableType, HittableSphere, HittableBox, HittableCylinder, HittableHexPrism, HittableXyRect, HittableXzRect, HittableYzRect, HittableXyGlyph, HittableConstantMedium } from "./hittable.js";
 export { HittableBoxSdf, HittableTubeSdf, HittableBoxFrameSdf, HittableCylinderSdf, HittableHexPrismSdf, HittableQuadSdf, HittableRingSdf, HittableCappedTorusSdf } from "./hittablesdf.js";
 export { Image, ImageVisual } from "./image.js";
 export { LabelSet, LabelSetVisual } from "./labels.js";

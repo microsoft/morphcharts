@@ -2,6 +2,7 @@
 // Licensed under the MIT license. 
 
 import * as Core from "core";
+import { Color } from "../color.js";
 import { Group } from "../marks/group.js";
 import { Scale } from "./scale.js";
 
@@ -161,7 +162,14 @@ export class Linear extends Scale {
         else if (rangeJSON.scheme) {
             range.scheme = rangeJSON.scheme;
             if (Array.isArray(range.scheme)) {
-                // TODO: Parse array of color values
+                // Parse array of color values
+                range.colors = [];
+                for (let i = 0; i < range.scheme.length; i++) {
+                    const color = Color.parse(range.scheme[i]);
+                    if (color) { range.colors.push(color); }
+                }
+                range.min = 0;
+                range.max = 1;
             }
             else {
                 // Check for valid name

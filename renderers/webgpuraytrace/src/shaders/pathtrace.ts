@@ -178,7 +178,7 @@ struct Hittable {                  // -------------------------
     sdfBuffer: f32,                //          160*     4     4
     sdfHalo: f32,                  //          164      4     4
     textureTypeId: f32,            //          168      4     4
-    _padding: f32,                 // padding  172      4     4
+    boundaryTypeId: f32,           //          172      4     4
     parameter0: f32,               //          176*     4     4
     parameter1: f32,               //          180      4     4
     parameter2: f32,               //          184      4     4
@@ -354,13 +354,13 @@ fn setFaceNormal(ray: Ray, outwardNormal: vec3<f32>, hitRecord: ptr<function, Hi
     (*hitRecord).normal = select(-outwardNormal, outwardNormal, (*hitRecord).frontFace);
 }
 
-fn hitWorld(ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, HitRecord>) -> bool {
+fn hitWorld(ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, HitRecord>, seed: ptr<function, u32>) -> bool {
     var hitAnything = false;
     var closestSoFar = tMax;
     let invDir = vec3<f32>(1f, 1f, 1f) / ray.direction;
     var tempHitRecord: HitRecord;
     for (var i: u32 = 0u; i < arrayLength(&hittableBuffer.hittables); i++) {
-        if (hit(i, ray, invDir, tMin, closestSoFar, &tempHitRecord)) {
+        if (hit(i, ray, invDir, tMin, closestSoFar, &tempHitRecord, seed)) {
             hitAnything = true;
             closestSoFar = tempHitRecord.t;
             tempHitRecord.id = i;
@@ -373,7 +373,7 @@ fn hitWorld(ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, HitRecord>)
     return false;
 }
 
-fn hitBVH(ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, HitRecord>) -> bool {
+fn hitBVH(ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, HitRecord>, seed: ptr<function, u32>) -> bool {
     var hitAnything = false;
     var closestSoFar = tMax;
     // let invDir = vec3<f32>(1f, 1f, 1f) / ray.direction;
@@ -396,7 +396,7 @@ fn hitBVH(ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, HitRecord>) -
                 let primitiveOffset = u32((*node).primitivesOffset);
                 for (var i: u32 = 0u; i < nPrimitives; i++) {
                     let id = primitiveOffset + i;
-                    if (hit(id, ray, invDir, tMin, closestSoFar, &tempHitRecord)) {
+                    if (hit(id, ray, invDir, tMin, closestSoFar, &tempHitRecord, seed)) {
                         hitAnything = true;
                         closestSoFar = tempHitRecord.t;
                         tempHitRecord.id = id;
@@ -440,7 +440,7 @@ fn hitBVH(ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, HitRecord>) -
     return false;
 }
 
-fn hit(id: u32, ray: Ray, invDir: vec3<f32>, tMin: f32, tMax: f32, hitRecord: ptr<function, HitRecord>) -> bool {
+fn hit(id: u32, ray: Ray, invDir: vec3<f32>, tMin: f32, tMax: f32, hitRecord: ptr<function, HitRecord>, seed: ptr<function, u32>) -> bool {
     // TODO: If I'm getting the hittable to check the type, just pass the hittable as a pointer to the hit function directly (saves another lookup)
     switch u32(hittableBuffer.hittables[id].typeId) {
         default: { return false; }
@@ -468,6 +468,7 @@ fn hit(id: u32, ray: Ray, invDir: vec3<f32>, tMin: f32, tMax: f32, hitRecord: pt
         case 21u: { return hitYzRect(id, ray, tMin, tMax, hitRecord); }
         case 22u: { return hitXyGlyph(id, ray, tMin, tMax, hitRecord); }
         case 23u: { return hitRotatedXyGlyph(id, ray, tMin, tMax, hitRecord); }
+        case 24u: { return hitConstantMedium(id, ray, invDir, tMin, tMax, hitRecord, seed); }
     }
 }
 
@@ -481,6 +482,80 @@ fn intersectBox(center: vec3<f32>, size: vec3<f32>, ray: Ray, invDir: vec3<f32>,
     let tFar = min(min(t1.x, t1.y), t1.z);
     if (tNear > tFar) { return false; }
     return tNear < tMax && tFar > 0f; // Must return true when inside box, even if closestSoFar is closer than far box intersection
+}
+
+fn hitConstantMedium(id: u32, ray: Ray, invDir: vec3<f32>, tMin: f32, tMax: f32, hitRecord: ptr<function, HitRecord>, seed: ptr<function, u32>) -> bool {
+    let constantMedium = &hittableBuffer.hittables[id];
+    let boundaryTypeId = u32((*constantMedium).boundaryTypeId);
+    var tempHitRecord1: HitRecord;
+    if (!hitConstantMediumBoundary(id, boundaryTypeId, ray, invDir, -100f, 100f, &tempHitRecord1)) { return false; }
+    var tempHitRecord2: HitRecord;
+    // When raymarching narrow grazing angles, adding a small offset avoids incorrect distance calculations
+    if (!hitConstantMediumBoundary(id, boundaryTypeId, ray, invDir, tempHitRecord1.t + 0.001f, 100f, &tempHitRecord2)) { return false; }
+    if (tempHitRecord1.t < tMin) { tempHitRecord1.t = tMin; }
+    if (tempHitRecord2.t > tMax) { tempHitRecord2.t = tMax; }
+    if (tempHitRecord1.t >= tempHitRecord2.t) {
+        return false;
+    }
+    tempHitRecord1.t = max(tempHitRecord1.t, 0f);
+    let distanceInsideBoundary = tempHitRecord2.t - tempHitRecord1.t;
+    let negativeInverseDensity = -1f / (*constantMedium).materialDensity;
+    let hitDistance = negativeInverseDensity * log(random(seed));
+    if (hitDistance > distanceInsideBoundary) { return false; }
+    let t = tempHitRecord1.t + hitDistance;
+    (*hitRecord).t = t;
+    (*hitRecord).position = rayAt(ray, t);
+    return true;
+}
+
+fn hitConstantMediumBoundary(id: u32, boundaryTypeId: u32, ray: Ray, invDir: vec3<f32>, tMin: f32, tMax: f32, hitRecord: ptr<function, HitRecord>) -> bool {
+    switch boundaryTypeId {
+        default: {
+            return false;
+        }
+        case 0u: {
+            return hitSphere(id, ray, tMin, tMax, hitRecord);
+        }
+        case 1u: {
+            return hitBox(id, ray, invDir, tMin, tMax, hitRecord);
+        }
+        case 2u: {
+            return hitRotatedBox(id, ray, tMin, tMax, hitRecord);
+        }
+        case 5u: {
+            return hitBoxSdf(id, ray, tMin, tMax, hitRecord);
+        }
+        case 6u: {
+            return hitBoxRotatedSdf(id, ray, tMin, tMax, hitRecord);
+        }
+        case 9u: {
+            return hitCylinder(id, ray, tMin, tMax, hitRecord);
+        }
+        case 10u: {
+            return hitCylinderSdf(id, ray, tMin, tMax, hitRecord);
+        }
+        case 11u: {
+            return hitCylinderRotatedSdf(id, ray, tMin, tMax, hitRecord);
+        }
+        case 7u: {
+            return hitCappedTorusSdf(id, ray, tMin, tMax, hitRecord);
+        }
+        case 8u: {
+            return hitCappedTorusRotatedSdf(id, ray, tMin, tMax, hitRecord);
+        }
+        case 13u: {
+            return hitHexPrismSdf(id, ray, tMin, tMax, hitRecord);
+        }
+        case 14u: { // Trapezoidal prism
+            return hitQuadSdf(id, ray, tMin, tMax, hitRecord);
+        }
+        case 15u: {
+            return hitRingSdf(id, ray, tMin, tMax, hitRecord);
+        }
+        case 16u: {
+            return hitRingRotatedSdf(id, ray, tMin, tMax, hitRecord);
+        }
+    }
 }
 
 fn hitSphere(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, HitRecord>) -> bool {
@@ -1403,7 +1478,7 @@ fn hitYzRect(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, H
 }
 
 // TODO: hitDirectLights, hitIndirectLights
-fn hitLights(ray: Ray, hitRecord: ptr<function, HitRecord>) -> vec3<f32> {
+fn hitLights(ray: Ray, hitRecord: ptr<function, HitRecord>, seed: ptr<function, u32>) -> vec3<f32> {
     var hit: bool;
     var color = vec3<f32>(0f, 0f, 0f);
     for (var i: u32 = 0u; i < arrayLength(&lightBuffer.lights); i++) {
@@ -1414,16 +1489,16 @@ fn hitLights(ray: Ray, hitRecord: ptr<function, HitRecord>) -> vec3<f32> {
         switch lightTypeId {
             // Direct lighting
             case 0u: {
-                if (hitDirectionalLight(i, ray, &color, hitRecord)) { hit = true; }
+                if (hitDirectionalLight(i, ray, &color, hitRecord, seed)) { hit = true; }
             }
             case 3u: {
-                if (hitPointLight(i, ray, &color, hitRecord)) { hit = true; }
+                if (hitPointLight(i, ray, &color, hitRecord, seed)) { hit = true; }
             }
             case 4u: {
-                if (hitProjectorLight(i, ray, &color, hitRecord)) { hit = true; }
+                if (hitProjectorLight(i, ray, &color, hitRecord, seed)) { hit = true; }
             }
             case 7u: {
-                if (hitSpotLight(i, ray, &color, hitRecord)) { hit = true; }
+                if (hitSpotLight(i, ray, &color, hitRecord, seed)) { hit = true; }
             }
         
             // Indirect lighting
@@ -1494,14 +1569,14 @@ fn hitSphereLight(id: u32, ray: Ray, color: ptr<function, vec3<f32>>, hitRecord:
 }
 
 // TODO: Pass a light as the parameter, rather than an index
-fn hitDirectionalLight(id: u32, ray: Ray, color: ptr<function, vec3<f32>>, hitRecord: ptr<function, HitRecord>) -> bool {
+fn hitDirectionalLight(id: u32, ray: Ray, color: ptr<function, vec3<f32>>, hitRecord: ptr<function, HitRecord>, seed: ptr<function, u32>) -> bool {
     let light = &lightBuffer.lights[id];
     let direction = -(*light).direction; // Direction from hit point to light
     var shadowRay: Ray;
     shadowRay.origin = (*hitRecord).position;
     shadowRay.direction = direction;
     var shadowHitRecord: HitRecord;
-    if (!hitBVH(shadowRay, 0.00001f, 100f, &shadowHitRecord)) {
+    if (!hitBVH(shadowRay, 0.00001f, 100f, &shadowHitRecord, seed)) {
         // Diffuse
         // Direct lighting pass assumes lambertian reflectance
         let hittable = &hittableBuffer.hittables[(*hitRecord).id];
@@ -1517,7 +1592,7 @@ fn hitDirectionalLight(id: u32, ray: Ray, color: ptr<function, vec3<f32>>, hitRe
 }
 
 // TODO: Pass a light as the parameter, rather than an index
-fn hitPointLight(id: u32, ray: Ray, color: ptr<function, vec3<f32>>, hitRecord: ptr<function, HitRecord>) -> bool {
+fn hitPointLight(id: u32, ray: Ray, color: ptr<function, vec3<f32>>, hitRecord: ptr<function, HitRecord>, seed: ptr<function, u32>) -> bool {
     let light = &lightBuffer.lights[id];
     var direction = (*light).center - (*hitRecord).position;
     let distance = length(direction);
@@ -1526,7 +1601,7 @@ fn hitPointLight(id: u32, ray: Ray, color: ptr<function, vec3<f32>>, hitRecord: 
     shadowRay.origin = (*hitRecord).position;
     shadowRay.direction = direction;
     var shadowHitRecord: HitRecord;
-    if (!hitBVH(shadowRay, 0.00001f, 100f, &shadowHitRecord)) {
+    if (!hitBVH(shadowRay, 0.00001f, distance, &shadowHitRecord, seed)) {
         // Diffuse
         // Direct lighting pass assumes lambertian reflectance
         let hittable = &hittableBuffer.hittables[(*hitRecord).id];
@@ -1534,7 +1609,7 @@ fn hitPointLight(id: u32, ray: Ray, color: ptr<function, vec3<f32>>, hitRecord: 
         // TODO: Reject random samples based on gloss
         let fuzz = select(hittable.materialFuzz, 1f, hittable.materialTypeId == 0f);
         let diffuseIntensity = clamp(dot((*hitRecord).normal, direction), 0f, 1f) * fuzz;
-        // TODO: Falloff with distance
+        // TODO: Distance attenuation using light range: 1 / (1 + (distance / range)^2)
         *color += diffuseIntensity * (*light).color;
         // Ignore specular reflection
         return true;
@@ -1543,7 +1618,7 @@ fn hitPointLight(id: u32, ray: Ray, color: ptr<function, vec3<f32>>, hitRecord: 
 }
 
 // TODO: Pass a light as the parameter, rather than an index
-fn hitProjectorLight(id: u32, ray: Ray, color: ptr<function, vec3<f32>>, hitRecord: ptr<function, HitRecord>) -> bool {
+fn hitProjectorLight(id: u32, ray: Ray, color: ptr<function, vec3<f32>>, hitRecord: ptr<function, HitRecord>, seed: ptr<function, u32>) -> bool {
     let light = &lightBuffer.lights[id];
     let center = (*light).center;
     var direction = center - (*hitRecord).position;
@@ -1553,7 +1628,7 @@ fn hitProjectorLight(id: u32, ray: Ray, color: ptr<function, vec3<f32>>, hitReco
     shadowRay.origin = (*hitRecord).position;
     shadowRay.direction = direction;
     var shadowHitRecord: HitRecord;
-    if (!hitBVH(shadowRay, 0.00001f, distance, &shadowHitRecord)) {
+    if (!hitBVH(shadowRay, 0.00001f, distance, &shadowHitRecord, seed)) {
         // Calculate the position and size of the near plane
         let nearPlane = (*light).nearPlane;
         let nearPlaneCenter = center + (*light).direction * nearPlane;
@@ -1612,7 +1687,7 @@ fn hitProjectorLight(id: u32, ray: Ray, color: ptr<function, vec3<f32>>, hitReco
     return false;
 }
 
-fn hitSpotLight(id: u32, ray: Ray, color: ptr<function, vec3<f32>>, hitRecord: ptr<function, HitRecord>) -> bool {
+fn hitSpotLight(id: u32, ray: Ray, color: ptr<function, vec3<f32>>, hitRecord: ptr<function, HitRecord>, seed: ptr<function, u32>) -> bool {
     let light = &lightBuffer.lights[id];
     var direction = (*light).center - (*hitRecord).position;
     let distance = length(direction);
@@ -1621,19 +1696,16 @@ fn hitSpotLight(id: u32, ray: Ray, color: ptr<function, vec3<f32>>, hitRecord: p
     shadowRay.origin = (*hitRecord).position;
     shadowRay.direction = direction;
     var shadowHitRecord: HitRecord;
-    if (!hitBVH(shadowRay, 0.00001f, 100f, &shadowHitRecord)) {
+    if (!hitBVH(shadowRay, 0.00001f, distance, &shadowHitRecord, seed)) {
         // Get angle to light direction
         // Check if within light cone
         let cosAngle = dot(-direction, light.direction);
-        var attenuation = 1f;
-        if (cosAngle > cos(light.angle * 0.5f)) { 
-            // Attenuate based on angle
-            // cosine falloff, with exponent
-            attenuation = pow(clamp(cosAngle, 0f, 1f), light.falloff);
-        }
-        else {
-            // Outside of spotlight cone
-            attenuation = 0f;
+        let cosOuter = cos(light.angle * 0.5f);
+        var attenuation = 0f;
+        if (cosAngle > cosOuter) {
+            // Remap [cosOuter..1] to [0..1] for smooth edge falloff
+            let remap = (cosAngle - cosOuter) / (1f - cosOuter);
+            attenuation = select(pow(remap, light.falloff), 1f, light.falloff == 0f);
         }
 
         // Diffuse
@@ -1643,6 +1715,7 @@ fn hitSpotLight(id: u32, ray: Ray, color: ptr<function, vec3<f32>>, hitRecord: p
         // TODO: Reject random samples based on gloss
         let fuzz = select(hittable.materialFuzz, 1f, hittable.materialTypeId == 0f);
         let diffuseIntensity = clamp(dot((*hitRecord).normal, direction), 0f, 1f) * fuzz;
+        // TODO: Distance attenuation using light range: 1 / (1 + (distance / range)^2)
         *color += diffuseIntensity * (*light).color * attenuation;
         
         // Ignore specular reflection
@@ -1737,6 +1810,17 @@ fn scatterGlossy(ray: ptr<function, Ray>, hitRecord: ptr<function, HitRecord>, a
     }
 }
 
+fn scatterIsotropic(ray: ptr<function, Ray>, hitRecord: ptr<function, HitRecord>, attenuation: ptr<function, vec3<f32>>, seed: ptr<function, u32>) -> bool {
+    (*ray).direction = randomUnitVector(seed);
+    (*ray).origin = (*hitRecord).position;
+    // Set normal to scatter direction so hitLights can compute direct lighting
+    // (hitConstantMedium doesn't set a normal since there's no surface)
+    (*hitRecord).normal = (*ray).direction;
+    let hittable = hittableBuffer.hittables[(*hitRecord).id];
+    (*attenuation) = hittable.materialColor1;
+    return true;
+}
+
 fn textureValue(hitRecord: ptr<function, HitRecord>) -> vec3<f32> {
     let hittable = &hittableBuffer.hittables[(*hitRecord).id];
     // return (*hittable).materialColor1;
@@ -1803,7 +1887,7 @@ fn rayColor(ray: ptr<function, Ray>, seed: ptr<function, u32>) -> vec3<f32> {
     var scatter: bool;
     loop {
         // if (hitWorld(*ray, 0.00001f, 100f, &hitRecord)) {
-        if (hitBVH(*ray, 0.00001f, 100f, &hitRecord)) {
+        if (hitBVH(*ray, 0.00001f, 100f, &hitRecord, seed)) {
             // Debug normal
             // return hitRecord.normal * 0.5f + vec3<f32>(0.5f, 0.5f, 0.5f);
 
@@ -1856,6 +1940,9 @@ fn rayColor(ray: ptr<function, Ray>, seed: ptr<function, u32>) -> vec3<f32> {
                     scatter = false;
                     emitted = hittableBuffer.hittables[hitRecord.id].materialColor1;
                 }
+                case 5u: {
+                    scatter = scatterIsotropic(ray, &hitRecord, &attenuation, seed);
+                }
                 default: {
                     scatter = false;
                 }
@@ -1879,7 +1966,7 @@ fn rayColor(ray: ptr<function, Ray>, seed: ptr<function, u32>) -> vec3<f32> {
             if (depth > 0u) { // Hide lights, background
                 // result.color = hitLights(*ray, &hitRecord) * color;
                 // return result;
-                return hitLights(*ray, &hitRecord) * color;
+                return hitLights(*ray, &hitRecord, seed) * color;
             }
             else {
                 // return vec3<f32>(0f, 0f, 0f);
@@ -2038,7 +2125,7 @@ fn color(@builtin(global_invocation_id) globalId : vec3<u32>) {
             var hitRecord: HitRecord;
             var shadowRay: Ray;
             var shadowHitRecord: HitRecord;
-            if (hitBVH(ray, 0.00001f, 100f, &hitRecord)) {
+            if (hitBVH(ray, 0.00001f, 100f, &hitRecord, &seed)) {
                 let textureColor = textureValue(&hitRecord);
                 let hittable = &hittableBuffer.hittables[hitRecord.id];
                 let materialTypeId = hittable.materialTypeId;
@@ -2055,7 +2142,7 @@ fn color(@builtin(global_invocation_id) globalId : vec3<u32>) {
                             // Fire a shadow ray towards the light
                             shadowRay.origin = hitRecord.position;
                             shadowRay.direction = -light.direction;
-                            if (!hitBVH(shadowRay, 0.00001f, 100f, &shadowHitRecord)) {
+                            if (!hitBVH(shadowRay, 0.00001f, 100f, &shadowHitRecord, &seed)) {
                                // Diffuse
                                let diffuseIntensity = clamp(-dot(hitRecord.normal, light.direction), 0f, 1f);
                                color += diffuseIntensity * textureColor * light.color;
@@ -2074,9 +2161,10 @@ fn color(@builtin(global_invocation_id) globalId : vec3<u32>) {
                             let distance = length(direction);
                             direction = direction / distance;
                             shadowRay.direction = direction;
-                            if (!hitBVH(shadowRay, 0.00001f, distance, &shadowHitRecord)) {
+                            if (!hitBVH(shadowRay, 0.00001f, distance, &shadowHitRecord, &seed)) {
                                // Diffuse
                                let diffuseIntensity = clamp(dot(hitRecord.normal, direction), 0f, 1f);
+                               // TODO: Distance attenuation using light range: 1 / (1 + (distance / range)^2)
                                color += diffuseIntensity * textureColor * light.color;
 
                                // Specular
@@ -2093,7 +2181,7 @@ fn color(@builtin(global_invocation_id) globalId : vec3<u32>) {
                             direction = direction / distance;
                             shadowRay.origin = hitRecord.position;
                             shadowRay.direction = direction;
-                            if (!hitBVH(shadowRay, 0.00001f, distance, &shadowHitRecord)) {
+                            if (!hitBVH(shadowRay, 0.00001f, distance, &shadowHitRecord, &seed)) {
                                 // Calculate the position and size of the near plane
                                 let nearPlane = light.nearPlane;
                                 let nearPlaneCenter = center + light.direction * nearPlane;
@@ -2159,23 +2247,21 @@ fn color(@builtin(global_invocation_id) globalId : vec3<u32>) {
                             let distance = length(direction);
                             direction = direction / distance;
                             shadowRay.direction = direction;
-                            if (!hitBVH(shadowRay, 0.00001f, distance, &shadowHitRecord)) {
+                            if (!hitBVH(shadowRay, 0.00001f, distance, &shadowHitRecord, &seed)) {
                                 // Get angle to light direction
                                 // Check if within light cone
                                 let cosAngle = dot(-direction, light.direction);
-                                var attenuation = 1f;
-                                if (cosAngle > cos(light.angle * 0.5f)) { 
-                                    // Attenuate based on angle
-                                    // cosine falloff, with exponent
-                                    attenuation = pow(clamp(cosAngle, 0f, 1f), light.falloff);
-                                }
-                                else {
-                                    // Outside of spotlight cone
-                                    attenuation = 0f;
+                                let cosOuter = cos(light.angle * 0.5f);
+                                var attenuation = 0f;
+                                if (cosAngle > cosOuter) {
+                                    // Remap [cosOuter..1] to [0..1] for smooth edge falloff
+                                    let remap = (cosAngle - cosOuter) / (1f - cosOuter);
+                                    attenuation = select(pow(remap, light.falloff), 1f, light.falloff == 0f);
                                 }
 
                                 // Diffuse
                                 let diffuseIntensity = clamp(dot(hitRecord.normal, direction), 0f, 1f);
+                                // TODO: Distance attenuation using light range: 1 / (1 + (distance / range)^2)
                                 color += diffuseIntensity * textureColor * light.color * attenuation;
 
                                 // Specular
@@ -2239,7 +2325,7 @@ fn normalDepth(@builtin(global_invocation_id) globalId : vec3<u32>) {
     var normal = vec3<f32>(0f, 0f, 0f);
     var depth = 0f;
     var hitRecord: HitRecord;
-    if (hitBVH(ray, 0.00001f, 100f, &hitRecord)) {
+    if (hitBVH(ray, 0.00001f, 100f, &hitRecord, &seed)) {
         normal = hitRecord.normal * 0.5f + vec3<f32>(0.5f, 0.5f, 0.5f);
 
         // Linear depth
@@ -2303,7 +2389,7 @@ fn segment(@builtin(global_invocation_id) globalId : vec3<u32>) {
     // Segment
     var segment = vec4<f32>(0f, 0f, 0f, 0f);
     var hitRecord: HitRecord;
-    if (hitBVH(ray, 0.00001f, 100f, &hitRecord)) {
+    if (hitBVH(ray, 0.00001f, 100f, &hitRecord, &seed)) {
         let hittable = hittableBuffer.hittables[hitRecord.id];
         if (uniforms.idSource == 1f) {
             segment = hittable.pickColor;
@@ -2351,7 +2437,7 @@ fn texture(@builtin(global_invocation_id) globalId : vec3<u32>) {
     // Texture
     var texture = vec2<f32>(0f, 0f);
     var hitRecord: HitRecord;
-    if (hitBVH(ray, 0.00001f, 100f, &hitRecord)) {
+    if (hitBVH(ray, 0.00001f, 100f, &hitRecord, &seed)) {
         texture = hitRecord.uv;
     }
     
