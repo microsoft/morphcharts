@@ -115,7 +115,7 @@ export class Color {
     }
 }
 
-// Non-gamma corrected (linear space)
+// sRGB space (converted to linear by the renderer)
 export const Colors: { [key: string]: ColorRGB } = {
     "mediumvioletred": [0xc7 / 0xff, 0x15 / 0xff, 0x85 / 0xff],
     "deeppink": [0xff / 0xff, 0x14 / 0xff, 0x93 / 0xff],

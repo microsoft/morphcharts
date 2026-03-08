@@ -8,21 +8,6 @@
     <link rel="stylesheet" href="./css/common.css">
     <link rel="stylesheet" href="./css/gallery.css">
     <script type="module" src="./js/gallery.js"></script>
-    <style>
-        /* Detail view */
-        .detail img {
-            width: 100%;
-            height: auto;
-        }
-
-        .detail pre {
-            background-color: whitesmoke;
-            padding: 12px;
-            overflow-x: auto;
-            font-size: 0.85em;
-            border: 1px solid lightgray;
-        }
-    </style>
 </head>
 
 <body>
@@ -37,6 +22,17 @@
     <h1>Gallery</h1>
     <div id="content" style="visibility: hidden;"></div>
 
+    <!-- Detail view (hidden until a sample is selected) -->
+    <div id="galleryDetail" style="display: none;">
+        <h2 id="galleryDetailTitle" class="galleryHeading"></h2>
+        <div id="galleryDetailDescription" class="galleryDescription"></div>
+        <img id="galleryDetailImage" alt="">
+        <div id="galleryDetailNotes" class="galleryNotes"></div>
+        <a id="galleryDetailTryLink">View in Online Editor</a>
+        <h3>Specification</h3>
+        <pre><code id="galleryDetailSpec"></code></pre>
+    </div>
+
     <footer style="visibility: hidden;">
         <span>© 2025 Microsoft</span>
         <a href="https://go.microsoft.com/fwlink/?LinkId=521839">Privacy &amp; Cookies</a>
@@ -44,6 +40,7 @@
         <a href="https://www.microsoft.com/trademarks">Trademarks</a>
         <a href="https://www.microsoft.com/en-us/servicesagreement/">Terms of Use</a>
     </footer>
+    <script src="./js/copy.js"></script>
 </body>
 
 </html>

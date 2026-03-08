@@ -20,11 +20,14 @@ export class Palette {
             // Calculate the interpolation factor
             const factor = normalized - fromIndex;
 
-            // Interpolate between the two colors
+            // Interpolate in linear space for perceptually correct blending
+            // sRGB → linear → lerp → sRGB
+            const GAMMA = 2.2;
+            const INV_GAMMA = 1 / GAMMA;
             return [
-                palette[fromIndex][0] + factor * (palette[toIndex][0] - palette[fromIndex][0]),
-                palette[fromIndex][1] + factor * (palette[toIndex][1] - palette[fromIndex][1]),
-                palette[fromIndex][2] + factor * (palette[toIndex][2] - palette[fromIndex][2])
+                Math.pow(Math.pow(palette[fromIndex][0], GAMMA) + factor * (Math.pow(palette[toIndex][0], GAMMA) - Math.pow(palette[fromIndex][0], GAMMA)), INV_GAMMA),
+                Math.pow(Math.pow(palette[fromIndex][1], GAMMA) + factor * (Math.pow(palette[toIndex][1], GAMMA) - Math.pow(palette[fromIndex][1], GAMMA)), INV_GAMMA),
+                Math.pow(Math.pow(palette[fromIndex][2], GAMMA) + factor * (Math.pow(palette[toIndex][2], GAMMA) - Math.pow(palette[fromIndex][2], GAMMA)), INV_GAMMA)
             ];
         }
         else {
@@ -34,7 +37,7 @@ export class Palette {
     }
 }
 
-// Non-gamma corrected (linear space)
+// sRGB space (converted to linear by the renderer)
 export const Palettes: { [key: string]: { type: string, colors: ColorRGB[] } } = {
     // Sequential, single hue
     "blues": { type: "sequentialsinglehue", colors: [[0xf7 / 0xff, 0xfb / 0xff, 0xff / 0xff], [0xde / 0xff, 0xeb / 0xff, 0xf7 / 0xff], [0xc6 / 0xff, 0xdb / 0xff, 0xef / 0xff], [0x9e / 0xff, 0xca / 0xff, 0xe1 / 0xff], [0x6b / 0xff, 0xae / 0xff, 0xd6 / 0xff], [0x42 / 0xff, 0x92 / 0xff, 0xc6 / 0xff], [0x21 / 0xff, 0x71 / 0xff, 0xb5 / 0xff], [0x08 / 0xff, 0x51 / 0xff, 0x9c / 0xff], [0x08 / 0xff, 0x30 / 0xff, 0x6b / 0xff]] },

@@ -6,10 +6,7 @@ import * as Core from "core";
 export const ComputeShaderWgsl = `
 const PI = 3.1415926535897932385f;
 const TWO_PI = 6.2831853071795864769f;
-const PI_OVER_TWO = 1.57079632679489661923f;
-const ROOT_THREE_OVER_TWO = 0.86602540378443864676f;
 const ROOT_TWO_OVER_TWO = 0.70710678118654752440f;
-const ONE_OVER_LOG10 = 1f / log(10f);
 const EPSILON = 1e-8;
 const LARGE_VALUE = 1e8;
 
@@ -58,27 +55,6 @@ struct Camera {
     focusDistance: f32,
 }
 
-// id   type
-// ---------------
-// 0    lambertian
-// 1    metal
-// 2    dielectric
-// 3    diffuse light
-// 4    glossy
-                                   //       offest  align  size
-struct Material {                  // -------------------------
-    typeId: f32,                   //            0*     4     4
-    fuzz: f32,                     //            4      4     4
-    refractiveIndex: f32,          //            8      4     4
-    textureId: f32,                //           12      4     4
-    color: vec3<f32>,              //           16*    16    12
-    gloss: f32,                    //           28      4     4
-    idColor: vec4<f32>,            //           32*    16    16
-    density: f32,                  //           48*     4     4
-                                   // padding   52      4    12
-}                                  // -------------------------
-                                   //                  16    64 
-
                                    //       offest  align  size
 struct Uniforms {                  // ---------------------------
     position: vec3<f32>,           //            0*    16    12
@@ -105,28 +81,6 @@ struct Uniforms {                  // ---------------------------
                                    // -------------------------
                                    //                  16   144
 
-
-// id   type
-// ----------------
-// 0    solidColor
-// 1    checker
-// 2    image
-// 3    sdfText
-// 4    uv (2d texcoord)
-// 5    uvw (3d texcoord)
-                                   //       offest  align  size
-struct Texture {                   // ---------------------------
-    color0: vec3<f32>,             //            0     16    12
-    typeId: f32,                   //           12      4     4
-    color1: vec3<f32>,             //           16*    12    12
-    _padding: f32,                 // padding   28      4     4
-    size0: vec4<f32>,              //           32*    16    16
-    size1: vec4<f32>,              //           48*    16    16
-    clip:  vec4<f32>,              //           64*    16    16
-    offset: vec2<f32>,             //           80*     8     8
-}                                  // padding   88      4     8
-                                   // -------------------------
-                                   //                  16    96
 
 // id   type
 // ----------------
@@ -178,7 +132,7 @@ struct Hittable {                  // -------------------------
     sdfBuffer: f32,                //          160*     4     4
     sdfHalo: f32,                  //          164      4     4
     textureTypeId: f32,            //          168      4     4
-    boundaryTypeId: f32,           //          172      4     4
+    _reserved: f32,                //          172      4     4
     parameter0: f32,               //          176*     4     4
     parameter1: f32,               //          180      4     4
     parameter2: f32,               //          184      4     4
@@ -204,10 +158,6 @@ struct HittableBuffer {
     hittables: array<Hittable>,
 }
 
-struct TextureBuffer {
-    textures: array<Texture>,
-}
-
 struct LightBuffer {
     lights: array<Light>,
 }
@@ -218,30 +168,6 @@ struct LinearBVHNodeBuffer {
 
 fn rotateQuat(v: vec3<f32>, q: vec4<f32>) -> vec3<f32> {
     return v + 2f * cross(q.xyz, cross(q.xyz, v) + q.w * v);
-}
-
-fn slerpQuat(q0: vec4<f32>, q1: vec4<f32>, t: f32) -> vec4<f32> {
-    var cosom = dot(q0, q1);
-    var q2 = q1;
-	if (cosom < 0f) {
-		cosom = -cosom;
-		q2 = -q2;
-	}
-	var s0: f32;
-    var s1: f32;
-	if (1f - cosom > 0.000001f) {
-		// SLERP
-		let omega = acos(cosom);
-		let sinom = sin(omega);
-		s0 = sin((1f - t) * omega) / sinom;
-		s1 = sin(t * omega) / sinom;
-	}
-	else {
-		// Quaternions close enough for LERP
-		s0 = 1f - t;
-		s1 = t;
-	}
-	return s0 * q0 + s1 * q2;
 }
 
 fn conjugate(q: vec4<f32>) -> vec4<f32> {
@@ -295,7 +221,6 @@ fn getPerspectiveRay(camera: Camera, seed: ptr<function, u32>, texCoord: vec2<f3
 }
 
 fn getCylindricalRay(camera: Camera, seed: ptr<function, u32>, texCoord: vec2<f32>) -> Ray {
-    // Cylindrical projection
     let theta = (texCoord.x - 0.5f) * TWO_PI; // [-pi, pi]
     let phi = (0.5f - texCoord.y) * PI; // [-pi/2, pi/2], flip y
     let scale = cos(phi);
@@ -304,25 +229,6 @@ fn getCylindricalRay(camera: Camera, seed: ptr<function, u32>, texCoord: vec2<f3
     ray.direction = normalize(vec3<f32>(scale * sin(theta), sin(phi), -scale * cos(theta)));
     return ray;
 }
-
-// fn getCylindricalTexCoord(ray: Ray) -> vec2<f32> {
-//     // Inverse cylindrical projection
-//     let dir = normalize(ray.direction);
-    
-//     // Extract phi from y component: sin(phi) = dir.y
-//     let phi = asin(clamp(dir.y, -1.0, 1.0)); // [-pi/2, pi/2]
-    
-//     // Extract theta from x and z components
-//     // From the forward projection: x = scale * sin(theta), z = scale * cos(theta)
-//     // where scale = cos(phi)
-//     let theta = atan2(dir.x, dir.z); // [-pi, pi]
-    
-//     // Convert back to texture coordinates
-//     let texCoordX = theta / TWO_PI + 0.5; // [0, 1]
-//     let texCoordY = 0.5 - phi / PI; // [0, 1], flip y back
-    
-//     return vec2<f32>(texCoordX, texCoordY);
-// }
 
 fn random(seed: ptr<function, u32>) -> f32 {
     var random = ((*seed >> ((*seed >> 28u) + 4u)) ^ *seed) * 277803737u;
@@ -354,29 +260,9 @@ fn setFaceNormal(ray: Ray, outwardNormal: vec3<f32>, hitRecord: ptr<function, Hi
     (*hitRecord).normal = select(-outwardNormal, outwardNormal, (*hitRecord).frontFace);
 }
 
-fn hitWorld(ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, HitRecord>, seed: ptr<function, u32>) -> bool {
-    var hitAnything = false;
-    var closestSoFar = tMax;
-    let invDir = vec3<f32>(1f, 1f, 1f) / ray.direction;
-    var tempHitRecord: HitRecord;
-    for (var i: u32 = 0u; i < arrayLength(&hittableBuffer.hittables); i++) {
-        if (hit(i, ray, invDir, tMin, closestSoFar, &tempHitRecord, seed)) {
-            hitAnything = true;
-            closestSoFar = tempHitRecord.t;
-            tempHitRecord.id = i;
-        }
-    }
-    if (hitAnything) {
-        *hitRecord = tempHitRecord;
-        return true;
-    };
-    return false;
-}
-
 fn hitBVH(ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, HitRecord>, seed: ptr<function, u32>) -> bool {
     var hitAnything = false;
     var closestSoFar = tMax;
-    // let invDir = vec3<f32>(1f, 1f, 1f) / ray.direction;
     // Avoid division by zero (otherwise box hit, intersection returns true for rays with 0 in direction)
     let invDir = vec3<f32>(
         select(1f / ray.direction.x, LARGE_VALUE, ray.direction.x == 0f),
@@ -396,7 +282,7 @@ fn hitBVH(ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, HitRecord>, s
                 let primitiveOffset = u32((*node).primitivesOffset);
                 for (var i: u32 = 0u; i < nPrimitives; i++) {
                     let id = primitiveOffset + i;
-                    if (hit(id, ray, invDir, tMin, closestSoFar, &tempHitRecord, seed)) {
+                    if (hit(id, ray, invDir, tMin, closestSoFar, &tempHitRecord)) {
                         hitAnything = true;
                         closestSoFar = tempHitRecord.t;
                         tempHitRecord.id = id;
@@ -429,10 +315,7 @@ fn hitBVH(ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, HitRecord>, s
         tempHitRecord.previousIsAbsorbing = (*hitRecord).isAbsorbing;
         tempHitRecord.previousAbsorption = (*hitRecord).absorption;
 
-        // TODO: Defer calculating normal until closest hit is found
-        // calculateNormal(&tempHitRecord);
-        // TODO: Defer calculating texture coordinate until closest hit is found and texture mode is known
-        // calculateUV(&tempHitRecord);
+        // TODO: Defer normal and UV calculation until closest hit is found
 
         *hitRecord = tempHitRecord;
         return true;
@@ -440,8 +323,7 @@ fn hitBVH(ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, HitRecord>, s
     return false;
 }
 
-fn hit(id: u32, ray: Ray, invDir: vec3<f32>, tMin: f32, tMax: f32, hitRecord: ptr<function, HitRecord>, seed: ptr<function, u32>) -> bool {
-    // TODO: If I'm getting the hittable to check the type, just pass the hittable as a pointer to the hit function directly (saves another lookup)
+fn hit(id: u32, ray: Ray, invDir: vec3<f32>, tMin: f32, tMax: f32, hitRecord: ptr<function, HitRecord>) -> bool {
     switch u32(hittableBuffer.hittables[id].typeId) {
         default: { return false; }
         case 0u: { return hitSphere(id, ray, tMin, tMax, hitRecord); }
@@ -453,10 +335,9 @@ fn hit(id: u32, ray: Ray, invDir: vec3<f32>, tMin: f32, tMax: f32, hitRecord: pt
         case 6u: { return hitBoxRotatedSdf(id, ray, tMin, tMax, hitRecord); }
         case 7u: { return hitCappedTorusSdf(id, ray, tMin, tMax, hitRecord); }
         case 8u: { return hitCappedTorusRotatedSdf(id, ray, tMin, tMax, hitRecord); }
-        case 9u: { return hitCylinder(id, ray, tMin, tMax, hitRecord); }
-        case 10u: { return hitCylinderSdf(id, ray, tMin, tMax, hitRecord); }
+        case 9u, 10u: { return hitCylinderSdf(id, ray, tMin, tMax, hitRecord); }
         case 11u: { return hitCylinderRotatedSdf(id, ray, tMin, tMax, hitRecord); }
-        // TODO: HexPrism
+        // TODO: Rotated hex prism variant (case 12u)
         case 13u: { return hitHexPrismSdf(id, ray, tMin, tMax, hitRecord); }
         case 14u: { return hitQuadSdf(id, ray, tMin, tMax, hitRecord); }
         case 15u: { return hitRingSdf(id, ray, tMin, tMax, hitRecord); }
@@ -468,7 +349,6 @@ fn hit(id: u32, ray: Ray, invDir: vec3<f32>, tMin: f32, tMax: f32, hitRecord: pt
         case 21u: { return hitYzRect(id, ray, tMin, tMax, hitRecord); }
         case 22u: { return hitXyGlyph(id, ray, tMin, tMax, hitRecord); }
         case 23u: { return hitRotatedXyGlyph(id, ray, tMin, tMax, hitRecord); }
-        case 24u: { return hitConstantMedium(id, ray, invDir, tMin, tMax, hitRecord, seed); }
     }
 }
 
@@ -482,80 +362,6 @@ fn intersectBox(center: vec3<f32>, size: vec3<f32>, ray: Ray, invDir: vec3<f32>,
     let tFar = min(min(t1.x, t1.y), t1.z);
     if (tNear > tFar) { return false; }
     return tNear < tMax && tFar > 0f; // Must return true when inside box, even if closestSoFar is closer than far box intersection
-}
-
-fn hitConstantMedium(id: u32, ray: Ray, invDir: vec3<f32>, tMin: f32, tMax: f32, hitRecord: ptr<function, HitRecord>, seed: ptr<function, u32>) -> bool {
-    let constantMedium = &hittableBuffer.hittables[id];
-    let boundaryTypeId = u32((*constantMedium).boundaryTypeId);
-    var tempHitRecord1: HitRecord;
-    if (!hitConstantMediumBoundary(id, boundaryTypeId, ray, invDir, -100f, 100f, &tempHitRecord1)) { return false; }
-    var tempHitRecord2: HitRecord;
-    // When raymarching narrow grazing angles, adding a small offset avoids incorrect distance calculations
-    if (!hitConstantMediumBoundary(id, boundaryTypeId, ray, invDir, tempHitRecord1.t + 0.001f, 100f, &tempHitRecord2)) { return false; }
-    if (tempHitRecord1.t < tMin) { tempHitRecord1.t = tMin; }
-    if (tempHitRecord2.t > tMax) { tempHitRecord2.t = tMax; }
-    if (tempHitRecord1.t >= tempHitRecord2.t) {
-        return false;
-    }
-    tempHitRecord1.t = max(tempHitRecord1.t, 0f);
-    let distanceInsideBoundary = tempHitRecord2.t - tempHitRecord1.t;
-    let negativeInverseDensity = -1f / (*constantMedium).materialDensity;
-    let hitDistance = negativeInverseDensity * log(random(seed));
-    if (hitDistance > distanceInsideBoundary) { return false; }
-    let t = tempHitRecord1.t + hitDistance;
-    (*hitRecord).t = t;
-    (*hitRecord).position = rayAt(ray, t);
-    return true;
-}
-
-fn hitConstantMediumBoundary(id: u32, boundaryTypeId: u32, ray: Ray, invDir: vec3<f32>, tMin: f32, tMax: f32, hitRecord: ptr<function, HitRecord>) -> bool {
-    switch boundaryTypeId {
-        default: {
-            return false;
-        }
-        case 0u: {
-            return hitSphere(id, ray, tMin, tMax, hitRecord);
-        }
-        case 1u: {
-            return hitBox(id, ray, invDir, tMin, tMax, hitRecord);
-        }
-        case 2u: {
-            return hitRotatedBox(id, ray, tMin, tMax, hitRecord);
-        }
-        case 5u: {
-            return hitBoxSdf(id, ray, tMin, tMax, hitRecord);
-        }
-        case 6u: {
-            return hitBoxRotatedSdf(id, ray, tMin, tMax, hitRecord);
-        }
-        case 9u: {
-            return hitCylinder(id, ray, tMin, tMax, hitRecord);
-        }
-        case 10u: {
-            return hitCylinderSdf(id, ray, tMin, tMax, hitRecord);
-        }
-        case 11u: {
-            return hitCylinderRotatedSdf(id, ray, tMin, tMax, hitRecord);
-        }
-        case 7u: {
-            return hitCappedTorusSdf(id, ray, tMin, tMax, hitRecord);
-        }
-        case 8u: {
-            return hitCappedTorusRotatedSdf(id, ray, tMin, tMax, hitRecord);
-        }
-        case 13u: {
-            return hitHexPrismSdf(id, ray, tMin, tMax, hitRecord);
-        }
-        case 14u: { // Trapezoidal prism
-            return hitQuadSdf(id, ray, tMin, tMax, hitRecord);
-        }
-        case 15u: {
-            return hitRingSdf(id, ray, tMin, tMax, hitRecord);
-        }
-        case 16u: {
-            return hitRingRotatedSdf(id, ray, tMin, tMax, hitRecord);
-        }
-    }
 }
 
 fn hitSphere(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, HitRecord>) -> bool {
@@ -576,16 +382,11 @@ fn hitSphere(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, H
         if (root < tMin || root > tMax) { return false; }
     }
 
-    // (*hitRecord).t = root;
-    // (*hitRecord).position = rayAt(ray, root);
-    // let outwardNormal = ((*hitRecord).position - center) / radius;
-    // setFaceNormal(ray, outwardNormal, hitRecord);
-
     // Reduce precision error in t by ensuring hit position is on sphere surface
     let outwardNormal = normalize(ray.origin + ray.direction * root - center);
     setFaceNormal(ray, outwardNormal, hitRecord);
-    (*hitRecord).position = center + outwardNormal * radius; // Use outward normal with internal reflection
-    (*hitRecord).t = root; // I should also re-calculate t, but this would involve another normalization. t is only used to check closest hit, so only important with overlapping geometry
+    (*hitRecord).position = center + outwardNormal * radius; // Snap to sphere surface for precision (works with internal reflection)
+    (*hitRecord).t = root; // Not recalculated from snapped position; only used for closest-hit ordering
 
     // Texture coords
     let phi = atan2(outwardNormal.x, outwardNormal.z); // [-pi,pi]
@@ -598,7 +399,6 @@ fn hitBox(id: u32, ray: Ray, invDir: vec3<f32>, tMin: f32, tMax: f32, hitRecord:
     let box = &hittableBuffer.hittables[id];
     let center = (*box).center0;
     let size = (*box).size0 * 0.5f;
-    // TODO: Just rotate position by inverse rotation quaternion, and remove rotation overload
     let oc = center - ray.origin;
     let n = invDir * oc;
     let k = abs(invDir) * size;
@@ -606,7 +406,6 @@ fn hitBox(id: u32, ray: Ray, invDir: vec3<f32>, tMin: f32, tMax: f32, hitRecord:
     let t2 = n + k;
     let tNear = max(max(t1.x, t1.y), t1.z);
     let tFar = min(min(t2.x, t2.y), t2.z);
-    // if (tFar <= tNear) { return false; }
     if (tNear > tFar || tFar < 0f) { return false; }
 
     // Find nearest root in range
@@ -628,7 +427,6 @@ fn hitBox(id: u32, ray: Ray, invDir: vec3<f32>, tMin: f32, tMax: f32, hitRecord:
     // Texture coords
     // Intersection point in model space
     let p = (*hitRecord).position - center;
-    // TODO: uvw for volumetric texturing?
     let size0 = (*box).size0 / (*box).texScale.xyz;
     let uv: vec2<f32> = 
     select(
@@ -662,80 +460,6 @@ fn hitRotatedBox(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<functio
     return false;
 }
 
-fn hitCylinder(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, HitRecord>) -> bool {
-    let cylinder = &hittableBuffer.hittables[id];
-    let center = (*cylinder).center0;
-    let size = (*cylinder).size0 * 0.5f;
-    let rotation = (*cylinder).rotation0;
-    let ra = size.x; // Radius
-    let ca = rotateQuat(vec3<f32>(0f, 1f, 0f), rotation);
-    let oc = ray.origin - center;
-    let card = dot(ca, ray.direction);
-    let caoc = dot(ca, oc);
-    let a = 1f - card * card;
-    let b = dot(oc, ray.direction) - caoc * card;
-    let c = dot(oc, oc) - caoc * caoc - ra * ra;
-    var h = b * b - a * c;
-    if (h < 0f) { return false; }
-    h = sqrt(h);
-    let br0 = (-b - h) / a;
-    let br1 = (-b + h) / a;
-
-    // Body
-    let ch = size.y; // Half-height
-    let y0 = caoc + br0 * card;
-    let y1 = caoc + br1 * card;
-    let bt0 = select(10000000f, br0, abs(y0) < ch);
-    let bt1 = select(-10000000f, br1, abs(y1) < ch);
-
-    // Caps
-    let sy0 = sign(y0);
-    let sy1 = sign(y1);
-    let cr0 = (sy0 * ch - caoc) / card;
-    let cr1 = (sy1 * ch - caoc) / card;
-    let ct0 = select(10000000f, cr0, abs(b + a * cr0) < h);
-    let ct1 = select(-10000000f, cr1, abs(b + a * cr1) < h);
-
-    // Find the nearest root in range
-    let tN = min(bt0, ct0);
-    let tF = max(bt1, ct1);
-    var root = tN;
-    if (root < tMin || root > tMax) {
-        root = tF;
-        if (root < tMin || root > tMax) { return false; }
-    }
-
-    // Normal
-    var outwardNormal: vec3<f32>;
-    if (root == bt0 || root == bt1) {
-        let y = select(y1, y0, root == bt0);
-        // outwardNormal = (oc + root * ray.direction - ca * y) / ra;
-
-        // Reduce precision error in t by ensuring hit position is on cylinder surface
-        outwardNormal = normalize(oc + root * ray.direction - ca * y);
-        setFaceNormal(ray, outwardNormal, hitRecord);
-        (*hitRecord).position = center + ca * y + outwardNormal * ra; // Use outward normal with internal reflection
-        (*hitRecord).t = root;
-    }
-    else {
-        let sy = select(sy1, sy0, root == ct0);
-        outwardNormal = ca * sy;
-
-        // TODO: Reduce precision error
-        setFaceNormal(ray, outwardNormal, hitRecord);
-        (*hitRecord).position = rayAt(ray, root);
-        (*hitRecord).t = root;
-    }
-
-    // setFaceNormal(ray, outwardNormal, hitRecord);
-    // (*hitRecord).position = rayAt(ray, root);
-    // (*hitRecord).t = root;
-
-    // Texture coords
-    (*hitRecord).uv = vec2<f32>(0f, 0f);
-    return true;
-}
-
 fn hitXyGlyph(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, HitRecord>) -> bool {
     let xyRect = &hittableBuffer.hittables[id];
     
@@ -754,9 +478,6 @@ fn hitXyGlyph(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, 
     if (abs(p.x) > size.x * 0.5f || abs(p.y) > size.y * 0.5) { return false; }
 
     // Texture coords
-    // let texCoords = (*xyRect).texCoords;
-    // let uv = texCoords.xw + (texCoords.zy - texCoords.xw) * (p.xy / size.xy + vec2<f32>(0.5f, 0.5f));
-
     var uv = vec2<f32>(p.xy / size.xy + vec2<f32>(0.5f, 0.5f));
     let texCoord0 = (*xyRect).texCoords.xw;
     let texCoord1 = (*xyRect).texCoords.zy;
@@ -768,7 +489,6 @@ fn hitXyGlyph(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, 
     let border = (*xyRect).sdfHalo;
     if (distance < edgeValue - border) { return false; }
 
-    // (*hitRecord).uv = uv;
     // Encode border hit into u
     (*hitRecord).uv[0] = select(0f, 1f, distance < edgeValue);
     (*hitRecord).t = t;
@@ -796,9 +516,6 @@ fn hitRotatedXyGlyph(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<fun
 }
 
 fn mapTubeSdf(p: vec3<f32>, r: f32, th: f32, h: f32, rounding: f32) -> f32 {
-    // Circle
-    // return length(p) - r;
-    
     // Annular circle
     let d = abs(length(p.xz) - r) - th * 0.5f;
     
@@ -839,8 +556,6 @@ fn hitTubeSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, 
             setFaceNormal(ray, outwardNormal, hitRecord);
 
             // Texture coords
-            // TODO: Split UV calculation into a separate function and share with cylinderSdf
-            // (*hitRecord).uv = vec2<f32>(0f, 0f);
              let size1 = (*tubeSdf).size0 / (*tubeSdf).texScale.xyz;
             let angleY = dot(outwardNormal, vec3<f32>(0f, 1f, 0f));
             (*hitRecord).uv = fract(select(
@@ -880,7 +595,6 @@ fn mapBoxFrameSdf(p: vec3<f32>, b: vec3<f32>, e: f32, r: f32) -> f32 {
       length(max(vec3<f32>(q.x, q.y, s.z), vec3<f32>(0f, 0f, 0f))) + min(max(q.x, max(q.y,s.z)), 0f)) - r;
 }
 
-// TODO: Create a function with map as a parameterized function parameter
 fn hitBoxFrameSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, HitRecord>) -> bool {
     let boxFrameSdf = &hittableBuffer.hittables[id];
     var t = tMin;
@@ -909,8 +623,6 @@ fn hitBoxFrameSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<functi
             setFaceNormal(ray, outwardNormal, hitRecord);
 
             // Texture coords
-            // TODO: Split UV calculation into a separate function and share with boxSdf
-            // (*hitRecord).uv = vec2<f32>(0f, 0f);
             let maxOutwardNormal = max(abs(outwardNormal.x), max(abs(outwardNormal.y), abs(outwardNormal.z)));
             let size = (*boxFrameSdf).size0 / (*boxFrameSdf).texScale.xyz;
             let uv: vec2<f32> = 
@@ -961,8 +673,7 @@ fn hitBoxSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, H
     for (var i: u32 = 0u; i < 256u; i = i + 1u) {
         let position = rayAt(ray, t);
         let oc = position - center;
-        // TODO: is abs needed?
-        let distance = abs(mapBoxSdf(oc, size, r));
+        let distance = abs(mapBoxSdf(oc, size, r)); // abs handles rays starting inside the SDF
         t = t + distance;
         if (t > tMax) { return false; }
         if (distance < 0.000001f) {
@@ -980,8 +691,6 @@ fn hitBoxSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, H
             setFaceNormal(ray, outwardNormal, hitRecord);
 
             // Texture coords
-            // TODO: Split UV calculation into a separate function and share with boxFrameSdf
-            // (*hitRecord).uv = vec2<f32>(0f, 0f);
             let maxOutwardNormal = max(abs(outwardNormal.x), max(abs(outwardNormal.y), abs(outwardNormal.z)));
             let size = (*boxSdf).size0 / (*boxSdf).texScale.xyz;
             var uv: vec2<f32> = 
@@ -1029,20 +738,9 @@ fn mapCappedTorusSdf(p: vec3<f32>, start: f32, end: f32, ra: f32, th: f32, paddi
     let cosmid = cos(mid);
     let py = -p.y;
     let p2 = vec3<f32>(abs(p.x * cosmid + py * sinmid), p.x * sinmid - py * cosmid, p.z);
-    
-    // let a = (end - start) * 0.5f;
-    // let sin = sin(a);
-    // let cos = cos(a);
-    // pRotated.x = abs(pRotated.x);
-    // pRotated.y = -pRotated.y;
-    // let n = normalize(vec2<f32>(cos, -sin));
-    // let w = (pRotated.x - sin * ra) * n.x + (pRotated.y - cos * ra) * n.y;
-    // return max(-w, sqrt(dot(pRotated, pRotated) + ra * ra - 2f * ra * length(pRotated.xy)) - th);
 
     let a = (end - start) * 0.5f - PI * 1.5f; // Angle in radians
     let sc = vec2<f32>(cos(a), -sin(a));
-    // let p2 = vec3<f32>(abs(p.x), -p.y, p.z);
-    // let p2 = vec3<f32>(abs(p.x), p.y, p.z);
     let n = vec2(sc.y, -sc.x);
     let w = dot(p2.xy - sc * ra, n);
     return max(-w, sqrt(dot(p2, p2) + ra * ra - 2f * ra * length(p2.xy)) - th) + padding;
@@ -1073,7 +771,6 @@ fn hitCappedTorusSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<fun
             // Normal
             let h = 0.000001f;
             let k = vec2<f32>(1f, -1f);
-            // TODO: Padding required for normal calculation (doesn't it cancel out?). Either way, move it to map
             let outwardNormal =  normalize(
                 k.xyy * mapCappedTorusSdf(oc + k.xyy * h, startAngle, endAngle, radius, halfThickness, padding) +
                 k.yyx * mapCappedTorusSdf(oc + k.yyx * h, startAngle, endAngle, radius, halfThickness, padding) +
@@ -1140,8 +837,6 @@ fn hitCylinderSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<functi
             setFaceNormal(ray, outwardNormal, hitRecord);
 
             // Texture coords
-            // TODO: Split UV calculation into a separate function and share with tubeSdf
-            // (*hitRecord).uv = vec2<f32>(0f, 0f);
             let size1 = (*cylinderSdf).size0 / (*cylinderSdf).texScale.xyz;
             let angleY = dot(outwardNormal, vec3<f32>(0f, 1f, 0f));
             (*hitRecord).uv = fract(select(
@@ -1209,13 +904,11 @@ fn hitHexPrismSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<functi
             setFaceNormal(ray, outwardNormal, hitRecord);
 
             // Texture coords
-            // (*hitRecord).uv = vec2<f32>(0f, 0f);
             let size1 = (*hexPrismSdf).size0 / (*hexPrismSdf).texScale.xyz;
             let angleY = dot(outwardNormal, vec3<f32>(0f, 1f, 0f));
             // Approximate to cylinder by projecting position on unit circle
             let circle = normalize(vec2<f32>(oc.x, oc.z));
             (*hitRecord).uv = fract(select(
-                // Approximate to cylinder by projecting position on unit circle
                 vec2<f32>(atan2(circle.x, circle.y) / TWO_PI * (*hexPrismSdf).texScale.w + (*hexPrismSdf).texOffset.w + 0.5f, 0.5f - oc.y / size1.y - (*hexPrismSdf).texOffset.y), // Side, invert y                
                 oc.xz / size1.xz + (*hexPrismSdf).texOffset.xz + vec2<f32>(0.5f, 0.5f), // Cap
                 angleY > ROOT_TWO_OVER_TWO
@@ -1311,9 +1004,7 @@ fn mapRingSdf(p: vec3<f32>, start: f32, end: f32, ra: f32, th: f32, h: f32, padd
     let a = (end - start) * 0.5f;
     let n = vec2<f32>(cos(a), sin(a));
     
-    // expand result of mat2x2(n.x,n.y,-n.y,n.x)*p;
-    // let p2 = vec2<f32>(n.x * p2.x + n.y * p.y, -n.y * p2.x + n.x * p.y);
-    // Column-major instead of row-major
+    // Column-major
     let p3 = vec2<f32>(n.x * p2.x - n.y * p2.y, n.y * p2.x + n.x * p2.y);
     let d = max(abs(length(p3) - ra) - th, length(vec2<f32>(p3.x, max(0f, abs(ra - p3.y) - th))) * sign(p3.x));
 
@@ -1325,7 +1016,6 @@ fn mapRingSdf(p: vec3<f32>, start: f32, end: f32, ra: f32, th: f32, h: f32, padd
 fn hitRingSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, HitRecord>) -> bool {
     let ringSdf = &hittableBuffer.hittables[id];
     var t = tMin;
-    // TODO: Use (* ) notation for hittable?
     let center = (*ringSdf).center0;
     let size = (*ringSdf).size0;
     let outerRadius = size.x * 0.5f;
@@ -1399,7 +1089,6 @@ fn hitXyRect(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, H
     if (abs(p.x) > size.x * 0.5f || abs(p.y) > size.y * 0.5f) { return false; }
 
     // Texture coords
-    // var uv = vec2<f32>(p.xy / size.xy + vec2<f32>(0.5f, 0.5f));
     let size0 = size / (*xyRect).texScale.xyz;
     var uv = fract(vec2<f32>(p.xy / size0.xy + (*xyRect).texOffset.xy + vec2<f32>(0.5f, 0.5f)));
     let texCoord0 = (*xyRect).texCoords.xw;
@@ -1431,7 +1120,6 @@ fn hitXzRect(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, H
     if (abs(p.x) > size.x * 0.5f || abs(p.z) > size.z * 0.5f) { return false; }
 
     // Texture coords
-    // var uv = vec2<f32>(p.xz / size.xz + vec2<f32>(0.5f, 0.5f));
     let size0 = size / (*xzRect).texScale.xyz;
     var uv = fract(vec2<f32>(p.xz / size0.xz + (*xzRect).texOffset.xz + vec2<f32>(0.5f, 0.5f)));
     let texCoord0 = (*xzRect).texCoords.xw;
@@ -1463,7 +1151,6 @@ fn hitYzRect(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, H
     if (abs(p.y) > size.y * 0.5f || abs(p.z) > size.z * 0.5f) { return false; }
 
     // Texture coords
-    // var uv = vec2<f32>(p.yz / size.yz + vec2<f32>(0.5f, 0.5f));
     let size0 = size / (*yzRect).texScale.xyz;
     var uv = fract(vec2<f32>(p.zy / size0.zy + (*yzRect).texOffset.zy + vec2<f32>(0.5f, 0.5f)));
     let texCoord0 = (*yzRect).texCoords.xw;
@@ -1477,7 +1164,6 @@ fn hitYzRect(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, H
     return true;
 }
 
-// TODO: hitDirectLights, hitIndirectLights
 fn hitLights(ray: Ray, hitRecord: ptr<function, HitRecord>, seed: ptr<function, u32>) -> vec3<f32> {
     var hit: bool;
     var color = vec3<f32>(0f, 0f, 0f);
@@ -1485,7 +1171,7 @@ fn hitLights(ray: Ray, hitRecord: ptr<function, HitRecord>, seed: ptr<function, 
         let light = lightBuffer.lights[i];
         let lightTypeId = u32(light.typeId);
 
-        // TODO: Split into seperate direct and indirect functions
+        // TODO: Split into separate direct and indirect functions
         switch lightTypeId {
             // Direct lighting
             case 0u: {
@@ -1513,29 +1199,14 @@ fn hitLights(ray: Ray, hitRecord: ptr<function, HitRecord>, seed: ptr<function, 
     }
 
     if (hit) {
-      // return color;
-            
       // If projector light returns black (e.g. from image or checkerboard), use ambient color
       return max(uniforms.ambientColor, color);
     }
 
-    // Background color
-    // return vec3<f32>(0f, 0f, 0f);
-    // return vec3<f32>(1f, 1f, 1f);
-    // return uniforms.backgroundColor;
-
-    // Ambient light (not background color)
     return uniforms.ambientColor;
-    // return vec3<f32>(1f, 1f, 1f); // No lights yet
-
-    // TODO: Dome light
-    // let t = 0.5f * (ray.direction.y + 1f);
-    // let background = (1f - t) * vec3<f32>(1f, 1f, 1f) + t * vec3<f32>(0.5f, 0.7f, 1.0f);
-    // return background;
 }
 
 
-// TODO: Pass a light as the parameter, rather than an index
 fn hitRectLight(id: u32, ray: Ray, color: ptr<function, vec3<f32>>, hitRecord: ptr<function, HitRecord>) -> bool {
     let rotatedXyRect = &lightBuffer.lights[id];
     let center = (*rotatedXyRect).center;
@@ -1544,7 +1215,7 @@ fn hitRectLight(id: u32, ray: Ray, color: ptr<function, vec3<f32>>, hitRecord: p
     var rotatedRay: Ray;
     rotatedRay.origin = rotateQuat(ray.origin - center, invRotation) + center;
     rotatedRay.direction = rotateQuat(ray.direction, invRotation);
-    if (dot(rotatedRay.direction, vec3<f32>(0f, 0f, 1f)) > 0f) { return false; } // Directional light
+    if (dot(rotatedRay.direction, vec3<f32>(0f, 0f, 1f)) > 0f) { return false; } // Front face only
     let oc = rotatedRay.origin - center;
     let t = -oc.z / rotatedRay.direction.z;
     if (t < 0f) { return false; }
@@ -1554,7 +1225,6 @@ fn hitRectLight(id: u32, ray: Ray, color: ptr<function, vec3<f32>>, hitRecord: p
     return true;
 }
 
-// TODO: Pass a light as the parameter, rather than an index
 fn hitSphereLight(id: u32, ray: Ray, color: ptr<function, vec3<f32>>, hitRecord: ptr<function, HitRecord>) -> bool {
     let sphere = &lightBuffer.lights[id];
     let radius = (*sphere).size.x * 0.5f;
@@ -1568,7 +1238,6 @@ fn hitSphereLight(id: u32, ray: Ray, color: ptr<function, vec3<f32>>, hitRecord:
     return true;
 }
 
-// TODO: Pass a light as the parameter, rather than an index
 fn hitDirectionalLight(id: u32, ray: Ray, color: ptr<function, vec3<f32>>, hitRecord: ptr<function, HitRecord>, seed: ptr<function, u32>) -> bool {
     let light = &lightBuffer.lights[id];
     let direction = -(*light).direction; // Direction from hit point to light
@@ -1581,7 +1250,7 @@ fn hitDirectionalLight(id: u32, ray: Ray, color: ptr<function, vec3<f32>>, hitRe
         // Direct lighting pass assumes lambertian reflectance
         let hittable = &hittableBuffer.hittables[(*hitRecord).id];
         // Get fuzz (diffuse materials have a fuzz of 1)
-        // TODO: Reject random samples based on gloss
+        // TODO: Reject random samples based on gloss (applies to all direct light functions)
         let fuzz = select(hittable.materialFuzz, 1f, hittable.materialTypeId == 0f);
         let diffuseIntensity = clamp(dot((*hitRecord).normal, direction), 0f, 1f) * fuzz;
         *color += diffuseIntensity * (*light).color;
@@ -1591,7 +1260,6 @@ fn hitDirectionalLight(id: u32, ray: Ray, color: ptr<function, vec3<f32>>, hitRe
     return false;
 }
 
-// TODO: Pass a light as the parameter, rather than an index
 fn hitPointLight(id: u32, ray: Ray, color: ptr<function, vec3<f32>>, hitRecord: ptr<function, HitRecord>, seed: ptr<function, u32>) -> bool {
     let light = &lightBuffer.lights[id];
     var direction = (*light).center - (*hitRecord).position;
@@ -1606,10 +1274,9 @@ fn hitPointLight(id: u32, ray: Ray, color: ptr<function, vec3<f32>>, hitRecord: 
         // Direct lighting pass assumes lambertian reflectance
         let hittable = &hittableBuffer.hittables[(*hitRecord).id];
         // Get fuzz (diffuse materials have a fuzz of 1)
-        // TODO: Reject random samples based on gloss
         let fuzz = select(hittable.materialFuzz, 1f, hittable.materialTypeId == 0f);
         let diffuseIntensity = clamp(dot((*hitRecord).normal, direction), 0f, 1f) * fuzz;
-        // TODO: Distance attenuation using light range: 1 / (1 + (distance / range)^2)
+        // TODO: Distance attenuation using light range: 1 / (1 + (distance / range)^2) (applies to point and spot lights)
         *color += diffuseIntensity * (*light).color;
         // Ignore specular reflection
         return true;
@@ -1617,7 +1284,6 @@ fn hitPointLight(id: u32, ray: Ray, color: ptr<function, vec3<f32>>, hitRecord: 
     return false;
 }
 
-// TODO: Pass a light as the parameter, rather than an index
 fn hitProjectorLight(id: u32, ray: Ray, color: ptr<function, vec3<f32>>, hitRecord: ptr<function, HitRecord>, seed: ptr<function, u32>) -> bool {
     let light = &lightBuffer.lights[id];
     let center = (*light).center;
@@ -1647,7 +1313,7 @@ fn hitProjectorLight(id: u32, ray: Ray, color: ptr<function, vec3<f32>>, hitReco
         var rotatedRay: Ray;
         rotatedRay.origin = rotateQuat((*hitRecord).position - nearPlaneCenter, invRotation) + nearPlaneCenter;
         rotatedRay.direction = rotateQuat(direction, invRotation);
-        if (dot(rotatedRay.direction, vec3<f32>(0f, 0f, 1f)) > 0f) { return false; } // Directional light
+        if (dot(rotatedRay.direction, vec3<f32>(0f, 0f, 1f)) > 0f) { return false; } // Front face only
         let oc = rotatedRay.origin - nearPlaneCenter;
         let t = -oc.z / rotatedRay.direction.z;
         if (t < 0f) { return false; }
@@ -1659,7 +1325,6 @@ fn hitProjectorLight(id: u32, ray: Ray, color: ptr<function, vec3<f32>>, hitReco
         // Direct lighting pass assumes lambertian reflectance
         let hittable = &hittableBuffer.hittables[(*hitRecord).id];
         // Get fuzz (diffuse materials have a fuzz of 1)
-        // TODO: Reject random samples based on gloss
         let fuzz = select(hittable.materialFuzz, 1f, hittable.materialTypeId == 0f);
         let diffuseIntensity = clamp(dot((*hitRecord).normal, direction), 0f, 1f) * fuzz;
         switch u32((*light).textureTypeId) {
@@ -1712,10 +1377,8 @@ fn hitSpotLight(id: u32, ray: Ray, color: ptr<function, vec3<f32>>, hitRecord: p
         // Direct lighting pass assumes lambertian reflectance
         let hittable = &hittableBuffer.hittables[(*hitRecord).id];
         // Get fuzz (diffuse materials have a fuzz of 1)
-        // TODO: Reject random samples based on gloss
         let fuzz = select(hittable.materialFuzz, 1f, hittable.materialTypeId == 0f);
         let diffuseIntensity = clamp(dot((*hitRecord).normal, direction), 0f, 1f) * fuzz;
-        // TODO: Distance attenuation using light range: 1 / (1 + (distance / range)^2)
         *color += diffuseIntensity * (*light).color * attenuation;
         
         // Ignore specular reflection
@@ -1734,9 +1397,8 @@ fn scatterLambertian(ray: ptr<function, Ray>, hitRecord: ptr<function, HitRecord
     // Catch degenerate scatter direction
     (*ray).direction = select(normalize(scatterDirection), (*hitRecord).normal, nearZero(scatterDirection));
 
-    // (*ray).origin = (*hitRecord).position;
     // TODO: General approach to avoid self-intersection
-    (*ray).origin = (*hitRecord).position + (*ray).direction * 0.0001f; // Offset to avoid self-intersection
+    (*ray).origin = (*hitRecord).position + (*ray).direction * 0.0001f;
     
     (*attenuation) = textureValue(hitRecord);
     return true;
@@ -1746,8 +1408,6 @@ fn scatterMetal(ray: ptr<function, Ray>, hitRecord: ptr<function, HitRecord>, at
     let fuzz = hittableBuffer.hittables[(*hitRecord).id].materialFuzz;
     (*ray).direction = normalize(reflect((*ray).direction, (*hitRecord).normal) + fuzz * randomUnitVector(seed));
 
-    // (*ray).origin = (*hitRecord).position;
-    // TODO: General approach to avoid self-intersection
     (*ray).origin = (*hitRecord).position + (*ray).direction * 0.0001f; // Offset to avoid self-intersection
     
     (*attenuation) = textureValue(hitRecord);
@@ -1757,7 +1417,6 @@ fn scatterMetal(ray: ptr<function, Ray>, hitRecord: ptr<function, HitRecord>, at
 }
 
 fn scatterDielectric(ray: ptr<function, Ray>, hitRecord: ptr<function, HitRecord>, attenuation: ptr<function, vec3<f32>>, seed: ptr<function, u32>) -> bool {
-    // TODO: Use hittable pointer instead of hitRecord?
     let hittable = hittableBuffer.hittables[hitRecord.id];
     let refractiveIndex = hittable.materialRefractiveIndex;
     // TODO: If still inside another material, use its refractive index
@@ -1765,7 +1424,6 @@ fn scatterDielectric(ray: ptr<function, Ray>, hitRecord: ptr<function, HitRecord
     let cosTheta = min(dot(-(*ray).direction, (*hitRecord).normal), 1f);
     let sinTheta = sqrt(1f - cosTheta * cosTheta);
     let cannotRefract = refractionRatio * sinTheta > 1f;
-    // if (cannotRefract || reflectance(cosTheta, refractionRatio) > random(seed)) {
     if (cannotRefract || reflectance(cosTheta, refractionRatio) * hittable.materialGloss > random(seed)) {
         (*ray).direction = reflect((*ray).direction, (*hitRecord).normal);
     }
@@ -1773,8 +1431,6 @@ fn scatterDielectric(ray: ptr<function, Ray>, hitRecord: ptr<function, HitRecord
         (*ray).direction = refraction((*ray).direction, (*hitRecord).normal, refractionRatio);
     }
     (*ray).direction = normalize((*ray).direction + hittable.materialFuzz * randomUnitVector(seed));
-    // (*ray).origin = (*hitRecord).position;
-    // TODO: General approach to avoid self-intersection
     (*ray).origin = (*hitRecord).position + (*ray).direction * 0.0001f; // Offset to avoid self-intersection
     (*attenuation) = vec3<f32>(1f, 1f, 1f);
 
@@ -1796,8 +1452,6 @@ fn scatterGlossy(ray: ptr<function, Ray>, hitRecord: ptr<function, HitRecord>, a
     let cosTheta = min(dot(-(*ray).direction, hitRecord.normal), 1f);
     if (reflectance(cosTheta, refractionRatio) * gloss > random(seed)) {
         (*ray).direction = normalize(reflect((*ray).direction, (*hitRecord).normal) + fuzz * randomUnitVector(seed));
-        // (*ray).origin = (*hitRecord).position;
-        // TODO: General approach to avoid self-intersection
         (*ray).origin = (*hitRecord).position + (*ray).direction * 0.0001f; // Offset to avoid self-intersection
         (*attenuation) = vec3<f32>(1f, 1f, 1f);
 
@@ -1810,24 +1464,10 @@ fn scatterGlossy(ray: ptr<function, Ray>, hitRecord: ptr<function, HitRecord>, a
     }
 }
 
-fn scatterIsotropic(ray: ptr<function, Ray>, hitRecord: ptr<function, HitRecord>, attenuation: ptr<function, vec3<f32>>, seed: ptr<function, u32>) -> bool {
-    (*ray).direction = randomUnitVector(seed);
-    (*ray).origin = (*hitRecord).position;
-    // Set normal to scatter direction so hitLights can compute direct lighting
-    // (hitConstantMedium doesn't set a normal since there's no surface)
-    (*hitRecord).normal = (*ray).direction;
-    let hittable = hittableBuffer.hittables[(*hitRecord).id];
-    (*attenuation) = hittable.materialColor1;
-    return true;
-}
-
 fn textureValue(hitRecord: ptr<function, HitRecord>) -> vec3<f32> {
     let hittable = &hittableBuffer.hittables[(*hitRecord).id];
-    // return (*hittable).materialColor1;
 
     let textureTypeId = hittableBuffer.hittables[(*hitRecord).id].textureTypeId;
-    // TODO: Calculate uv texture coords here, when required by texture type
-    // Provide texture2D and texture3D functions for each hittable type as needed
     switch u32(textureTypeId) {
         case 0u: {
             // Solid color
@@ -1835,9 +1475,6 @@ fn textureValue(hitRecord: ptr<function, HitRecord>) -> vec3<f32> {
         }
         case 1u: {
             // 2D checkerboard
-            // let uv = hitRecord.uv * (*hittable).texScale.xy * 2f + (*hittable).texOffset.xy; // 2 squares per axis for uv [0,1]
-            // let checker = (floor(uv.x) + floor(uv.y)) % 2f;
-            // return vec3<f32>(checker);
             let uv = hitRecord.uv * 2f; // 2 squares per axis for uv [0,1]
             let material1 = (*hittable).materialColor1;
             let material2 = (*hittable).materialColor2;
@@ -1850,7 +1487,6 @@ fn textureValue(hitRecord: ptr<function, HitRecord>) -> vec3<f32> {
         }
         case 3u: {
             // SDF
-            // TODO: Add materialColor2 to hittable buffer
             // TODO: Stop using uv.x to differentiate stroke/fill
             if ((*hitRecord).uv[0] > 0f) {
                  // Stroke
@@ -1863,8 +1499,6 @@ fn textureValue(hitRecord: ptr<function, HitRecord>) -> vec3<f32> {
         }
         case 4u: {
             // 2D texture coords
-            // let uv = fract(hitRecord.uv * (*hittable).texScale.xy + (*hittable).texOffset.xy);
-            // return vec3<f32>(uv, 0f);
             return vec3<f32>(hitRecord.uv, 0f);
         }
         case 5u: {
@@ -1878,7 +1512,6 @@ fn textureValue(hitRecord: ptr<function, HitRecord>) -> vec3<f32> {
 fn rayColor(ray: ptr<function, Ray>, seed: ptr<function, u32>) -> vec3<f32> {
     let maxDepth = 8u; // TODO: Pass as uniform
     var depth = 0u;
-    // var result: Color;
     var color = vec3<f32>(1f, 1f, 1f);
     var attenuation = vec3<f32>(1f, 1f, 1f);
     var emitted = vec3<f32>(0f, 0f, 0f);
@@ -1886,34 +1519,17 @@ fn rayColor(ray: ptr<function, Ray>, seed: ptr<function, u32>) -> vec3<f32> {
     hitRecord.id = 4294967295; // -1 as u32
     var scatter: bool;
     loop {
-        // if (hitWorld(*ray, 0.00001f, 100f, &hitRecord)) {
         if (hitBVH(*ray, 0.00001f, 100f, &hitRecord, seed)) {
-            // Debug normal
-            // return hitRecord.normal * 0.5f + vec3<f32>(0.5f, 0.5f, 0.5f);
-
-            // Debug normal, depth
-            // First hit
-            // if (depth == 0u) {
-            //     result.normal = hitRecord.normal * 0.5f + vec3<f32>(0.5f, 0.5f, 0.5f);
-            //     // result.normal = hitRecord.normal * 0.5f + vec3<f32>(0.5f, 0.5f, 0.5f)
-            //     // result.depth = 1f / hitRecord.t;
-            //     result.depth = -1f / dot(hitRecord.position - (*ray).origin, uniforms.forward);
-            // }
-            // return result;
 
             // Depth
             depth++;
             if (depth == maxDepth) {
                 // Exceeded bounce limit, no more light is gathered
-                // result.color = vec3<f32>(0f, 0f, 0f);
-                // return result;
                 return vec3<f32>(0f, 0f, 0f);
             }
 
             // Beer's law
-            // If last hit was travelling INTO a dielectric, use last hit position to calculate distance and apply Beer's law to attenuate the light
             if (hitRecord.previousIsAbsorbing) {
-                // Beer's law
                 let d = distance(hitRecord.previousPosition, hitRecord.position);
                 color = color * exp(-d * hitRecord.previousAbsorption);
             }
@@ -1940,9 +1556,6 @@ fn rayColor(ray: ptr<function, Ray>, seed: ptr<function, u32>) -> vec3<f32> {
                     scatter = false;
                     emitted = hittableBuffer.hittables[hitRecord.id].materialColor1;
                 }
-                case 5u: {
-                    scatter = scatterIsotropic(ray, &hitRecord, &attenuation, seed);
-                }
                 default: {
                     scatter = false;
                 }
@@ -1954,41 +1567,25 @@ fn rayColor(ray: ptr<function, Ray>, seed: ptr<function, u32>) -> vec3<f32> {
             }
             else {
                 // Emit
-                // result.color = color * emitted;
-                // return result;
                 return color * emitted;
             }
         }
         else {
-            // return color;
-        
-            // No hits
-            if (depth > 0u) { // Hide lights, background
-                // result.color = hitLights(*ray, &hitRecord) * color;
-                // return result;
+            // Miss
+            if (depth > 0u) {
+                // Bounced ray: sample direct lights
                 return hitLights(*ray, &hitRecord, seed) * color;
             }
             else {
-                // return vec3<f32>(0f, 0f, 0f);
-                
-                // TODO: vec4 for transparency
-                // return uniforms.backgroundColor;
+                // Primary ray: background only (lights hidden on first bounce)
                 return uniforms.backgroundColor.xyz;
-                // result.color = uniforms.backgroundColor;
-                // return result;
             }
-
-            // Background
-            // let t = 0.5f * ((*ray).direction.y + 1f);
-            // let background = (1f - t) * vec3<f32>(1f, 1f, 1f) + t * vec3<f32>(0.5f, 0.7f, 1.0f);
-            // return color * background;
         }
     }
 }
 
-// TODO: Split groups on basis fo write frequency, with most static in lowest group and most frequent (e.g. compute uniforms per frame) in highest group
-// TODO: Try writing color directly using var outputTexture : texture_storage_2d<rgb32f,read_write>;
-// textureStore(outputTexture, uv, vec3<f32>(1f, 1f, 1f));
+// TODO: Reorganize bind groups by update frequency (e.g. lighting to its own group, uniforms per-frame in highest group)
+// TODO: Write color directly using texture_storage_2d<rgba32float,read_write> and textureStore
 @group(0) @binding(2) var<storage, read> hittableBuffer: HittableBuffer;
 @group(0) @binding(3) var<storage, read> linearBVHNodeBuffer: LinearBVHNodeBuffer;
 @group(0) @binding(4) var linearSampler: sampler;
@@ -2000,7 +1597,6 @@ fn rayColor(ray: ptr<function, Ray>, seed: ptr<function, u32>) -> vec3<f32> {
 @group(2) @binding(1) var<uniform> uniforms: Uniforms;
 @group(2) @binding(2) var<storage, read_write> depthMinMaxBuffer: DepthMinMaxBuffer;
 
-// TODO: Move lighting to seperate bind group so I can update it independently
 @group(2) @binding(3) var<storage, read> lightBuffer: LightBuffer;
 
 @compute @workgroup_size(256, 1, 1)
@@ -2014,25 +1610,10 @@ fn clear(@builtin(global_invocation_id) globalId : vec3<u32>) {
     atomicStore(&depthMinMaxBuffer.values[1], 0u);
 }
 
-// @builtin(local_invocation_id) localId : vec3<u32>,
-// @builtin(num_workgroups) numWorkgroups : vec3<u32>,
-// @builtin(workgroup_id) workgroupId : vec3<u32>
-// TODO: Use workgroup dimensions xy to get position directly froem globalId
-//       Then store using textureStore
-//       Check within bounds due to overdispatching
-
 @compute @workgroup_size(256, 1, 1)
 fn main(@builtin(global_invocation_id) globalId : vec3<u32>) {
     let imageSize = vec2<f32>(uniforms.width * uniforms.tilesX, uniforms.height * uniforms.tilesY);
     let tileSize = vec2<f32>(uniforms.width, uniforms.height);
-
-    // Tex coords [0,1]
-    // let id = f32(globalId.x);
-    // TODO: Divide by (imageSize.x - 1)
-    // let v = floor(id / imageSize.x);
-    // let u = (id - v * imageSize.x);
-    // let uv = vec2<f32>(u, v);
-    // let texCoord = uv / imageSize;
 
     // Pixel coords ([0,width-1], [0,height-1])
     let id = f32(globalId.x);
@@ -2050,8 +1631,7 @@ fn main(@builtin(global_invocation_id) globalId : vec3<u32>) {
     var depth = 0f;
     var normal = vec3<f32>(0f, 0f, 0f);
     
-    // Random number generator
-    // TODO: Consider switching to u32 for uniforms and use vec3<u32> arithmetic
+    // Seed random number generator per pixel
     var seed = u32(tilePixelY * tileSize.x + tilePixelX) + frameSeed * u32(tileSize.x * tileSize.y);
 
     // Sample position (sub-pixel sampling has same seed, but only sampled once per frame)
@@ -2071,10 +1651,8 @@ fn main(@builtin(global_invocation_id) globalId : vec3<u32>) {
         }
     }
     
-    // Color [0,1]
-    // let color = rayColor(&ray, &seed);
-    // let color = clamp(rayColor(&ray, &seed), vec3<f32>(0f, 0f, 0f), vec3<f32>(1f, 1f, 1f));
-    color += clamp(rayColor(&ray, &seed), vec3<f32>(0f, 0f, 0f), vec3<f32>(10f, 10f, 10f)); // Max light
+    // Clamp to prevent fireflies from extreme samples
+    color += clamp(rayColor(&ray, &seed), vec3<f32>(0f, 0f, 0f), vec3<f32>(10f, 10f, 10f));
 
     // Next frame
     frameSeed++;
@@ -2164,7 +1742,6 @@ fn color(@builtin(global_invocation_id) globalId : vec3<u32>) {
                             if (!hitBVH(shadowRay, 0.00001f, distance, &shadowHitRecord, &seed)) {
                                // Diffuse
                                let diffuseIntensity = clamp(dot(hitRecord.normal, direction), 0f, 1f);
-                               // TODO: Distance attenuation using light range: 1 / (1 + (distance / range)^2)
                                color += diffuseIntensity * textureColor * light.color;
 
                                // Specular
@@ -2200,18 +1777,12 @@ fn color(@builtin(global_invocation_id) globalId : vec3<u32>) {
                                 var rotatedRay: Ray;
                                 rotatedRay.origin = rotateQuat(hitRecord.position - nearPlaneCenter, invRotation) + nearPlaneCenter;
                                 rotatedRay.direction = rotateQuat(direction, invRotation);
-                                if (dot(rotatedRay.direction, vec3<f32>(0f, 0f, 1f)) > 0f) { continue; } // Directional light
+                                if (dot(rotatedRay.direction, vec3<f32>(0f, 0f, 1f)) > 0f) { continue; } // Front face only
                                 let oc = rotatedRay.origin - nearPlaneCenter;
                                 let t = -oc.z / rotatedRay.direction.z;
                                 if (t < 0f) { continue; }
                                 let p = oc + t * rotatedRay.direction;
                                 if (abs(p.x) > size.x * 0.5f || abs(p.y) > size.y * 0.5f) { continue; }
-                                
-                                //var uv = vec2<f32>(p.xy / light.size.xy + vec2<f32>(0.5f, 0.5f));
-                                //uv = uv * light.texScale.xy + light.texOffset.xy;
-                                //let texCoord0 = light.texCoords.xw;
-                                //let texCoord1 = light.texCoords.zy;
-                                //uv = texCoord0 + uv * (texCoord1 - texCoord0);
 
                                 var uv = fract(vec2<f32>(p.xy / size.xy * light.texScale.xy + light.texOffset.xy + vec2<f32>(0.5f, 0.5f)));
                                 
@@ -2261,7 +1832,6 @@ fn color(@builtin(global_invocation_id) globalId : vec3<u32>) {
 
                                 // Diffuse
                                 let diffuseIntensity = clamp(dot(hitRecord.normal, direction), 0f, 1f);
-                                // TODO: Distance attenuation using light range: 1 / (1 + (distance / range)^2)
                                 color += diffuseIntensity * textureColor * light.color * attenuation;
 
                                 // Specular

@@ -50,7 +50,7 @@ export class Common {
                 const name = plot.plot.replace(".json", "");
                 const a = document.createElement("a");
                 a.className = "galleryContainer";
-                a.href = `gallery.html?sample=${name}`;
+                a.href = `gallery.html?plot=${name}`;
 
                 if (onPlotClick) {
                     a.onclick = (e) => {

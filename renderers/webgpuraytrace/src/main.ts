@@ -239,6 +239,7 @@ export class Main extends Core.Renderer {
                 const computeModule = this._device.createShaderModule(computeShaderModuleDescriptor);
                 // Force synchronous shader validation to avoid deferred compilation stalls
                 await computeModule.getCompilationInfo();
+                console.log(`compute shader compiled ${Core.Time.formatDuration(performance.now() - start)}`);
 
                 // Compute pipeline
                 const computeBindGroup1LayoutDescriptor: GPUBindGroupLayoutDescriptor = {
@@ -293,6 +294,7 @@ export class Main extends Core.Renderer {
                 const quadModule = this._device.createShaderModule(quadShaderDescriptor);
                 // Force synchronous shader validation to avoid deferred compilation stalls
                 await quadModule.getCompilationInfo();
+                console.log(`quad shader compiled ${Core.Time.formatDuration(performance.now() - start)}`);
                 const quadBindGroup1LayoutDescriptor: GPUBindGroupLayoutDescriptor = {
                     label: "Quad bind group 1 layout descriptor",
                     entries: [
@@ -436,8 +438,7 @@ export class Main extends Core.Renderer {
                 this._quadSegmentPipeline = quadSegmentPipeline;
                 this._quadTexturePipeline = quadTexturePipeline;
                 this._quadEdgePipeline = quadEdgePipeline;
-
-                console.log(`WebGPU resources initialized ${Core.Time.formatDuration(performance.now() - start)}`);
+                console.log(`WebGPU pipelines created ${Core.Time.formatDuration(performance.now() - start)}`);
             } catch (error) {
                 console.log("WebGPU resource initialization failed", error);
                 throw error;

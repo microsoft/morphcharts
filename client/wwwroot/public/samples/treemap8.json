@@ -148,7 +148,7 @@
       "marks": [
         {
           "type": "rect",
-          "material": "isotropic",
+          "material": "metal",
           "from": {"data": "treemap"},
           "encode": {
             "enter": {
@@ -157,7 +157,7 @@
               "z": {"field": "y0"},
               "z2": {"field": "y1"},
               "y": {"value": 0},
-              "density": {"value": 1000},
+              "fuzz": {"value": 1},
               "y2": {"scale": "height", "field": "TotalPopCounty"},
               "fill": {"scale": "fill", "field": "ObamaCounty"}
             }
@@ -175,7 +175,7 @@
               "fontSize": {"signal": "min(8,(datum.x1-datum.x0)<(datum.y1-datum.y0)?min((datum.y1-datum.y0)/length(datum.County2)*1.6,(datum.x1-datum.x0)*0.9):min((datum.x1-datum.x0)/length(datum.County2)*1.6,(datum.y1-datum.y0)*0.9))"},
               "angleY": {"signal": "(datum.x1-datum.x0)<(datum.y1-datum.y0)?-90:0"},
               "text": {"field": "County2"},
-              "fill": {"value": "white"}
+              "fill": {"value": "black"}
             }
           }
         }
@@ -195,4 +195,4 @@
       }
     }
   ]
-}
+}   

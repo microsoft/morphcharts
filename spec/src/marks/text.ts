@@ -351,9 +351,6 @@ export class Text extends Mark {
             case "glass":
                 materialType = Core.MaterialType.glass;
                 break;
-            case "isotropic":
-                materialType = Core.MaterialType.isotropic;
-                break;
             case "glossy":
                 materialType = Core.MaterialType.glossy;
                 break;

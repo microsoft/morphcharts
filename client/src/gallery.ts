@@ -11,10 +11,10 @@ async function init(): Promise<void> {
     const categories = await Common.loadSampleIndex(`${specFolder}/index.json`);
 
     const urlParams = new URLSearchParams(window.location.search);
-    const sampleParam = urlParams.get("sample");
+    const plotParam = urlParams.get("plot");
 
-    if (sampleParam) {
-        await renderDetail(content, categories, sampleParam);
+    if (plotParam) {
+        await renderDetail(content, categories, plotParam);
     } else {
         Common.renderGalleryGrid(content, categories);
     }
@@ -44,73 +44,38 @@ async function renderDetail(content: HTMLDivElement, categories: ISampleCategory
         return;
     }
 
-    const detail = document.createElement("div");
-    detail.className = "detail";
+    // Populate detail elements
+    const detail = document.getElementById("galleryDetail") as HTMLDivElement;
+    const detailTitle = document.getElementById("galleryDetailTitle") as HTMLHeadingElement;
+    const detailDescription = document.getElementById("galleryDetailDescription") as HTMLDivElement;
+    const detailImage = document.getElementById("galleryDetailImage") as HTMLImageElement;
+    const detailNotes = document.getElementById("galleryDetailNotes") as HTMLDivElement;
+    const detailTryLink = document.getElementById("galleryDetailTryLink") as HTMLAnchorElement;
+    const detailSpec = document.getElementById("galleryDetailSpec") as HTMLElement;
 
-    const h2 = document.createElement("h2");
-    h2.className = "galleryHeading";
-    h2.textContent = plot.title;
-    detail.appendChild(h2);
-
-    const desc = document.createElement("div");
-    desc.className = "galleryDescription";
-    desc.innerText = plot.description;
-    detail.appendChild(desc);
-
-    const img = document.createElement("img");
-    img.src = `${imageFolder}/${plot.image}`;
-    img.alt = plot.title;
-    detail.appendChild(img);
+    detailTitle.textContent = plot.title;
+    detailDescription.innerText = plot.description;
+    detailImage.src = `${imageFolder}/${plot.image}`;
+    detailImage.alt = plot.title;
+    detailTryLink.href = `client.html?plot=${sampleName}`;
 
     if (plot.notes) {
-        const notes = document.createElement("div");
-        notes.className = "galleryNotes";
-        notes.innerHTML = plot.notes;
-        detail.appendChild(notes);
+        detailNotes.innerHTML = plot.notes;
+    } else {
+        detailNotes.style.display = "none";
     }
-
-    const tryLink = document.createElement("a");
-    tryLink.href = `client.html?plot=${sampleName}`;
-    tryLink.textContent = "View in Online Editor";
-    tryLink.style.margin = "12px 0";
-    tryLink.style.display = "inline-block";
-    detail.appendChild(tryLink);
 
     // Load and display the plot spec
     try {
         const specName = plot.plot.endsWith(".json") ? plot.plot : `${plot.plot}.json`;
         const specResponse = await fetch(`${specFolder}/${specName}`);
         const specText = await specResponse.text();
-
-        const specHeader = document.createElement("div");
-        specHeader.style.display = "flex";
-        specHeader.style.justifyContent = "space-between";
-        specHeader.style.alignItems = "center";
-
-        const specTitle = document.createElement("h3");
-        specTitle.textContent = "Specification";
-        specTitle.style.margin = "0";
-        specHeader.appendChild(specTitle);
-
-        const copyBtn = document.createElement("button");
-        copyBtn.textContent = "Copy";
-        copyBtn.onclick = async () => {
-            await navigator.clipboard.writeText(specText);
-            copyBtn.textContent = "Copied";
-            setTimeout(() => copyBtn.textContent = "Copy", 2000);
-        };
-        specHeader.appendChild(copyBtn);
-
-        detail.appendChild(specHeader);
-
-        const pre = document.createElement("pre");
-        pre.textContent = specText;
-        detail.appendChild(pre);
+        detailSpec.textContent = specText;
     } catch (error) {
         console.error("Error loading spec", error);
     }
 
-    content.appendChild(detail);
+    detail.style.display = "block";
 }
 
 init();
