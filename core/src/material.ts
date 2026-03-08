@@ -9,7 +9,6 @@ export const MaterialType = {
     glass: 2,
     glossy: 3,
     light: 4,
-    isotropic: 5,
 } as const;
 export type MaterialType = (typeof MaterialType)[keyof typeof MaterialType];
 
