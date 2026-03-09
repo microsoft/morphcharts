@@ -665,7 +665,7 @@ export class Main extends Core.Renderer {
         const endHi = view.getUint32(12, true);
         const beginNs = beginHi * 0x100000000 + beginLo;
         const endNs = endHi * 0x100000000 + endLo;
-        const gpuTimeMs = (endNs - beginNs) / 1_000_000;
+        const gpuTimeMs = (endNs - beginNs) / 1000000;
         this._timestampReadBuffer.unmap();
         return gpuTimeMs;
     }
@@ -685,7 +685,7 @@ export class Main extends Core.Renderer {
         gpuTimeMs: number;
         renderMode: string;
     }> {
-        if (!this._isInitialized) { throw new Error("Renderer not initialized — load a scene first"); }
+        if (!this._isInitialized) { throw new Error("renderer not initialized, call initializeAsync() and load a scene first"); }
         const frames = options?.frames ?? 500;
         const warmupFrames = options?.warmupFrames ?? 10;
         const yieldInterval = options?.yieldInterval ?? 0;
