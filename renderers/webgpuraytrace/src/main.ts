@@ -87,6 +87,13 @@ export class Main extends Core.Renderer {
     private _emptyLightBuffer: GPUBuffer;
     private _lightBufferData: LightBufferData;
 
+    // Timing
+    private _hasTimestampSupport: boolean;
+    private _timestampQuerySet: GPUQuerySet;
+    private _timestampResolveBuffer: GPUBuffer;
+    private _timestampReadBuffer: GPUBuffer;
+    public enableTimestamps: boolean = true;
+
     constructor(canvas: HTMLCanvasElement, options?: Core.IRendererOptions) {
         super({
             width: options?.width ?? canvas.width,
@@ -130,7 +137,12 @@ export class Main extends Core.Renderer {
             const gpu: GPU = navigator.gpu;
             this._presentationFormat = gpu.getPreferredCanvasFormat();
             this._adapter = await gpu.requestAdapter();
+            const requiredFeatures: GPUFeatureName[] = [];
+            if (this._adapter.features.has("timestamp-query")) {
+                requiredFeatures.push("timestamp-query");
+            }
             const gpuDeviceDescriptor: GPUDeviceDescriptor = {
+                requiredFeatures,
                 requiredLimits: {
                     // Max storage buffer size
                     maxStorageBufferBindingSize: 134217728,
@@ -439,6 +451,25 @@ export class Main extends Core.Renderer {
                 this._quadTexturePipeline = quadTexturePipeline;
                 this._quadEdgePipeline = quadEdgePipeline;
                 console.log(`WebGPU pipelines created ${Core.Time.formatDuration(performance.now() - start)}`);
+
+                // Timestamp queries
+                this._hasTimestampSupport = this._device.features.has("timestamp-query");
+                if (this._hasTimestampSupport) {
+                    this._timestampQuerySet = this._device.createQuerySet({ type: "timestamp", count: 2 });
+                    this._timestampResolveBuffer = this._device.createBuffer({
+                        label: "Timestamp resolve buffer",
+                        size: 2 * 8,
+                        usage: GPUBufferUsage.QUERY_RESOLVE | GPUBufferUsage.COPY_SRC,
+                    });
+                    this._timestampReadBuffer = this._device.createBuffer({
+                        label: "Timestamp read buffer",
+                        size: 2 * 8,
+                        usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+                    });
+                    console.log("gpu timestamp queries enabled");
+                } else {
+                    console.log("gpu timestamp queries not supported");
+                }
             } catch (error) {
                 console.log("WebGPU resource initialization failed", error);
                 throw error;
@@ -616,6 +647,92 @@ export class Main extends Core.Renderer {
 
         // Next frame
         this.frameCount++;
+    }
+
+    /**
+     * Read the GPU compute pass duration from the last frame's timestamp queries.
+     * Causes a GPU sync — use sparingly during normal rendering.
+     * Returns -1 if timestamp queries are not supported.
+     */
+    public async readGpuTimeAsync(): Promise<number> {
+        if (!this._hasTimestampSupport) { return -1; }
+        await this._queue.onSubmittedWorkDone();
+        await this._timestampReadBuffer.mapAsync(GPUMapMode.READ);
+        const view = new DataView(this._timestampReadBuffer.getMappedRange());
+        const beginLo = view.getUint32(0, true);
+        const beginHi = view.getUint32(4, true);
+        const endLo = view.getUint32(8, true);
+        const endHi = view.getUint32(12, true);
+        const beginNs = beginHi * 0x100000000 + beginLo;
+        const endNs = endHi * 0x100000000 + endLo;
+        const gpuTimeMs = (endNs - beginNs) / 1000000;
+        this._timestampReadBuffer.unmap();
+        return gpuTimeMs;
+    }
+
+    /**
+     * Run a batch benchmark: renders N frames in a tight loop without vsync,
+     * then waits for the GPU to finish and reports throughput.
+     * Stop the animation loop before calling this.
+     */
+    public async benchmarkAsync(options?: { frames?: number; warmupFrames?: number; yieldInterval?: number }): Promise<{
+        frames: number;
+        elapsedMs: number;
+        fps: number;
+        msPerFrame: number;
+        spps: number;
+        resolution: string;
+        gpuTimeMs: number;
+        renderMode: string;
+    }> {
+        if (!this._isInitialized) { throw new Error("renderer not initialized, call initializeAsync() and load a scene first"); }
+        const frames = options?.frames ?? 500;
+        const warmupFrames = options?.warmupFrames ?? 10;
+        const yieldInterval = options?.yieldInterval ?? 0;
+
+        console.log(`benchmark ${warmupFrames} warmup + ${frames} timed frames at ${this._width}x${this._height}...`);
+
+        // Warmup: render a few frames to stabilize GPU clocks and fill caches
+        this.frameCount = 0;
+        for (let i = 0; i < warmupFrames; i++) {
+            await this.renderAsync(0);
+        }
+        await this._queue.onSubmittedWorkDone();
+
+        // Timed run
+        this.frameCount = 0;
+        const start = performance.now();
+        for (let i = 0; i < frames; i++) {
+            await this.renderAsync(0);
+            if (yieldInterval > 0 && i % yieldInterval === 0) {
+                await new Promise(resolve => setTimeout(resolve, 0));
+            }
+        }
+        await this._queue.onSubmittedWorkDone();
+        const elapsed = performance.now() - start;
+
+        // Read last frame's GPU compute time (representative since all frames do identical work)
+        const gpuTimeMs = this._hasTimestampSupport ? await this.readGpuTimeAsync() : -1;
+
+        const results = {
+            frames,
+            elapsedMs: Math.round(elapsed * 100) / 100,
+            fps: Math.round(frames / (elapsed / 1000) * 10) / 10,
+            msPerFrame: Math.round(elapsed / frames * 100) / 100,
+            spps: Math.round(frames / (elapsed / 1000) * 10) / 10,
+            resolution: `${this._width}x${this._height}`,
+            gpuTimeMs: Math.round(gpuTimeMs * 100) / 100,
+            renderMode: this._renderMode,
+        };
+
+        console.log(`benchmark results:`);
+        console.log(`${results.frames} frames in ${results.elapsedMs}ms`);
+        console.log(`${results.fps} fps (${results.msPerFrame}ms/frame)`);
+        console.log(`${results.spps} samples/pixel/sec`);
+        console.log(`gpu compute: ${results.gpuTimeMs >= 0 ? results.gpuTimeMs + 'ms' : 'N/A (timestamp-query not supported)'}`);
+        console.log(`resolution: ${results.resolution} (${results.renderMode})`);
+        console.log('mode:', this._renderMode);
+        return results;
     }
 
     // Compute
@@ -888,7 +1005,15 @@ export class Main extends Core.Renderer {
         const commandEncoder = this._device.createCommandEncoder();
 
         // Compute
-        const computePassEncoder = commandEncoder.beginComputePass();
+        const computePassDescriptor: GPUComputePassDescriptor = {};
+        if (this._hasTimestampSupport && this.enableTimestamps) {
+            computePassDescriptor.timestampWrites = {
+                querySet: this._timestampQuerySet,
+                beginningOfPassWriteIndex: 0,
+                endOfPassWriteIndex: 1,
+            };
+        }
+        const computePassEncoder = commandEncoder.beginComputePass(computePassDescriptor);
 
         // Pathtrace
         let computeDispatchCount: number;
@@ -956,6 +1081,12 @@ export class Main extends Core.Renderer {
                 computePassEncoder.dispatchWorkgroups(computeDispatchCount, 1, 1);
                 computePassEncoder.end();
                 break;
+        }
+
+        // Resolve timestamp queries
+        if (this._hasTimestampSupport && this.enableTimestamps) {
+            commandEncoder.resolveQuerySet(this._timestampQuerySet, 0, 2, this._timestampResolveBuffer, 0);
+            commandEncoder.copyBufferToBuffer(this._timestampResolveBuffer, 0, this._timestampReadBuffer, 0, 16);
         }
 
         // Render
