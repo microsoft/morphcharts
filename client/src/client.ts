@@ -15,7 +15,7 @@ import { Debug } from "./debug.js";
 
 window.onload = () => {
     const client = new Main();
-    (window as any).benchmarkAsync = (configPath: string) => client.benchmarkAsync(configPath);
+    (window as any).benchmarkAsync = (config: string | Record<string, unknown>) => client.benchmarkAsync(config);
 };
 
 export class Main {
@@ -831,20 +831,23 @@ export class Main {
     }
 
     /**
-     * Run a batch of benchmarks from a JSON config file.
+     * Run a batch of benchmarks from a JSON config file or an inline config object.
      * Config format:
      * {
      *   "frames": 500, "warmupFrames": 10, "width": 1280, "height": 720, "renderMode": "raytrace",
      *   "saveImage": false, "yieldInterval": 0,
      *   "tests": [
-     *     { "sample": "bar1.json" },
-     *     { "sample": "treemap1.json", "renderMode": "color", "width": 1920, "height": 1080 }
+     *     { "plot": "bar1.json" },
+     *     { "plot": "treemap1.json", "renderMode": "color", "width": 1920, "height": 1080 }
      *   ]
      * }
      * Top-level values are defaults; per-test values override them.
-     * Call from console: await benchmarkAsync("tests/perf.json")
+     * "plot" can be a filename (resolved to samples/), a relative path, or an absolute URL (subject to CORS).
+     * Call from console:
+     *   await benchmarkAsync("tests/perf.json")
+     *   await benchmarkAsync({ frames: 100, renderMode: "raytrace", tests: [{ plot: "bar1.json" }] })
      */
-    public async benchmarkAsync(configPath: string): Promise<void> {
+    public async benchmarkAsync(config: string | Record<string, unknown>): Promise<void> {
         // Stop any running render loop
         this._stop();
 
@@ -852,30 +855,31 @@ export class Main {
         await this._initializePromise;
 
         // Load config
-        const response = await fetch(configPath);
-        const config = await response.json();
-        const tests = config.tests as any[];
+        const cfg = typeof config === "string"
+            ? await fetch(config).then(r => r.json())
+            : config;
+        const tests = cfg.tests as any[];
         if (!tests || tests.length === 0) { console.log("no tests defined in config"); return; }
 
         const results: any[] = [];
 
         for (let i = 0; i < tests.length; i++) {
             const test = tests[i];
-            const sample = test.sample as string;
-            const frames = test.frames ?? config.frames ?? 500;
-            const warmupFrames = test.warmupFrames ?? config.warmupFrames ?? 10;
-            const width = test.width ?? config.width ?? this._renderer.width;
-            const height = test.height ?? config.height ?? this._renderer.height;
-            const renderMode = test.renderMode ?? config.renderMode ?? this._renderer.renderMode;
-            const saveImage = test.saveImage ?? config.saveImage ?? false;
-            const yieldInterval = test.yieldInterval ?? config.yieldInterval ?? 0;
+            const plotPath = test.plot as string;
+            const frames = test.frames ?? cfg.frames ?? 500;
+            const warmupFrames = test.warmupFrames ?? cfg.warmupFrames ?? 10;
+            const width = test.width ?? cfg.width ?? this._renderer.width;
+            const height = test.height ?? cfg.height ?? this._renderer.height;
+            const renderMode = test.renderMode ?? cfg.renderMode ?? this._renderer.renderMode;
+            const saveImage = test.saveImage ?? cfg.saveImage ?? false;
+            const yieldInterval = test.yieldInterval ?? cfg.yieldInterval ?? 0;
 
-            console.log(`\nbenchmark [${i + 1}/${tests.length}] ${sample} ${width}x${height} ${renderMode}${saveImage ? " +save" : ""}`);
+            console.log(`\nbenchmark [${i + 1}/${tests.length}] ${plotPath} ${width}x${height} ${renderMode}${saveImage ? " +save" : ""}`);
 
-            // Load sample spec
+            // Load plot spec (bare filename resolves to samples/; paths and URLs pass through as-is)
             try {
-                const samplePath = sample.includes("/") ? sample : `samples/${sample}`;
-                const specText = await fetch(samplePath).then(r => r.text());
+                const specPath = plotPath.includes("/") ? plotPath : `samples/${plotPath}`;
+                const specText = await fetch(specPath).then(r => r.text());
                 const plotJSON = JSON.parse(specText);
 
                 // Resize
@@ -898,13 +902,13 @@ export class Main {
 
                 // Run benchmark
                 const result = await this._renderer.benchmarkAsync({ frames, warmupFrames, yieldInterval });
-                results.push({ sample, ...result });
+                results.push({ plot: plotPath, ...result });
 
                 // Save image
                 if (saveImage) {
                     // Render one more frame to ensure canvas has fresh content
                     await this._renderer.renderAsync(0);
-                    const filename = `${sample.replace(".json", "")}_${renderMode}_${width}x${height}_${frames}spp`;
+                    const filename = `${plotPath.replace(".json", "")}_${renderMode}_${width}x${height}_${frames}spp`;
                     await new Promise<void>((resolve) => {
                         this._canvas.toBlob((blob: Blob) => {
                             this._capture(blob, filename);
@@ -915,7 +919,7 @@ export class Main {
             }
             catch (error) {
                 console.log(`error: ${error}`);
-                results.push({ sample, error: String(error) });
+                results.push({ plot: plotPath, error: String(error) });
             }
         }
 
