@@ -140,18 +140,20 @@ export class Linear extends Scale {
             range.min = 0;
             range.max = 1;
         }
-        else if (Array.isArray(rangeJSON) && rangeJSON.length == 2) {
-            // Numeric range, "range": [0, 500]
-            // Min
-            if (typeof rangeJSON[0] == "number") { range.min = rangeJSON[0]; }
-            else if (typeof rangeJSON[0] == "object" && rangeJSON[0].signal) {
-                range.min = group.parseSignalValue(rangeJSON[0].signal);
-            }
+        else if (Array.isArray(rangeJSON)) {
+            // Numeric range, "range": [0, 500] or signal references
+            if (rangeJSON.length == 2) {
+                // Min
+                if (typeof rangeJSON[0] == "number") { range.min = rangeJSON[0]; }
+                else if (typeof rangeJSON[0] == "object" && rangeJSON[0].signal) {
+                    range.min = group.parseSignalValue(rangeJSON[0].signal);
+                }
 
-            // Max
-            if (typeof rangeJSON[1] == "number") { range.max = rangeJSON[1]; }
-            else if (typeof rangeJSON[1] == "object" && rangeJSON[1].signal) {
-                range.max = group.parseSignalValue(rangeJSON[1].signal);
+                // Max
+                if (typeof rangeJSON[1] == "number") { range.max = rangeJSON[1]; }
+                else if (typeof rangeJSON[1] == "object" && rangeJSON[1].signal) {
+                    range.max = group.parseSignalValue(rangeJSON[1].signal);
+                }
             }
         }
         else if (typeof rangeJSON == "string") {
