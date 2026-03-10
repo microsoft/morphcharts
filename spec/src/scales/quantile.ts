@@ -84,7 +84,27 @@ export class Quantile extends Scale {
         range.count = rangeJSON.count || (domain.max - domain.min + 1); // Defaults to cardinality of the domain
 
         // Scheme
-        if (rangeJSON.scheme) {
+        if (Array.isArray(rangeJSON) && rangeJSON.length > 0 && typeof rangeJSON[0] == "string") {
+            // Direct array of color values, "range": ["red", "white", "blue"]
+            // Parse colors and sample into quantile bins
+            const userColors: Core.ColorRGB[] = [];
+            for (let i = 0; i < rangeJSON.length; i++) {
+                const color = Color.parse(rangeJSON[i]);
+                if (color) { userColors.push(color); }
+            }
+            if (userColors.length > 0) {
+                range.min = 0;
+                range.max = range.count - 1;
+                range.colors = [];
+                const step = 1 / range.count;
+                for (let i = 0; i < range.count; i++) {
+                    const position = scaleJSON.reverse ? (range.count - i - 0.5) * step : (i + 0.5) * step;
+                    const color = Core.Palette.sample(userColors, position, true);
+                    range.colors.push(color);
+                }
+            }
+        }
+        else if (rangeJSON.scheme) {
             range.scheme = rangeJSON.scheme;
             if (Array.isArray(range.scheme)) {
                 // Parse array of color values

@@ -129,7 +129,19 @@ export class Linear extends Scale {
                     break;
             }
         }
-        if (Array.isArray(rangeJSON) && rangeJSON.length == 2) {
+        if (Array.isArray(rangeJSON) && rangeJSON.length >= 2 && typeof rangeJSON[0] == "string") {
+            // Direct array of color values, "range": ["red", "white", "blue"]
+            // Interpolate colors
+            range.colors = [];
+            for (let i = 0; i < rangeJSON.length; i++) {
+                const color = Color.parse(rangeJSON[i]);
+                if (color) { range.colors.push(color); }
+            }
+            range.min = 0;
+            range.max = 1;
+        }
+        else if (Array.isArray(rangeJSON) && rangeJSON.length == 2) {
+            // Numeric range, "range": [0, 500]
             // Min
             if (typeof rangeJSON[0] == "number") { range.min = rangeJSON[0]; }
             else if (typeof rangeJSON[0] == "object" && rangeJSON[0].signal) {
@@ -175,19 +187,9 @@ export class Linear extends Scale {
                 // Check for valid name
                 const palette = Core.Palettes[range.scheme];
                 if (palette) {
-                    switch (palette.type) {
-                        case "sequentialsinglehue":
-                        case "sequentialmultihue":
-                        case "diverging":
-                            range.min = 0;
-                            range.max = 1;
-                            break;
-                        case "qualitative":
-                            range.min = 0;
-                            // Allow colors to wrap
-                            range.max = Math.max(palette.colors.length - 1, domain.max);
-                            break;
-                    }
+                    // Linear scales always interpolate continuously across the palette
+                    range.min = 0;
+                    range.max = 1;
                 }
             }
         }

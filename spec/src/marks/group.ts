@@ -105,15 +105,20 @@ export class Group extends Mark {
         else if (scale) {
             const range = scale.range;
             if (range) {
+                const value = this.value(markEncodingValue, dataset, i);
                 if (range.colors && range.colors.length > 0) {
-                    // Colors pre-built at scale setup time (from named scheme or color array)
-                    const value = this.value(markEncodingValue, dataset, i);
                     switch (scale.type) {
-                        // Continuous scales: interpolate across color array
+                        // Continuous scales, interpolate across color array
                         case "linear":
                             return Core.Palette.sample(range.colors, value, true);
-                        // Discrete/discretizing scales: index lookup
+                        // Discrete/discretizing scales
                         default:
+                            if (Array.isArray(range.scheme)) {
+                                // Scheme array, interpolate across all categories
+                                const position = (value + 0.5) / (range.max + 1);
+                                return Core.Palette.sample(range.colors, position, true);
+                            }
+                            // Direct color array, index lookup with wrapping
                             return range.colors[value % range.colors.length];
                     }
                 }
@@ -122,14 +127,19 @@ export class Group extends Mark {
                     // Named scheme: palette lookup at render time
                     const palette = Core.Palettes[scheme.toLowerCase()];
                     if (palette) {
-                        const value = this.value(markEncodingValue, dataset, i);
                         switch (scale.type) {
-                            // Continuous scales: interpolate
+                            // Continuous scales, interpolate
                             case "linear":
                                 return Core.Palette.sample(palette.colors, value, true);
-                            // Discrete scales: index lookup
+                            // Discrete scales
                             default:
-                                return palette.colors[value % palette.colors.length];
+                                if (palette.type === "qualitative") {
+                                    // Qualitative, index lookup with wrapping
+                                    return palette.colors[value % palette.colors.length];
+                                }
+                                // Sequential/diverging, interpolate across all categories
+                                const position = (value + 0.5) / (range.max + 1);
+                                return Core.Palette.sample(palette.colors, position, true);
                         }
                     }
                 }
