@@ -238,17 +238,16 @@ fn random(seed: ptr<function, u32>) -> f32 {
 }
 
 fn randomInUnitDisk(seed: ptr<function, u32>) -> vec2<f32> {
-    loop {
-        let p = 2f * vec2<f32>(random(seed), random(seed)) - vec2<f32>(1f, 1f);
-        if (dot(p, p) <= 1f) { return p; }
-    }
+    let theta = TWO_PI * random(seed);
+    let r = sqrt(random(seed));
+    return vec2<f32>(r * cos(theta), r * sin(theta));
 }
 
 fn randomUnitVector(seed: ptr<function, u32>) -> vec3<f32> {
-    loop {
-        let p = 2f * vec3<f32>(random(seed), random(seed), random(seed)) - vec3<f32>(1f, 1f, 1f);
-        if (dot(p, p) <= 1f) { return normalize(p);}
-    }
+    let theta = TWO_PI * random(seed);
+    let z = 2f * random(seed) - 1f;
+    let r = sqrt(1f - z * z);
+    return vec3<f32>(r * cos(theta), r * sin(theta), z);
 }
 
 fn rayAt(ray: Ray, t: f32) -> vec3<f32> {
@@ -258,6 +257,213 @@ fn rayAt(ray: Ray, t: f32) -> vec3<f32> {
 fn setFaceNormal(ray: Ray, outwardNormal: vec3<f32>, hitRecord: ptr<function, HitRecord>) {
     (*hitRecord).frontFace = dot(ray.direction, outwardNormal) < 0f;
     (*hitRecord).normal = select(-outwardNormal, outwardNormal, (*hitRecord).frontFace);
+}
+
+// Compute SDF normal and UV for the closest hit (deferred from intersection)
+fn computeSdfNormalAndUV(ray: Ray, hitRecord: ptr<function, HitRecord>) {
+    let id = (*hitRecord).id;
+    let hittable = &hittableBuffer.hittables[id];
+    let typeId = u32((*hittable).typeId);
+    let center = (*hittable).center0;
+    let rotation = (*hittable).rotation0;
+    
+    // For rotated variants, compute oc in object space
+    let isRotated = typeId == 4u || typeId == 6u || typeId == 8u || typeId == 11u || typeId == 16u || typeId == 18u;
+    let invRotation = conjugate(rotation);
+    var oc: vec3<f32>;
+    var localRay = ray;
+    if (isRotated) {
+        let objPos = rotateQuat((*hitRecord).position - center, invRotation);
+        oc = objPos;
+        localRay.direction = rotateQuat(ray.direction, invRotation);
+    } else {
+        oc = (*hitRecord).position - center;
+    }
+
+    var outwardNormal: vec3<f32>;
+    let h = 0.000001f;
+    let k = vec2<f32>(1f, -1f);
+
+    // Normal via tetrahedron gradient
+    switch typeId {
+        case 3u, 4u: {
+            // BoxFrame
+            let r = (*hittable).rounding;
+            let size = (*hittable).size0 * 0.5f;
+            let e = (*hittable).parameter0 * size.x - r;
+            outwardNormal = normalize(
+                k.xyy * mapBoxFrameSdf(oc + k.xyy * h, size, e, r) +
+                k.yyx * mapBoxFrameSdf(oc + k.yyx * h, size, e, r) +
+                k.yxy * mapBoxFrameSdf(oc + k.yxy * h, size, e, r) +
+                k.xxx * mapBoxFrameSdf(oc + k.xxx * h, size, e, r));
+            // Box-face UV
+            let maxN = max(abs(outwardNormal.x), max(abs(outwardNormal.y), abs(outwardNormal.z)));
+            let uvSize = (*hittable).size0 / (*hittable).texScale.xyz;
+            (*hitRecord).uv = fract(select(
+                select(
+                    vec2<f32>(1f, sign(outwardNormal.y)) * oc.xz / uvSize.xz + (*hittable).texOffset.xz,
+                    vec2<f32>(-sign(outwardNormal.x), -1f) * oc.zy / uvSize.zy + (*hittable).texOffset.zy,
+                    abs(outwardNormal.x) == maxN
+                ),
+                vec2<f32>(sign(outwardNormal.z), -1f) * oc.xy / uvSize.xy + (*hittable).texOffset.xy,
+                abs(outwardNormal.z) == maxN
+            ) + 0.5f);
+        }
+        case 5u, 6u: {
+            // Box
+            let r = (*hittable).rounding;
+            let size = (*hittable).size0 * 0.5f - r;
+            outwardNormal = normalize(
+                k.xyy * mapBoxSdf(oc + k.xyy * h, size, r) +
+                k.yyx * mapBoxSdf(oc + k.yyx * h, size, r) +
+                k.yxy * mapBoxSdf(oc + k.yxy * h, size, r) +
+                k.xxx * mapBoxSdf(oc + k.xxx * h, size, r));
+            // Box-face UV with texcoord remapping
+            let maxN = max(abs(outwardNormal.x), max(abs(outwardNormal.y), abs(outwardNormal.z)));
+            let uvSize = (*hittable).size0 / (*hittable).texScale.xyz;
+            var uv = fract(select(
+                select(
+                    vec2<f32>(1f, sign(outwardNormal.y)) * oc.xz / uvSize.xz + (*hittable).texOffset.xz,
+                    vec2<f32>(-sign(outwardNormal.x), -1f) * oc.zy / uvSize.zy + (*hittable).texOffset.zy,
+                    abs(outwardNormal.x) == maxN
+                ),
+                vec2<f32>(sign(outwardNormal.z), -1f) * oc.xy / uvSize.xy + (*hittable).texOffset.xy,
+                abs(outwardNormal.z) == maxN
+            ) + 0.5f);
+            let texCoord0 = (*hittable).texCoords.xw;
+            let texCoord1 = (*hittable).texCoords.zy;
+            (*hitRecord).uv = texCoord0 + uv * (texCoord1 - texCoord0);
+        }
+        case 7u, 8u: {
+            // CappedTorus
+            let size = (*hittable).size0;
+            let outerRadius = size.x * 0.5f;
+            let innerRadius = (*hittable).parameter0 * outerRadius;
+            let radius = (innerRadius + outerRadius) * 0.5f;
+            let padding = (*hittable).parameter3 * outerRadius;
+            let halfThickness = (outerRadius - innerRadius) * 0.5f + padding;
+            let startAngle = (*hittable).parameter1;
+            let endAngle = (*hittable).parameter2;
+            outwardNormal = normalize(
+                k.xyy * mapCappedTorusSdf(oc + k.xyy * h, startAngle, endAngle, radius, halfThickness, padding) +
+                k.yyx * mapCappedTorusSdf(oc + k.yyx * h, startAngle, endAngle, radius, halfThickness, padding) +
+                k.yxy * mapCappedTorusSdf(oc + k.yxy * h, startAngle, endAngle, radius, halfThickness, padding) +
+                k.xxx * mapCappedTorusSdf(oc + k.xxx * h, startAngle, endAngle, radius, halfThickness, padding));
+            (*hitRecord).uv = vec2<f32>(0f, 0f);
+        }
+        case 9u, 10u, 11u: {
+            // Cylinder
+            let size = (*hittable).size0 * 0.5f;
+            let r1 = (*hittable).rounding;
+            let r0 = size.x - r1;
+            let h0 = size.y - r1;
+            outwardNormal = normalize(
+                k.xyy * mapCylinderSdf(oc + k.xyy * h, h0, r0, r1) +
+                k.yyx * mapCylinderSdf(oc + k.yyx * h, h0, r0, r1) +
+                k.yxy * mapCylinderSdf(oc + k.yxy * h, h0, r0, r1) +
+                k.xxx * mapCylinderSdf(oc + k.xxx * h, h0, r0, r1));
+            // Cylindrical UV
+            let size1 = (*hittable).size0 / (*hittable).texScale.xyz;
+            let angleY = dot(outwardNormal, vec3<f32>(0f, 1f, 0f));
+            (*hitRecord).uv = fract(select(
+                vec2<f32>(atan2(outwardNormal.x, outwardNormal.z) / TWO_PI * (*hittable).texScale.w + (*hittable).texOffset.w + 0.5f, 0.5f - oc.y / size1.y - (*hittable).texOffset.y),
+                oc.xz / size1.xz + (*hittable).texOffset.xz + vec2<f32>(0.5f, 0.5f),
+                angleY > ROOT_TWO_OVER_TWO
+            ));
+        }
+        case 13u: {
+            // HexPrism
+            let r = (*hittable).rounding;
+            let size = (*hittable).size0 * 0.5f;
+            let hx = size.x - r;
+            let hy = size.y - r;
+            outwardNormal = normalize(
+                k.xyy * mapHexPrismSdf(oc + k.xyy * h, hx, hy, r) +
+                k.yyx * mapHexPrismSdf(oc + k.yyx * h, hx, hy, r) +
+                k.yxy * mapHexPrismSdf(oc + k.yxy * h, hx, hy, r) +
+                k.xxx * mapHexPrismSdf(oc + k.xxx * h, hx, hy, r));
+            // Cylindrical UV (approximate)
+            let size1 = (*hittable).size0 / (*hittable).texScale.xyz;
+            let angleY = dot(outwardNormal, vec3<f32>(0f, 1f, 0f));
+            let circle = normalize(vec2<f32>(oc.x, oc.z));
+            (*hitRecord).uv = fract(select(
+                vec2<f32>(atan2(circle.x, circle.y) / TWO_PI * (*hittable).texScale.w + (*hittable).texOffset.w + 0.5f, 0.5f - oc.y / size1.y - (*hittable).texOffset.y),
+                oc.xz / size1.xz + (*hittable).texOffset.xz + vec2<f32>(0.5f, 0.5f),
+                angleY > ROOT_TWO_OVER_TWO
+            ));
+        }
+        case 14u: {
+            // Quad
+            let size = (*hittable).size0;
+            let halfThickness = size.z * 0.5f;
+            let a = (*hittable).parameter0;
+            let b = (*hittable).parameter1;
+            let c = (*hittable).parameter2;
+            let d = (*hittable).parameter3;
+            let halfWidth = size.x * 0.5f;
+            let height = size.y;
+            let halfHeight = height * 0.5f;
+            let pa = vec2<f32>(-halfWidth, -halfHeight + a * height);
+            let pb = vec2<f32>(-halfWidth, -halfHeight + b * height);
+            let pc = vec2<f32>(halfWidth, -halfHeight + c * height);
+            let pd = vec2<f32>(halfWidth, -halfHeight + d * height);
+            outwardNormal = normalize(
+                k.xyy * mapQuadSdf(oc + k.xyy * h, pa, pb, pd, pc, halfThickness) +
+                k.yyx * mapQuadSdf(oc + k.yyx * h, pa, pb, pd, pc, halfThickness) +
+                k.yxy * mapQuadSdf(oc + k.yxy * h, pa, pb, pd, pc, halfThickness) +
+                k.xxx * mapQuadSdf(oc + k.xxx * h, pa, pb, pd, pc, halfThickness));
+            (*hitRecord).uv = vec2<f32>(0f, 0f);
+        }
+        case 15u, 16u: {
+            // Ring
+            let size = (*hittable).size0;
+            let outerRadius = size.x * 0.5f;
+            let innerRadius = (*hittable).parameter0 * outerRadius;
+            let radius = (innerRadius + outerRadius) * 0.5f;
+            let padding = (*hittable).parameter3 * outerRadius;
+            let halfThickness = (outerRadius - innerRadius) * 0.5f + padding;
+            let startAngle = (*hittable).parameter1;
+            let endAngle = (*hittable).parameter2;
+            let rHeight = size.z * 0.5f + padding;
+            outwardNormal = normalize(
+                k.xyy * mapRingSdf(oc + k.xyy * h, startAngle, endAngle, radius, halfThickness, rHeight, padding) +
+                k.yyx * mapRingSdf(oc + k.yyx * h, startAngle, endAngle, radius, halfThickness, rHeight, padding) +
+                k.yxy * mapRingSdf(oc + k.yxy * h, startAngle, endAngle, radius, halfThickness, rHeight, padding) +
+                k.xxx * mapRingSdf(oc + k.xxx * h, startAngle, endAngle, radius, halfThickness, rHeight, padding));
+            (*hitRecord).uv = vec2<f32>(0f, 0f);
+        }
+        case 17u, 18u: {
+            // Tube
+            let size = (*hittable).size0 * 0.5f;
+            let rounding = (*hittable).rounding;
+            let outerr = size.x;
+            let innerr = (*hittable).parameter0 * outerr;
+            let e = size.y - rounding;
+            let r = (outerr + innerr) * 0.5f;
+            let th = outerr - innerr - rounding * 2f;
+            let nh = 0.00001f; // Tube uses slightly larger epsilon for normal
+            outwardNormal = normalize(
+                k.xyy * mapTubeSdf(oc + k.xyy * nh, r, th, e, rounding) +
+                k.yyx * mapTubeSdf(oc + k.yyx * nh, r, th, e, rounding) +
+                k.yxy * mapTubeSdf(oc + k.yxy * nh, r, th, e, rounding) +
+                k.xxx * mapTubeSdf(oc + k.xxx * nh, r, th, e, rounding));
+            // Cylindrical UV
+            let size1 = (*hittable).size0 / (*hittable).texScale.xyz;
+            let angleY = dot(outwardNormal, vec3<f32>(0f, 1f, 0f));
+            (*hitRecord).uv = fract(select(
+                vec2<f32>(atan2(outwardNormal.x, outwardNormal.z) / TWO_PI * (*hittable).texScale.w + (*hittable).texOffset.w + 0.5f, 0.5f - oc.y / size1.y - (*hittable).texOffset.y),
+                oc.xz / size1.xz + (*hittable).texOffset.xz + vec2<f32>(0.5f, 0.5f),
+                angleY > ROOT_TWO_OVER_TWO
+            ));
+        }
+        default: { return; }
+    }
+
+    // Set normal (rotate back for rotated variants)
+    if (isRotated) {
+        outwardNormal = rotateQuat(outwardNormal, rotation);
+    }
+    setFaceNormal(ray, outwardNormal, hitRecord);
 }
 
 fn hitBVH(ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, HitRecord>, seed: ptr<function, u32>) -> bool {
@@ -315,7 +521,11 @@ fn hitBVH(ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, HitRecord>, s
         tempHitRecord.previousIsAbsorbing = (*hitRecord).isAbsorbing;
         tempHitRecord.previousAbsorption = (*hitRecord).absorption;
 
-        // TODO: Defer normal and UV calculation until closest hit is found
+        // Deferred SDF normal and UV calculation for the closest hit only
+        let winnerTypeId = u32(hittableBuffer.hittables[tempHitRecord.id].typeId);
+        if (winnerTypeId >= 3u && winnerTypeId <= 18u) {
+            computeSdfNormalAndUV(ray, &tempHitRecord);
+        }
 
         *hitRecord = tempHitRecord;
         return true;
@@ -535,7 +745,7 @@ fn hitTubeSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, 
     let e = size.y - rounding;
     let r = (outerr + innerr) * 0.5f;
     let th = outerr - innerr - rounding * 2f;
-    for (var i: u32 = 0u; i < 256u; i = i + 1u) {
+    for (var i: u32 = 0u; i < 128u; i = i + 1u) {
         let position = rayAt(ray, t);
         let oc = position - center;
         let distance = abs(mapTubeSdf(oc, r, th, e, rounding));
@@ -544,25 +754,6 @@ fn hitTubeSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, 
         if (distance < 0.000001f) {
             (*hitRecord).t = t;
             (*hitRecord).position = rayAt(ray, t);
-
-            // Normal
-            let h = 0.00001f;
-            let k = vec2<f32>(1f, -1f);
-            let outwardNormal =  normalize(
-                k.xyy * mapTubeSdf(oc + k.xyy * h, r, th, e, rounding) +
-                k.yyx * mapTubeSdf(oc + k.yyx * h, r, th, e, rounding) +
-                k.yxy * mapTubeSdf(oc + k.yxy * h, r, th, e, rounding) +
-                k.xxx * mapTubeSdf(oc + k.xxx * h, r, th, e, rounding));
-            setFaceNormal(ray, outwardNormal, hitRecord);
-
-            // Texture coords
-             let size1 = (*tubeSdf).size0 / (*tubeSdf).texScale.xyz;
-            let angleY = dot(outwardNormal, vec3<f32>(0f, 1f, 0f));
-            (*hitRecord).uv = fract(select(
-                vec2<f32>(atan2(outwardNormal.x, outwardNormal.z) / TWO_PI * (*tubeSdf).texScale.w + (*tubeSdf).texOffset.w + 0.5f, 0.5f - oc.y / size1.y - (*tubeSdf).texOffset.y), // Side, invert y
-                oc.xz / size1.xz + (*tubeSdf).texOffset.xz + vec2<f32>(0.5f, 0.5f), // Cap
-                angleY > ROOT_TWO_OVER_TWO
-            ));
             return true;
         }
     }
@@ -580,7 +771,6 @@ fn hitTubeRotatedSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<fun
     let hit = hitTubeSdf(id, rotatedRay, tMin, tMax, hitRecord);
     if (hit) {
         (*hitRecord).position = rotateQuat((*hitRecord).position - center, rotation) + center;
-        (*hitRecord).normal = rotateQuat((*hitRecord).normal, rotation);
         return true;
     }
     return false;
@@ -602,7 +792,7 @@ fn hitBoxFrameSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<functi
     let r = (*boxFrameSdf).rounding;
     let size = (*boxFrameSdf).size0 * 0.5f;
     let e = (*boxFrameSdf).parameter0 * size.x - r; // Thickness in size units
-    for (var i: u32 = 0u; i < 256u; i++) {
+    for (var i: u32 = 0u; i < 128u; i++) {
         let position = rayAt(ray, t);
         let oc = position - center;
         let distance = abs(mapBoxFrameSdf(oc, size, e, r));
@@ -611,31 +801,6 @@ fn hitBoxFrameSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<functi
         if (distance < 0.000001f) {
             (*hitRecord).t = t;
             (*hitRecord).position = rayAt(ray, t);
-
-            // Normal
-            let h = 0.000001f;
-            let k = vec2<f32>(1f, -1f);
-            let outwardNormal =  normalize(
-                k.xyy * mapBoxFrameSdf(oc + k.xyy * h, size, e, r) +
-                k.yyx * mapBoxFrameSdf(oc + k.yyx * h, size, e, r) +
-                k.yxy * mapBoxFrameSdf(oc + k.yxy * h, size, e, r) +
-                k.xxx * mapBoxFrameSdf(oc + k.xxx * h, size, e, r));
-            setFaceNormal(ray, outwardNormal, hitRecord);
-
-            // Texture coords
-            let maxOutwardNormal = max(abs(outwardNormal.x), max(abs(outwardNormal.y), abs(outwardNormal.z)));
-            let size = (*boxFrameSdf).size0 / (*boxFrameSdf).texScale.xyz;
-            let uv: vec2<f32> = 
-            select(
-                select(
-                    vec2<f32>(1f, sign(outwardNormal.y)) * oc.xz / size.xz + (*boxFrameSdf).texOffset.xz,
-                    vec2<f32>(-sign(outwardNormal.x), -1f) * oc.zy / size.zy + (*boxFrameSdf).texOffset.zy,
-                    abs(outwardNormal.x) == maxOutwardNormal
-                ),
-                vec2<f32>(sign(outwardNormal.z), -1f) * oc.xy / size.xy + (*boxFrameSdf).texOffset.xy,
-                abs(outwardNormal.z) == maxOutwardNormal
-            );
-            (*hitRecord).uv = fract(uv + 0.5f);
             return true;
         }
     }
@@ -653,7 +818,6 @@ fn hitBoxFrameRotatedSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr
     let hit = hitBoxFrameSdf(id, rotatedRay, tMin, tMax, hitRecord);
     if (hit) {
         (*hitRecord).position = rotateQuat((*hitRecord).position - center, rotation) + center;
-        (*hitRecord).normal = rotateQuat((*hitRecord).normal, rotation);
         return true;
     }
     return false;
@@ -670,7 +834,7 @@ fn hitBoxSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, H
     let r = (*boxSdf).rounding;
     let size = (*boxSdf).size0 * 0.5f - r;
     let center = (*boxSdf).center0;
-    for (var i: u32 = 0u; i < 256u; i = i + 1u) {
+    for (var i: u32 = 0u; i < 128u; i = i + 1u) {
         let position = rayAt(ray, t);
         let oc = position - center;
         let distance = abs(mapBoxSdf(oc, size, r)); // abs handles rays starting inside the SDF
@@ -679,35 +843,6 @@ fn hitBoxSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, H
         if (distance < 0.000001f) {
             (*hitRecord).t = t;
             (*hitRecord).position = rayAt(ray, t);
-
-            // Normal
-            let h = 0.000001f;
-            let k = vec2<f32>(1f, -1f);
-            let outwardNormal =  normalize(
-                k.xyy * mapBoxSdf(oc + k.xyy * h, size, r) +
-                k.yyx * mapBoxSdf(oc + k.yyx * h, size, r) +
-                k.yxy * mapBoxSdf(oc + k.yxy * h, size, r) +
-                k.xxx * mapBoxSdf(oc + k.xxx * h, size, r));
-            setFaceNormal(ray, outwardNormal, hitRecord);
-
-            // Texture coords
-            let maxOutwardNormal = max(abs(outwardNormal.x), max(abs(outwardNormal.y), abs(outwardNormal.z)));
-            let size = (*boxSdf).size0 / (*boxSdf).texScale.xyz;
-            var uv: vec2<f32> = 
-            select(
-                select(
-                    vec2<f32>(1f, sign(outwardNormal.y)) * oc.xz / size.xz + (*boxSdf).texOffset.xz,
-                    vec2<f32>(-sign(outwardNormal.x), -1f) * oc.zy / size.zy + (*boxSdf).texOffset.zy,
-                    abs(outwardNormal.x) == maxOutwardNormal
-                ),
-                vec2<f32>(sign(outwardNormal.z), -1f) * oc.xy / size.xy + (*boxSdf).texOffset.xy,
-                abs(outwardNormal.z) == maxOutwardNormal
-            );
-            uv = fract(uv + 0.5f);
-            let texCoord0 = (*boxSdf).texCoords.xw;
-            let texCoord1 = (*boxSdf).texCoords.zy;
-            uv = texCoord0 + uv * (texCoord1 - texCoord0);
-            (*hitRecord).uv = uv;
             return true;
         }
     }
@@ -725,7 +860,6 @@ fn hitBoxRotatedSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<func
     let hit = hitBoxSdf(id, rotatedRay, tMin, tMax, hitRecord);
     if (hit) {
         (*hitRecord).position = rotateQuat((*hitRecord).position - center, rotation) + center;
-        (*hitRecord).normal = rotateQuat((*hitRecord).normal, rotation);
         return true;
     }
     return false;
@@ -758,7 +892,7 @@ fn hitCappedTorusSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<fun
     let halfThickness = (outerRadius - innerRadius) * 0.5f + padding;
     let startAngle = (*cappedTorusSdf).parameter1;
     let endAngle = (*cappedTorusSdf).parameter2;
-    for (var i: u32 = 0u; i < 256u; i = i + 1u) {
+    for (var i: u32 = 0u; i < 128u; i = i + 1u) {
         let position = rayAt(ray, t);
         let oc = position - center;
         let distance = abs(mapCappedTorusSdf(oc, startAngle, endAngle, radius, halfThickness, padding)); 
@@ -767,19 +901,6 @@ fn hitCappedTorusSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<fun
         if (distance < 0.000001f) {
             (*hitRecord).t = t;
             (*hitRecord).position = rayAt(ray, t);
-
-            // Normal
-            let h = 0.000001f;
-            let k = vec2<f32>(1f, -1f);
-            let outwardNormal =  normalize(
-                k.xyy * mapCappedTorusSdf(oc + k.xyy * h, startAngle, endAngle, radius, halfThickness, padding) +
-                k.yyx * mapCappedTorusSdf(oc + k.yyx * h, startAngle, endAngle, radius, halfThickness, padding) +
-                k.yxy * mapCappedTorusSdf(oc + k.yxy * h, startAngle, endAngle, radius, halfThickness, padding) +
-                k.xxx * mapCappedTorusSdf(oc + k.xxx * h, startAngle, endAngle, radius, halfThickness, padding));
-            setFaceNormal(ray, outwardNormal, hitRecord);
-
-            // Texture coords
-            (*hitRecord).uv = vec2<f32>(0f, 0f);
             return true;
         }
     }
@@ -797,7 +918,6 @@ fn hitCappedTorusRotatedSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: 
     let hit = hitCappedTorusSdf(id, rotatedRay, tMin, tMax, hitRecord);
     if (hit) {
         (*hitRecord).position = rotateQuat((*hitRecord).position - center, rotation) + center;
-        (*hitRecord).normal = rotateQuat((*hitRecord).normal, rotation);
         return true;
     }
     return false;
@@ -816,7 +936,7 @@ fn hitCylinderSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<functi
     let r1 = (*cylinderSdf).rounding;
     let r0 = size.x - r1;
     let h0 = size.y - r1;
-    for (var i: u32 = 0u; i < 256u; i = i + 1u) {
+    for (var i: u32 = 0u; i < 128u; i = i + 1u) {
         let position = rayAt(ray, t);
         let oc = position - center;
         let distance = abs(mapCylinderSdf(oc, h0, r0, r1));
@@ -825,25 +945,6 @@ fn hitCylinderSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<functi
         if (distance < 0.000001f) {
             (*hitRecord).t = t;
             (*hitRecord).position = rayAt(ray, t);
-
-            // Normal
-            let h = 0.000001f;
-            let k = vec2<f32>(1f, -1f);
-            let outwardNormal =  normalize(
-                k.xyy * mapCylinderSdf(oc + k.xyy * h, h0, r0, r1) +
-                k.yyx * mapCylinderSdf(oc + k.yyx * h, h0, r0, r1) +
-                k.yxy * mapCylinderSdf(oc + k.yxy * h, h0, r0, r1) +
-                k.xxx * mapCylinderSdf(oc + k.xxx * h, h0, r0, r1));
-            setFaceNormal(ray, outwardNormal, hitRecord);
-
-            // Texture coords
-            let size1 = (*cylinderSdf).size0 / (*cylinderSdf).texScale.xyz;
-            let angleY = dot(outwardNormal, vec3<f32>(0f, 1f, 0f));
-            (*hitRecord).uv = fract(select(
-                vec2<f32>(atan2(outwardNormal.x, outwardNormal.z) / TWO_PI * (*cylinderSdf).texScale.w + (*cylinderSdf).texOffset.w + 0.5f, 0.5f - oc.y / size1.y - (*cylinderSdf).texOffset.y), // Side, invert y
-                oc.xz / size1.xz + (*cylinderSdf).texOffset.xz + vec2<f32>(0.5f, 0.5f), // Cap
-                angleY > ROOT_TWO_OVER_TWO
-            ));
             return true;
         }
     }
@@ -861,14 +962,13 @@ fn hitCylinderRotatedSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr
     let hit = hitCylinderSdf(id, rotatedRay, tMin, tMax, hitRecord);
     if (hit) {
         (*hitRecord).position = rotateQuat((*hitRecord).position - center, rotation) + center;
-        (*hitRecord).normal = rotateQuat((*hitRecord).normal, rotation);
         return true;
     }
     return false;
 }
 
 fn mapHexPrismSdf(p: vec3<f32>, hx: f32, hy: f32, r: f32) -> f32 {
-    let k = vec3<f32>(-0.8660254f, 0.5f, 0.57735f); // (-sqrt(3)/2 or sin(60), 0.5, sqrt(3)/3 or tan(30))
+    let k = vec3<f32>(-0.8660254f, 0.5f, 0.57735f);
     var p0 = abs(p.zxy);
     let p1 = p0.xy - 2f * min(dot(k.xy, p0.xy), 0f) * k.xy;
     let d = vec2<f32>(length(p1.xy - vec2(clamp(p1.x, -k.z * hx, k.z * hx), hx)) * sign(p1.y - hx), p0.z - hy);
@@ -883,7 +983,7 @@ fn hitHexPrismSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<functi
     let center = (*hexPrismSdf).center0;
     let hx = size.x - r;
     let hy = size.y - r;
-    for (var i: u32 = 0u; i < 256u; i = i + 1u) {
+    for (var i: u32 = 0u; i < 128u; i = i + 1u) {
         let position = rayAt(ray, t);
         let oc = position - center;
         let distance = abs(mapHexPrismSdf(oc, hx, hy, r));
@@ -892,27 +992,6 @@ fn hitHexPrismSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<functi
         if (distance < 0.000001f) {
             (*hitRecord).t = t;
             (*hitRecord).position = rayAt(ray, t);
-
-            // Normal
-            let h = 0.000001f;
-            let k = vec2<f32>(1f, -1f);
-            let outwardNormal =  normalize(
-                k.xyy * mapHexPrismSdf(oc + k.xyy * h, hx, hy, r) +
-                k.yyx * mapHexPrismSdf(oc + k.yyx * h, hx, hy, r) +
-                k.yxy * mapHexPrismSdf(oc + k.yxy * h, hx, hy, r) +
-                k.xxx * mapHexPrismSdf(oc + k.xxx * h, hx, hy, r));
-            setFaceNormal(ray, outwardNormal, hitRecord);
-
-            // Texture coords
-            let size1 = (*hexPrismSdf).size0 / (*hexPrismSdf).texScale.xyz;
-            let angleY = dot(outwardNormal, vec3<f32>(0f, 1f, 0f));
-            // Approximate to cylinder by projecting position on unit circle
-            let circle = normalize(vec2<f32>(oc.x, oc.z));
-            (*hitRecord).uv = fract(select(
-                vec2<f32>(atan2(circle.x, circle.y) / TWO_PI * (*hexPrismSdf).texScale.w + (*hexPrismSdf).texOffset.w + 0.5f, 0.5f - oc.y / size1.y - (*hexPrismSdf).texOffset.y), // Side, invert y                
-                oc.xz / size1.xz + (*hexPrismSdf).texOffset.xz + vec2<f32>(0.5f, 0.5f), // Cap
-                angleY > ROOT_TWO_OVER_TWO
-            ));
             return true;
         }
     }
@@ -964,7 +1043,7 @@ fn hitQuadSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, 
     let pb = vec2<f32>(-halfWidth, -halfHeight + b * height);
     let pc = vec2<f32>(halfWidth, -halfHeight + c * height);
     let pd = vec2<f32>(halfWidth, -halfHeight + d * height);
-    for (var i: u32 = 0u; i < 256u; i = i + 1u) {
+    for (var i: u32 = 0u; i < 128u; i = i + 1u) {
         let position = rayAt(ray, t);
         let oc = position - center;
         let distance = abs(mapQuadSdf(oc, pa, pb, pd, pc, halfThickness));
@@ -973,19 +1052,6 @@ fn hitQuadSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, 
         if (distance < 0.000001f) {
             (*hitRecord).t = t;
             (*hitRecord).position = rayAt(ray, t);
-
-            // Normal
-            let h = 0.000001f;
-            let k = vec2<f32>(1f, -1f);
-            let outwardNormal =  normalize(
-                k.xyy * mapQuadSdf(oc + k.xyy * h, pa, pb, pd, pc, halfThickness) +
-                k.yyx * mapQuadSdf(oc + k.yyx * h, pa, pb, pd, pc, halfThickness) +
-                k.yxy * mapQuadSdf(oc + k.yxy * h, pa, pb, pd, pc, halfThickness) +
-                k.xxx * mapQuadSdf(oc + k.xxx * h, pa, pb, pd, pc, halfThickness));
-            setFaceNormal(ray, outwardNormal, hitRecord);
-
-            // Texture coords
-            (*hitRecord).uv = vec2<f32>(0f, 0f);
             return true;
         }
     }
@@ -1026,7 +1092,7 @@ fn hitRingSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, 
     let startAngle = (*ringSdf).parameter1;
     let endAngle = (*ringSdf).parameter2;
     let height = size.z * 0.5f + padding;
-    for (var i: u32 = 0u; i < 256u; i = i + 1u) {
+    for (var i: u32 = 0u; i < 128u; i = i + 1u) {
         let position = rayAt(ray, t);
         let oc = position - center;
         let distance = abs(mapRingSdf(oc, startAngle, endAngle, radius, halfThickness, height, padding));
@@ -1035,19 +1101,6 @@ fn hitRingSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, 
         if (distance < 0.000001f) {
             (*hitRecord).t = t;
             (*hitRecord).position = rayAt(ray, t);
-
-            // Normal
-            let h = 0.000001f;
-            let k = vec2<f32>(1f, -1f);
-            let outwardNormal =  normalize(
-                k.xyy * mapRingSdf(oc + k.xyy * h, startAngle, endAngle, radius, halfThickness, height, padding) +
-                k.yyx * mapRingSdf(oc + k.yyx * h, startAngle, endAngle, radius, halfThickness, height, padding) +
-                k.yxy * mapRingSdf(oc + k.yxy * h, startAngle, endAngle, radius, halfThickness, height, padding) +
-                k.xxx * mapRingSdf(oc + k.xxx * h, startAngle, endAngle, radius, halfThickness, height, padding));
-            setFaceNormal(ray, outwardNormal, hitRecord);
-
-            // Texture coords
-            (*hitRecord).uv = vec2<f32>(0f, 0f);
             return true;
         }
     }
@@ -1065,7 +1118,6 @@ fn hitRingRotatedSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<fun
     let hit = hitRingSdf(id, rotatedRay, tMin, tMax, hitRecord);
     if (hit) {
         (*hitRecord).position = rotateQuat((*hitRecord).position - center, rotation) + center;
-        (*hitRecord).normal = rotateQuat((*hitRecord).normal, rotation);
         return true;
     }
     return false;
@@ -1564,6 +1616,16 @@ fn rayColor(ray: ptr<function, Ray>, seed: ptr<function, u32>) -> vec3<f32> {
             if (scatter) {
                 // Attenuate
                 color *= attenuation;
+
+                // Russian Roulette: probabilistically terminate dim paths after depth 2
+                if (depth > 2u) {
+                    let p = max(color.x, max(color.y, color.z));
+                    let survival = max(p, 0.05f);
+                    if (random(seed) > survival) {
+                        return vec3<f32>(0f, 0f, 0f);
+                    }
+                    color /= survival;
+                }
             }
             else {
                 // Emit
@@ -1599,9 +1661,11 @@ fn rayColor(ray: ptr<function, Ray>, seed: ptr<function, u32>) -> vec3<f32> {
 
 @group(2) @binding(3) var<storage, read> lightBuffer: LightBuffer;
 
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(16, 16, 1)
 fn clear(@builtin(global_invocation_id) globalId : vec3<u32>) {
-    let index = globalId.x * 4u;
+    let tileSize = vec2<u32>(u32(uniforms.width), u32(uniforms.height));
+    if (globalId.x >= tileSize.x || globalId.y >= tileSize.y) { return; }
+    let index = (globalId.y * tileSize.x + globalId.x) * 4u;
     outputColorBuffer.values[index] = 0f;
     outputColorBuffer.values[index + 1u] = 0f;
     outputColorBuffer.values[index + 2u] = 0f;
@@ -1610,15 +1674,15 @@ fn clear(@builtin(global_invocation_id) globalId : vec3<u32>) {
     atomicStore(&depthMinMaxBuffer.values[1], 0u);
 }
 
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(16, 16, 1)
 fn main(@builtin(global_invocation_id) globalId : vec3<u32>) {
     let imageSize = vec2<f32>(uniforms.width * uniforms.tilesX, uniforms.height * uniforms.tilesY);
     let tileSize = vec2<f32>(uniforms.width, uniforms.height);
 
-    // Pixel coords ([0,width-1], [0,height-1])
-    let id = f32(globalId.x);
-    let tilePixelY = floor(id / tileSize.x);
-    let tilePixelX = id - tilePixelY * tileSize.x;
+    // Pixel coords
+    let tilePixelX = f32(globalId.x);
+    let tilePixelY = f32(globalId.y);
+    if (tilePixelX >= tileSize.x || tilePixelY >= tileSize.y) { return; }
     let imagePixelX = tilePixelX + uniforms.tileOffsetX * tileSize.x;
     let imagePixelY = tilePixelY + uniforms.tileOffsetY * tileSize.y;
 
@@ -1657,21 +1721,21 @@ fn main(@builtin(global_invocation_id) globalId : vec3<u32>) {
     // Next frame
     frameSeed++;
     
-    let index = globalId.x * 4u;
+    let index = (globalId.y * u32(tileSize.x) + globalId.x) * 4u;
     outputColorBuffer.values[index + 0u] += color.x;
     outputColorBuffer.values[index + 1u] += color.y;
     outputColorBuffer.values[index + 2u] += color.z;
 }
 
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(16, 16, 1)
 fn color(@builtin(global_invocation_id) globalId : vec3<u32>) {
     let imageSize = vec2<f32>(uniforms.width * uniforms.tilesX, uniforms.height * uniforms.tilesY);
     let tileSize = vec2<f32>(uniforms.width, uniforms.height);
 
-    // Pixel coords ([0,width-1], [0,height-1])
-    let id = f32(globalId.x);
-    let tilePixelY = floor(id / tileSize.x);
-    let tilePixelX = id - tilePixelY * tileSize.x;
+    // Pixel coords
+    let tilePixelX = f32(globalId.x);
+    let tilePixelY = f32(globalId.y);
+    if (tilePixelX >= tileSize.x || tilePixelY >= tileSize.y) { return; }
     let imagePixelX = tilePixelX + uniforms.tileOffsetX * tileSize.x;
     let imagePixelY = tilePixelY + uniforms.tileOffsetY * tileSize.y;
 
@@ -1854,22 +1918,22 @@ fn color(@builtin(global_invocation_id) globalId : vec3<u32>) {
             }
         }
     }
-    let index = globalId.x * 4u;
+    let index = (globalId.y * u32(uniforms.width) + globalId.x) * 4u;
     color /= (AA * AA); // Average color over samples
     outputColorBuffer.values[index + 0u] += color.x;
     outputColorBuffer.values[index + 1u] += color.y;
     outputColorBuffer.values[index + 2u] += color.z;
 }
     
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(16, 16, 1)
 fn normalDepth(@builtin(global_invocation_id) globalId : vec3<u32>) {
     let imageSize = vec2<f32>(uniforms.width * uniforms.tilesX, uniforms.height * uniforms.tilesY);
     let tileSize = vec2<f32>(uniforms.width, uniforms.height);
 
-    // Pixel coords ([0,width-1], [0,height-1])
-    let id = f32(globalId.x);
-    let tilePixelY = floor(id / tileSize.x);
-    let tilePixelX = id - tilePixelY * tileSize.x;
+    // Pixel coords
+    let tilePixelX = f32(globalId.x);
+    let tilePixelY = f32(globalId.y);
+    if (tilePixelX >= tileSize.x || tilePixelY >= tileSize.y) { return; }
     let imagePixelX = tilePixelX + uniforms.tileOffsetX * tileSize.x;
     let imagePixelY = tilePixelY + uniforms.tileOffsetY * tileSize.y;
 
@@ -1911,7 +1975,7 @@ fn normalDepth(@builtin(global_invocation_id) globalId : vec3<u32>) {
         }
     }
     
-    let index = globalId.x * 4u;
+    let index = (globalId.y * u32(uniforms.width) + globalId.x) * 4u;
     outputColorBuffer.values[index + 0u] += normal.x;
     outputColorBuffer.values[index + 1u] += normal.y;
     outputColorBuffer.values[index + 2u] += normal.z;
@@ -1926,15 +1990,15 @@ fn normalDepth(@builtin(global_invocation_id) globalId : vec3<u32>) {
     }
 }
 
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(16, 16, 1)
 fn segment(@builtin(global_invocation_id) globalId : vec3<u32>) {
     let imageSize = vec2<f32>(uniforms.width * uniforms.tilesX, uniforms.height * uniforms.tilesY);
     let tileSize = vec2<f32>(uniforms.width, uniforms.height);
 
-    // Pixel coords ([0,width-1], [0,height-1])
-    let id = f32(globalId.x);
-    let tilePixelY = floor(id / (tileSize.x + 1)); // Overdispatched by 1
-    let tilePixelX = id - tilePixelY * (tileSize.x + 1); // Overdispatched by 1
+    // Pixel coords (overdispatched by 1 for edge detection)
+    let tilePixelX = f32(globalId.x);
+    let tilePixelY = f32(globalId.y);
+    if (tilePixelX > tileSize.x || tilePixelY > tileSize.y) { return; }
     let imagePixelX = tilePixelX + uniforms.tileOffsetX * tileSize.x;
     let imagePixelY = tilePixelY + uniforms.tileOffsetY * tileSize.y;
 
@@ -1968,21 +2032,21 @@ fn segment(@builtin(global_invocation_id) globalId : vec3<u32>) {
         }
     }
     
-    let index = globalId.x * 4u;
+    let index = (globalId.y * (u32(tileSize.x) + 1u) + globalId.x) * 4u;
     outputColorBuffer.values[index + 0u] += segment.x;
     outputColorBuffer.values[index + 1u] += segment.y;
     outputColorBuffer.values[index + 2u] += segment.z;
 }
     
-@compute @workgroup_size(256, 1, 1)
+@compute @workgroup_size(16, 16, 1)
 fn texture(@builtin(global_invocation_id) globalId : vec3<u32>) {
     let imageSize = vec2<f32>(uniforms.width * uniforms.tilesX, uniforms.height * uniforms.tilesY);
     let tileSize = vec2<f32>(uniforms.width, uniforms.height);
 
-    // Pixel coords ([0,width-1], [0,height-1])
-    let id = f32(globalId.x);
-    let tilePixelY = floor(id / tileSize.x);
-    let tilePixelX = id - tilePixelY * tileSize.x;
+    // Pixel coords
+    let tilePixelX = f32(globalId.x);
+    let tilePixelY = f32(globalId.y);
+    if (tilePixelX >= tileSize.x || tilePixelY >= tileSize.y) { return; }
     let imagePixelX = tilePixelX + uniforms.tileOffsetX * tileSize.x;
     let imagePixelY = tilePixelY + uniforms.tileOffsetY * tileSize.y;
 
@@ -2011,7 +2075,7 @@ fn texture(@builtin(global_invocation_id) globalId : vec3<u32>) {
         texture = hitRecord.uv;
     }
     
-    let index = globalId.x * 4u;
+    let index = (globalId.y * u32(uniforms.width) + globalId.x) * 4u;
     outputColorBuffer.values[index + 0u] += texture.x;
     outputColorBuffer.values[index + 1u] += texture.y;
 }
