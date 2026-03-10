@@ -25,13 +25,13 @@ async function init(): Promise<void> {
     if (footer) footer.style.visibility = "visible";
 }
 
-async function renderDetail(content: HTMLDivElement, categories: ISampleCategory[], sampleName: string): Promise<void> {
+async function renderDetail(content: HTMLDivElement, categories: ISampleCategory[], plotName: string): Promise<void> {
     // Find the plot in categories
     let plot: ISamplePlot | null = null;
     for (const category of categories) {
         for (const p of category.plots) {
             const name = p.plot.replace(".json", "");
-            if (name === sampleName) {
+            if (name === plotName) {
                 plot = p;
                 break;
             }
@@ -40,7 +40,7 @@ async function renderDetail(content: HTMLDivElement, categories: ISampleCategory
     }
 
     if (!plot) {
-        content.textContent = "Sample not found";
+        content.textContent = "Plot not found";
         return;
     }
 
@@ -57,7 +57,7 @@ async function renderDetail(content: HTMLDivElement, categories: ISampleCategory
     detailDescription.innerText = plot.description;
     detailImage.src = `${imageFolder}/${plot.image}`;
     detailImage.alt = plot.title;
-    detailTryLink.href = `client.html?plot=${sampleName}`;
+    detailTryLink.href = `client.html?plot=${plotName}`;
 
     if (plot.notes) {
         detailNotes.innerHTML = plot.notes;

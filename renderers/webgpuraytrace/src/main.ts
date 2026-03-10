@@ -24,7 +24,6 @@ export class Main extends Core.Renderer {
     private _context: GPUCanvasContext;
     private _texture: GPUTexture;
     private _presentationFormat: GPUTextureFormat;
-    private _maxComputeWorkgroupsPerDimension: number;
 
     // Compute
     private _computeUniformBuffer: GPUBuffer;
@@ -152,7 +151,6 @@ export class Main extends Core.Renderer {
                 }
             };
             this._device = await this._adapter.requestDevice(gpuDeviceDescriptor);
-            this._maxComputeWorkgroupsPerDimension = this._device.limits.maxComputeWorkgroupsPerDimension;
             this._queue = this._device.queue;
             this._context = this._canvas.getContext("webgpu");
 
@@ -1015,16 +1013,19 @@ export class Main extends Core.Renderer {
         }
         const computePassEncoder = commandEncoder.beginComputePass(computePassDescriptor);
 
-        // Pathtrace
-        let computeDispatchCount: number;
+        // Dispatch dimensions
+        let dispatchX: number;
+        let dispatchY: number;
         switch (this._renderMode) {
             case "segment":
             case "edge":
                 // Overdispatch by 1 to allow edge detection to work at the edges
-                computeDispatchCount = Math.min(Math.ceil((this._width + 1) * (this._height + 1) / 256), this._maxComputeWorkgroupsPerDimension);
+                dispatchX = Math.ceil((this._width + 1) / 16);
+                dispatchY = Math.ceil((this._height + 1) / 16);
                 break;
             default:
-                computeDispatchCount = Math.min(Math.ceil(this._width * this._height / 256), this._maxComputeWorkgroupsPerDimension);
+                dispatchX = Math.ceil(this._width / 16);
+                dispatchY = Math.ceil(this._height / 16);
         }
 
         // Set bind groups
@@ -1035,20 +1036,20 @@ export class Main extends Core.Renderer {
         // Clear
         if (clear) {
             computePassEncoder.setPipeline(this._clearPipeline);
-            computePassEncoder.dispatchWorkgroups(computeDispatchCount, 1, 1);
+            computePassEncoder.dispatchWorkgroups(dispatchX, dispatchY, 1);
         }
 
         // Render mode
         switch (this._renderMode) {
             case "color":
                 computePassEncoder.setPipeline(this._computeColorPipeline);
-                computePassEncoder.dispatchWorkgroups(computeDispatchCount, 1, 1);
+                computePassEncoder.dispatchWorkgroups(dispatchX, dispatchY, 1);
                 computePassEncoder.end();
                 break;
             case "normal":
             case "depth":
                 computePassEncoder.setPipeline(this._computeNormalDepthPipeline);
-                computePassEncoder.dispatchWorkgroups(computeDispatchCount, 1, 1);
+                computePassEncoder.dispatchWorkgroups(dispatchX, dispatchY, 1);
                 computePassEncoder.end();
                 commandEncoder.copyBufferToBuffer(this._depthMinMaxBuffer, 0, this._depthMinMaxResultBuffer, 0, this._depthMinMaxResultBuffer.size);
 
@@ -1066,19 +1067,19 @@ export class Main extends Core.Renderer {
             case "segment":
             case "edge":
                 computePassEncoder.setPipeline(this._computeSegmentPipeline);
-                computePassEncoder.dispatchWorkgroups(computeDispatchCount, 1, 1);
+                computePassEncoder.dispatchWorkgroups(dispatchX, dispatchY, 1);
                 computePassEncoder.end();
                 break;
             // TODO: Remove texture render mode and pipeline, and add a textureType="uv" to the color/raytrace pipeline
             case "texture":
                 computePassEncoder.setPipeline(this._computeTexturePipeline);
-                computePassEncoder.dispatchWorkgroups(computeDispatchCount, 1, 1);
+                computePassEncoder.dispatchWorkgroups(dispatchX, dispatchY, 1);
                 computePassEncoder.end();
                 break;
             default:
                 // Raytrace
                 computePassEncoder.setPipeline(this._computePipeline);
-                computePassEncoder.dispatchWorkgroups(computeDispatchCount, 1, 1);
+                computePassEncoder.dispatchWorkgroups(dispatchX, dispatchY, 1);
                 computePassEncoder.end();
                 break;
         }
