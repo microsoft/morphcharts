@@ -194,40 +194,43 @@ export class Ordinal extends Scale {
                     break;
             }
         }
-        if (rangeJSON.scheme) {
+        if (Array.isArray(rangeJSON) && rangeJSON.length > 0 && typeof rangeJSON[0] == "string") {
+            // Direct array of color values, "range": ["red", "white", "blue"]
+            // 1:1 lookup (wrapped), no interpolation
+            range.colors = [];
+            for (let i = 0; i < rangeJSON.length; i++) {
+                const color = Color.parse(rangeJSON[i]);
+                if (color) { range.colors.push(color); }
+            }
+            range.min = 0;
+            range.max = Math.max(range.colors.length - 1, domain.max);
+        }
+        else if (rangeJSON.scheme) {
             range.scheme = rangeJSON.scheme;
             if (Array.isArray(range.scheme)) {
-                // Parse array of color values
+                // Scheme array of color values, "range": {"scheme": ["red", "white", "blue"]}
+                // Interpolate colors
                 range.colors = [];
                 for (let i = 0; i < range.scheme.length; i++) {
                     const color = Color.parse(range.scheme[i]);
                     if (color) { range.colors.push(color); }
                 }
                 range.min = 0;
-                range.max = Math.max(range.colors.length - 1, domain.max);
+                range.max = domain.max;
             }
             else {
                 // Check for valid name
                 const palette = Core.Palettes[range.scheme];
                 if (palette) {
+                    range.min = 0;
                     switch (palette.type) {
                         case "qualitative":
-                            range.min = 0;
                             // Allow colors to wrap
                             range.max = Math.max(palette.colors.length - 1, domain.max);
                             break;
                         default:
-                            range.min = 0;
+                            // Sequential/diverging, interpolation deferred to colorValue() at render time
                             range.max = domain.max;
-
-                            // Create a color scheme from the palette which maps to the domain
-                            range.colors = [];
-                            const step = 1 / (domain.max - domain.min + 1);
-                            for (let i = 0; i <= domain.max; i++) {
-                                const position = (i + 0.5) * step;
-                                const color = Core.Palette.sample(palette.colors, position, true);
-                                range.colors.push(color);
-                            }
                             break;
                     }
                 }
