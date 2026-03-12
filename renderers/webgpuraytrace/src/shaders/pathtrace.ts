@@ -1664,8 +1664,8 @@ fn rayColor(ray: ptr<function, Ray>, seed: ptr<function, u32>) -> vec3<f32> {
 @compute @workgroup_size(16, 16, 1)
 fn clear(@builtin(global_invocation_id) globalId : vec3<u32>) {
     let tileSize = vec2<u32>(u32(uniforms.width), u32(uniforms.height));
-    if (globalId.x >= tileSize.x || globalId.y >= tileSize.y) { return; }
-    let index = (globalId.y * tileSize.x + globalId.x) * 4u;
+    if (globalId.x > tileSize.x || globalId.y > tileSize.y) { return; }
+    let index = (globalId.y * (tileSize.x + 1u) + globalId.x) * 4u;
     outputColorBuffer.values[index] = 0f;
     outputColorBuffer.values[index + 1u] = 0f;
     outputColorBuffer.values[index + 2u] = 0f;
@@ -1721,7 +1721,7 @@ fn main(@builtin(global_invocation_id) globalId : vec3<u32>) {
     // Next frame
     frameSeed++;
     
-    let index = (globalId.y * u32(tileSize.x) + globalId.x) * 4u;
+    let index = (globalId.y * (u32(tileSize.x) + 1u) + globalId.x) * 4u;
     outputColorBuffer.values[index + 0u] += color.x;
     outputColorBuffer.values[index + 1u] += color.y;
     outputColorBuffer.values[index + 2u] += color.z;
@@ -1918,7 +1918,7 @@ fn color(@builtin(global_invocation_id) globalId : vec3<u32>) {
             }
         }
     }
-    let index = (globalId.y * u32(uniforms.width) + globalId.x) * 4u;
+    let index = (globalId.y * (u32(uniforms.width) + 1u) + globalId.x) * 4u;
     color /= (AA * AA); // Average color over samples
     outputColorBuffer.values[index + 0u] += color.x;
     outputColorBuffer.values[index + 1u] += color.y;
@@ -1975,7 +1975,7 @@ fn normalDepth(@builtin(global_invocation_id) globalId : vec3<u32>) {
         }
     }
     
-    let index = (globalId.y * u32(uniforms.width) + globalId.x) * 4u;
+    let index = (globalId.y * (u32(uniforms.width) + 1u) + globalId.x) * 4u;
     outputColorBuffer.values[index + 0u] += normal.x;
     outputColorBuffer.values[index + 1u] += normal.y;
     outputColorBuffer.values[index + 2u] += normal.z;
@@ -2075,7 +2075,7 @@ fn texture(@builtin(global_invocation_id) globalId : vec3<u32>) {
         texture = hitRecord.uv;
     }
     
-    let index = (globalId.y * u32(uniforms.width) + globalId.x) * 4u;
+    let index = (globalId.y * (u32(uniforms.width) + 1u) + globalId.x) * 4u;
     outputColorBuffer.values[index + 0u] += texture.x;
     outputColorBuffer.values[index + 1u] += texture.y;
 }

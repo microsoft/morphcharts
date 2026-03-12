@@ -19,6 +19,7 @@ export class Main extends Core.Renderer {
     // WebGPU API
     private _adapter: GPUAdapter;
     private _device: GPUDevice;
+    private _maxComputeWorkgroupsPerDimension: number;
     private _queue: GPUQueue;
     private _sampler: GPUSampler;
     private _context: GPUCanvasContext;
@@ -151,6 +152,7 @@ export class Main extends Core.Renderer {
                 }
             };
             this._device = await this._adapter.requestDevice(gpuDeviceDescriptor);
+            this._maxComputeWorkgroupsPerDimension = this._device.limits.maxComputeWorkgroupsPerDimension;
             this._queue = this._device.queue;
             this._context = this._canvas.getContext("webgpu");
 
@@ -1013,20 +1015,10 @@ export class Main extends Core.Renderer {
         }
         const computePassEncoder = commandEncoder.beginComputePass(computePassDescriptor);
 
-        // Dispatch dimensions
-        let dispatchX: number;
-        let dispatchY: number;
-        switch (this._renderMode) {
-            case "segment":
-            case "edge":
-                // Overdispatch by 1 to allow edge detection to work at the edges
-                dispatchX = Math.ceil((this._width + 1) / 16);
-                dispatchY = Math.ceil((this._height + 1) / 16);
-                break;
-            default:
-                dispatchX = Math.ceil(this._width / 16);
-                dispatchY = Math.ceil(this._height / 16);
-        }
+        // Dispatch dimensions (overdispatch by 1 to allow edge detection to work at the edges)
+        const maxDispatch = this._maxComputeWorkgroupsPerDimension;
+        let dispatchX = Math.min(Math.ceil((this._width + 1) / 16), maxDispatch);
+        let dispatchY = Math.min(Math.ceil((this._height + 1) / 16), maxDispatch);
 
         // Set bind groups
         computePassEncoder.setBindGroup(0, this._computeBindGroup1);
