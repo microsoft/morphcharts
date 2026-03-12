@@ -72,14 +72,12 @@ struct Uniforms {                  // ---------------------------
     tileOffsetX : f32,             //          100      4     4
     tileOffsetY : f32,             //          104      4     4    
     aperture: f32,                 //          108      4     4
-    _padding: vec3<f32>,           //          112*    16    12
-    focusDistance: f32,            //          124      4     4
-    multisample: f32,              //          128*     4     4
-    cameraTypeId: f32,             //          132      4     4
-    idSource: f32,                 //          136      4     4
-}                                  // padding  140      4     4
-                                   // -------------------------
-                                   //                  16   144
+    focusDistance: f32,            //          112*    16    12
+    cameraTypeId: f32,             //          116      4     4
+    idSource: f32,                 //          120      4     4
+                                   // padding  124      4     4
+}                                  // -------------------------
+                                   //                  16   128
 
 
 // id   type
@@ -132,13 +130,13 @@ struct Hittable {                  // -------------------------
     sdfBuffer: f32,                //          160*     4     4
     sdfHalo: f32,                  //          164      4     4
     textureTypeId: f32,            //          168      4     4
-    _reserved: f32,                //          172      4     4
+    _padding: f32,                 // padding  172      4     4
     parameter0: f32,               //          176*     4     4
     parameter1: f32,               //          180      4     4
     parameter2: f32,               //          184      4     4
     parameter3: f32,               //          188      4     4
     materialColor2: vec3<f32>,     //          192*    16    12
-    _padding2: f32,                // padding  204      4     4
+                                   // padding  204      4     4
 }                                  // -------------------------
                                    //                  16   208
 
@@ -150,8 +148,8 @@ struct LinearBVHNode {             // -------------------------
     secondChildOffset: f32,        //           28      4     4
     nPrimitives: f32,              //           32*     4     4
     axis: f32,                     //           36      4     4
-}                                  // padding   40      4     8
-                                   // -------------------------
+                                   // padding   40      4     8
+}                                  // -------------------------
                                    //                  16    48
 
 struct HittableBuffer {
@@ -1739,187 +1737,185 @@ fn color(@builtin(global_invocation_id) globalId : vec3<u32>) {
     let imagePixelX = tilePixelX + uniforms.tileOffsetX * tileSize.x;
     let imagePixelY = tilePixelY + uniforms.tileOffsetY * tileSize.y;
 
+    // Tex coords ([0,1], [0,1])
+    let texCoord = vec2<f32>(imagePixelX / imageSize.x, imagePixelY / imageSize.y);
+
+    // Seed random number generator per pixel
+    var frameSeed = u32(uniforms.seed);
+    var seed = u32(tilePixelY * tileSize.x + tilePixelX) + frameSeed * u32(tileSize.x * tileSize.y);
+
+    // Sample position (random sub-pixel jitter)
+    let samplePos = vec2<f32>(texCoord) + vec2<f32>(random(&seed), random(&seed)) / imageSize;
+
     // Camera
     var camera = getPerspectiveCamera(uniforms);
-    var seed = 0u;
 
-    // Anti-aliasing
-    let AA = uniforms.multisample;
-    var color = vec3<f32>(0f, 0f, 0f);
-    for (var m: u32 = 0u; m < u32(AA); m++) {
-        for (var n: u32 = 0u; n < u32(AA); n++) {
-            let u = (imagePixelX + f32(m) / AA - 0.5f) / imageSize.x;
-            let v = (imagePixelY + f32(n) / AA - 0.5f) / imageSize.y;
-            let texCoord = vec2<f32>(u, v);
-
-            // Ray
-            var ray: Ray;
-            switch u32(uniforms.cameraTypeId) {
-                default: {
-                    ray = getPerspectiveRay(camera, &seed, texCoord);
-                }
-                case 1u: {
-                    ray = getCylindricalRay(camera, &seed, texCoord);
-                }
-            }
-
-            // Color
-            var hitRecord: HitRecord;
-            var shadowRay: Ray;
-            var shadowHitRecord: HitRecord;
-            if (hitBVH(ray, 0.00001f, 100f, &hitRecord, &seed)) {
-                let textureColor = textureValue(&hitRecord);
-                let hittable = &hittableBuffer.hittables[hitRecord.id];
-                let materialTypeId = hittable.materialTypeId;
-                let fuzz = select(hittable.materialFuzz, 1f, materialTypeId == 0f);
-                let gloss = select(hittable.materialGloss, 0f, materialTypeId == 0f);
-                let specularIntensity = gloss * (1f - fuzz);
-                let shininess = 64f; // TODO: Make per-material or calculate from fuzz
-                // Lights
-                for (var i: u32 = 0u; i < arrayLength(&lightBuffer.lights); i++) {
-                    let light = lightBuffer.lights[i];
-                    switch u32(lightBuffer.lights[i].typeId) {
-                        case 0u: {
-                            // Directional light
-                            // Fire a shadow ray towards the light
-                            shadowRay.origin = hitRecord.position;
-                            shadowRay.direction = -light.direction;
-                            if (!hitBVH(shadowRay, 0.00001f, 100f, &shadowHitRecord, &seed)) {
-                               // Diffuse
-                               let diffuseIntensity = clamp(-dot(hitRecord.normal, light.direction), 0f, 1f);
-                               color += diffuseIntensity * textureColor * light.color;
-
-                               // Specular
-                               let reflected = reflect(light.direction, hitRecord.normal);
-                               let specular = pow(clamp(dot(reflected, -ray.direction), 0f, 1f), shininess);
-                               color += specular * light.color * specularIntensity;
-                            }
-                        }
-                        case 3u: {
-                            // Point light
-                            // Fire a shadow ray towards the light
-                            shadowRay.origin = hitRecord.position;
-                            var direction = light.center - hitRecord.position;
-                            let distance = length(direction);
-                            direction = direction / distance;
-                            shadowRay.direction = direction;
-                            if (!hitBVH(shadowRay, 0.00001f, distance, &shadowHitRecord, &seed)) {
-                               // Diffuse
-                               let diffuseIntensity = clamp(dot(hitRecord.normal, direction), 0f, 1f);
-                               color += diffuseIntensity * textureColor * light.color;
-
-                               // Specular
-                               let reflected = -reflect(direction, hitRecord.normal);
-                               let specular = pow(clamp(dot(reflected, -ray.direction), 0f, 1f), shininess);
-                               color += specular * light.color * specularIntensity;
-                            }
-                        }
-                        case 4u: {
-                            // Projector light
-                            let center = light.center;
-                            var direction = center - hitRecord.position;
-                            let distance = length(direction);
-                            direction = direction / distance;
-                            shadowRay.origin = hitRecord.position;
-                            shadowRay.direction = direction;
-                            if (!hitBVH(shadowRay, 0.00001f, distance, &shadowHitRecord, &seed)) {
-                                // Calculate the position and size of the near plane
-                                let nearPlane = light.nearPlane;
-                                let nearPlaneCenter = center + light.direction * nearPlane;
-
-                                var size: vec2<f32>;
-                                size.y = 2f * nearPlane * tan(light.angle * 0.5f);
-                                // Get light aspect ratio from size.x
-                                let aspectRatio = light.size.x;
-                                size.x = size.y * aspectRatio;
-            
-                                // Get the near plane intersection point
-                                let rotation = light.rotation;
-                                let invRotation = conjugate(rotation);
-
-                                // xy rectangle intersection
-                                var rotatedRay: Ray;
-                                rotatedRay.origin = rotateQuat(hitRecord.position - nearPlaneCenter, invRotation) + nearPlaneCenter;
-                                rotatedRay.direction = rotateQuat(direction, invRotation);
-                                if (dot(rotatedRay.direction, vec3<f32>(0f, 0f, 1f)) > 0f) { continue; } // Front face only
-                                let oc = rotatedRay.origin - nearPlaneCenter;
-                                let t = -oc.z / rotatedRay.direction.z;
-                                if (t < 0f) { continue; }
-                                let p = oc + t * rotatedRay.direction;
-                                if (abs(p.x) > size.x * 0.5f || abs(p.y) > size.y * 0.5f) { continue; }
-
-                                var uv = fract(vec2<f32>(p.xy / size.xy * light.texScale.xy + light.texOffset.xy + vec2<f32>(0.5f, 0.5f)));
-                                
-                                // Diffuse
-                                let diffuseIntensity = clamp(dot(hitRecord.normal, direction), 0f, 1f);
-                                switch u32(light.textureTypeId) {
-                                    case 1u: {
-                                        // 2D checkerboard
-                                        uv *= 2f; // 2 squares per axis for uv [0,1]
-                                        color += diffuseIntensity * textureColor * mix(light.color, light.color2, (floor(uv.x) + floor(uv.y)) % 2f);
-                                    }
-                                    case 2u: {
-                                        // Image
-                                        let texCoord0 = light.texCoords.xw;
-                                        let texCoord1 = light.texCoords.zy;
-                                        uv = texCoord0 + uv * (texCoord1 - texCoord0);
-                                        color += diffuseIntensity * textureColor * light.color * textureSampleLevel(backgroundTexture, linearSampler, fract(uv), 0f).rgb;
-                                    }
-                                    default: {}
-                                }
-                                
-                                // Specular
-                                let reflected = -reflect(direction, hitRecord.normal);
-                                let specular = pow(clamp(dot(reflected, -ray.direction), 0f, 1f), shininess);
-                                color += specular * light.color * specularIntensity;
-                            }
-                        }
-                        case 7u: {
-                            // Spot light
-                            // Fire a shadow ray towards the light
-                            shadowRay.origin = hitRecord.position;
-                            var direction = light.center - hitRecord.position;
-                            let distance = length(direction);
-                            direction = direction / distance;
-                            shadowRay.direction = direction;
-                            if (!hitBVH(shadowRay, 0.00001f, distance, &shadowHitRecord, &seed)) {
-                                // Get angle to light direction
-                                // Check if within light cone
-                                let cosAngle = dot(-direction, light.direction);
-                                let cosOuter = cos(light.angle * 0.5f);
-                                var attenuation = 0f;
-                                if (cosAngle > cosOuter) {
-                                    // Remap [cosOuter..1] to [0..1] for smooth edge falloff
-                                    let remap = (cosAngle - cosOuter) / (1f - cosOuter);
-                                    attenuation = select(pow(remap, light.falloff), 1f, light.falloff == 0f);
-                                }
-
-                                // Diffuse
-                                let diffuseIntensity = clamp(dot(hitRecord.normal, direction), 0f, 1f);
-                                color += diffuseIntensity * textureColor * light.color * attenuation;
-
-                                // Specular
-                                let reflected = -reflect(direction, hitRecord.normal);
-                                let specular = pow(clamp(dot(reflected, -ray.direction), 0f, 1f), shininess / 4f);
-                                color += specular * specularIntensity * light.color * attenuation;
-                            }
-                        }
-                        default: {}
-                    }
-                }
-                
-                // Ambient
-                let ambientColor = uniforms.ambientColor;
-                color += textureColor * ambientColor;
-            }   
-            else {
-                // Background color
-                color += uniforms.backgroundColor.xyz;
-            }
+    // Ray
+    var ray: Ray;
+    switch u32(uniforms.cameraTypeId) {
+        default: {
+            ray = getPerspectiveRay(camera, &seed, samplePos);
+        }
+        case 1u: {
+            ray = getCylindricalRay(camera, &seed, samplePos);
         }
     }
+
+    // Color
+    var color = vec3<f32>(0f, 0f, 0f);
+    var hitRecord: HitRecord;
+    var shadowRay: Ray;
+    var shadowHitRecord: HitRecord;
+    if (hitBVH(ray, 0.00001f, 100f, &hitRecord, &seed)) {
+        let textureColor = textureValue(&hitRecord);
+        let hittable = &hittableBuffer.hittables[hitRecord.id];
+        let materialTypeId = hittable.materialTypeId;
+        let fuzz = select(hittable.materialFuzz, 1f, materialTypeId == 0f);
+        let gloss = select(hittable.materialGloss, 0f, materialTypeId == 0f);
+        let specularIntensity = gloss * (1f - fuzz);
+        let shininess = 64f; // TODO: Make per-material or calculate from fuzz
+        // Lights
+        for (var i: u32 = 0u; i < arrayLength(&lightBuffer.lights); i++) {
+            let light = lightBuffer.lights[i];
+            switch u32(lightBuffer.lights[i].typeId) {
+                case 0u: {
+                    // Directional light
+                    // Fire a shadow ray towards the light
+                    shadowRay.origin = hitRecord.position;
+                    shadowRay.direction = -light.direction;
+                    if (!hitBVH(shadowRay, 0.00001f, 100f, &shadowHitRecord, &seed)) {
+                        // Diffuse
+                        let diffuseIntensity = clamp(-dot(hitRecord.normal, light.direction), 0f, 1f);
+                        color += diffuseIntensity * textureColor * light.color;
+
+                        // Specular
+                        let reflected = reflect(light.direction, hitRecord.normal);
+                        let specular = pow(clamp(dot(reflected, -ray.direction), 0f, 1f), shininess);
+                        color += specular * light.color * specularIntensity;
+                    }
+                }
+                case 3u: {
+                    // Point light
+                    // Fire a shadow ray towards the light
+                    shadowRay.origin = hitRecord.position;
+                    var direction = light.center - hitRecord.position;
+                    let distance = length(direction);
+                    direction = direction / distance;
+                    shadowRay.direction = direction;
+                    if (!hitBVH(shadowRay, 0.00001f, distance, &shadowHitRecord, &seed)) {
+                        // Diffuse
+                        let diffuseIntensity = clamp(dot(hitRecord.normal, direction), 0f, 1f);
+                        color += diffuseIntensity * textureColor * light.color;
+
+                        // Specular
+                        let reflected = -reflect(direction, hitRecord.normal);
+                        let specular = pow(clamp(dot(reflected, -ray.direction), 0f, 1f), shininess);
+                        color += specular * light.color * specularIntensity;
+                    }
+                }
+                case 4u: {
+                    // Projector light
+                    let center = light.center;
+                    var direction = center - hitRecord.position;
+                    let distance = length(direction);
+                    direction = direction / distance;
+                    shadowRay.origin = hitRecord.position;
+                    shadowRay.direction = direction;
+                    if (!hitBVH(shadowRay, 0.00001f, distance, &shadowHitRecord, &seed)) {
+                        // Calculate the position and size of the near plane
+                        let nearPlane = light.nearPlane;
+                        let nearPlaneCenter = center + light.direction * nearPlane;
+
+                        var size: vec2<f32>;
+                        size.y = 2f * nearPlane * tan(light.angle * 0.5f);
+                        // Get light aspect ratio from size.x
+                        let aspectRatio = light.size.x;
+                        size.x = size.y * aspectRatio;
+    
+                        // Get the near plane intersection point
+                        let rotation = light.rotation;
+                        let invRotation = conjugate(rotation);
+
+                        // xy rectangle intersection
+                        var rotatedRay: Ray;
+                        rotatedRay.origin = rotateQuat(hitRecord.position - nearPlaneCenter, invRotation) + nearPlaneCenter;
+                        rotatedRay.direction = rotateQuat(direction, invRotation);
+                        if (dot(rotatedRay.direction, vec3<f32>(0f, 0f, 1f)) > 0f) { continue; } // Front face only
+                        let oc = rotatedRay.origin - nearPlaneCenter;
+                        let t = -oc.z / rotatedRay.direction.z;
+                        if (t < 0f) { continue; }
+                        let p = oc + t * rotatedRay.direction;
+                        if (abs(p.x) > size.x * 0.5f || abs(p.y) > size.y * 0.5f) { continue; }
+
+                        var uv = fract(vec2<f32>(p.xy / size.xy * light.texScale.xy + light.texOffset.xy + vec2<f32>(0.5f, 0.5f)));
+                        
+                        // Diffuse
+                        let diffuseIntensity = clamp(dot(hitRecord.normal, direction), 0f, 1f);
+                        switch u32(light.textureTypeId) {
+                            case 1u: {
+                                // 2D checkerboard
+                                uv *= 2f; // 2 squares per axis for uv [0,1]
+                                color += diffuseIntensity * textureColor * mix(light.color, light.color2, (floor(uv.x) + floor(uv.y)) % 2f);
+                            }
+                            case 2u: {
+                                // Image
+                                let texCoord0 = light.texCoords.xw;
+                                let texCoord1 = light.texCoords.zy;
+                                uv = texCoord0 + uv * (texCoord1 - texCoord0);
+                                color += diffuseIntensity * textureColor * light.color * textureSampleLevel(backgroundTexture, linearSampler, fract(uv), 0f).rgb;
+                            }
+                            default: {}
+                        }
+                        
+                        // Specular
+                        let reflected = -reflect(direction, hitRecord.normal);
+                        let specular = pow(clamp(dot(reflected, -ray.direction), 0f, 1f), shininess);
+                        color += specular * light.color * specularIntensity;
+                    }
+                }
+                case 7u: {
+                    // Spot light
+                    // Fire a shadow ray towards the light
+                    shadowRay.origin = hitRecord.position;
+                    var direction = light.center - hitRecord.position;
+                    let distance = length(direction);
+                    direction = direction / distance;
+                    shadowRay.direction = direction;
+                    if (!hitBVH(shadowRay, 0.00001f, distance, &shadowHitRecord, &seed)) {
+                        // Get angle to light direction
+                        // Check if within light cone
+                        let cosAngle = dot(-direction, light.direction);
+                        let cosOuter = cos(light.angle * 0.5f);
+                        var attenuation = 0f;
+                        if (cosAngle > cosOuter) {
+                            // Remap [cosOuter..1] to [0..1] for smooth edge falloff
+                            let remap = (cosAngle - cosOuter) / (1f - cosOuter);
+                            attenuation = select(pow(remap, light.falloff), 1f, light.falloff == 0f);
+                        }
+
+                        // Diffuse
+                        let diffuseIntensity = clamp(dot(hitRecord.normal, direction), 0f, 1f);
+                        color += diffuseIntensity * textureColor * light.color * attenuation;
+
+                        // Specular
+                        let reflected = -reflect(direction, hitRecord.normal);
+                        let specular = pow(clamp(dot(reflected, -ray.direction), 0f, 1f), shininess / 4f);
+                        color += specular * specularIntensity * light.color * attenuation;
+                    }
+                }
+                default: {}
+            }
+        }
+        
+        // Ambient
+        let ambientColor = uniforms.ambientColor;
+        color += textureColor * ambientColor;
+    } else {
+        // Background color
+        color += uniforms.backgroundColor.xyz;
+    }
+
     let index = (globalId.y * (u32(uniforms.width) + 1u) + globalId.x) * 4u;
-    color /= (AA * AA); // Average color over samples
     outputColorBuffer.values[index + 0u] += color.x;
     outputColorBuffer.values[index + 1u] += color.y;
     outputColorBuffer.values[index + 2u] += color.z;
@@ -1937,8 +1933,8 @@ fn normalDepth(@builtin(global_invocation_id) globalId : vec3<u32>) {
     let imagePixelX = tilePixelX + uniforms.tileOffsetX * tileSize.x;
     let imagePixelY = tilePixelY + uniforms.tileOffsetY * tileSize.y;
 
-    // Tex coords ([0,1], [0,1])
-    let texCoord = vec2<f32>(imagePixelX / imageSize.x, imagePixelY / imageSize.y);
+    // Tex coords ([0,1], [0,1]), center-tap
+    let texCoord = vec2<f32>((imagePixelX + 0.5f) / imageSize.x, (imagePixelY + 0.5f) / imageSize.y);
 
     // Camera
     var camera = getPerspectiveCamera(uniforms);
@@ -2002,8 +1998,8 @@ fn segment(@builtin(global_invocation_id) globalId : vec3<u32>) {
     let imagePixelX = tilePixelX + uniforms.tileOffsetX * tileSize.x;
     let imagePixelY = tilePixelY + uniforms.tileOffsetY * tileSize.y;
 
-    // Tex coords ([0,1], [0,1]), can be > 1 with overdispatching
-    let texCoord = vec2<f32>(imagePixelX / imageSize.x, imagePixelY / imageSize.y);
+    // Tex coords ([0,1], [0,1]), center-tap, can be > 1 with overdispatching
+    let texCoord = vec2<f32>((imagePixelX + 0.5f) / imageSize.x, (imagePixelY + 0.5f) / imageSize.y);
 
     // Camera
     var camera = getPerspectiveCamera(uniforms);
@@ -2037,52 +2033,10 @@ fn segment(@builtin(global_invocation_id) globalId : vec3<u32>) {
     outputColorBuffer.values[index + 1u] += segment.y;
     outputColorBuffer.values[index + 2u] += segment.z;
 }
-    
-@compute @workgroup_size(16, 16, 1)
-fn texture(@builtin(global_invocation_id) globalId : vec3<u32>) {
-    let imageSize = vec2<f32>(uniforms.width * uniforms.tilesX, uniforms.height * uniforms.tilesY);
-    let tileSize = vec2<f32>(uniforms.width, uniforms.height);
-
-    // Pixel coords
-    let tilePixelX = f32(globalId.x);
-    let tilePixelY = f32(globalId.y);
-    if (tilePixelX >= tileSize.x || tilePixelY >= tileSize.y) { return; }
-    let imagePixelX = tilePixelX + uniforms.tileOffsetX * tileSize.x;
-    let imagePixelY = tilePixelY + uniforms.tileOffsetY * tileSize.y;
-
-    // Tex coords ([0,1], [0,1]), can be > 1 with overdispatching
-    let texCoord = vec2<f32>(imagePixelX / imageSize.x, imagePixelY / imageSize.y);
-
-    // Camera
-    var camera = getPerspectiveCamera(uniforms);
-
-    // Ray
-    var seed = 0u;
-    var ray: Ray;
-    switch u32(uniforms.cameraTypeId) {
-        default: {
-            ray = getPerspectiveRay(camera, &seed, texCoord);
-        }
-        case 1u: {
-            ray = getCylindricalRay(camera, &seed, texCoord);
-        }
-    }
-
-    // Texture
-    var texture = vec2<f32>(0f, 0f);
-    var hitRecord: HitRecord;
-    if (hitBVH(ray, 0.00001f, 100f, &hitRecord, &seed)) {
-        texture = hitRecord.uv;
-    }
-    
-    let index = (globalId.y * (u32(uniforms.width) + 1u) + globalId.x) * 4u;
-    outputColorBuffer.values[index + 0u] += texture.x;
-    outputColorBuffer.values[index + 1u] += texture.y;
-}
 `;
 
 export class ComputeUniformBufferData extends Float32Array {
-    public static readonly SIZE = 144 / 4;
+    public static readonly SIZE = 128 / 4;
 
     public readonly POSITION_OFFSET = 0 / 4;
     public readonly WIDTH_OFFSET = 12 / 4;
@@ -2099,10 +2053,9 @@ export class ComputeUniformBufferData extends Float32Array {
     public readonly TILE_OFFSET_X = 100 / 4;
     public readonly TILE_OFFSET_Y = 104 / 4;
     public readonly APERTURE_OFFSET = 108 / 4;
-    public readonly FOCUS_DISTANCE_OFFSET = 124 / 4;
-    public readonly MULTISAMPLE_OFFSET = 128 / 4;
-    public readonly CAMERA_TYPE_ID_OFFSET = 132 / 4;
-    public readonly ID_SOURCE_OFFSET = 136 / 4;
+    public readonly FOCUS_DISTANCE_OFFSET = 112 / 4;
+    public readonly CAMERA_TYPE_ID_OFFSET = 116 / 4;
+    public readonly ID_SOURCE_OFFSET = 120 / 4;
 
     constructor() {
         super(ComputeUniformBufferData.SIZE)
@@ -2217,9 +2170,6 @@ export class ComputeUniformBufferData extends Float32Array {
 
     public getTileOffsetY() { return this[this.TILE_OFFSET_Y]; }
     public setTileOffsetY(value: number) { this[this.TILE_OFFSET_Y] = value; }
-
-    public getMultisample() { return this[this.MULTISAMPLE_OFFSET]; }
-    public setMultisample(value: number) { this[this.MULTISAMPLE_OFFSET] = value; }
 
     public getCameraTypeId() { return this[this.CAMERA_TYPE_ID_OFFSET]; }
     public setCameraTypeId(value: number) { this[this.CAMERA_TYPE_ID_OFFSET] = value; }

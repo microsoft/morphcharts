@@ -86,17 +86,6 @@ export abstract class Renderer {
     }
     public get idSource(): string { return this._idSource; }
 
-    // Multisample
-    protected _hasMultisampleChanged: boolean;
-    protected _multisample: number;
-    public set multisample(value: number) {
-        if (this._multisample !== value) {
-            this._multisample = value;
-            this._hasMultisampleChanged = true;
-        }
-    }
-    public get multisample(): number { return this._multisample; }
-
     // Visual collections
     public atlasVisuals: IAtlasVisual[];
     public imageVisuals: IImageVisual[];
@@ -286,9 +275,6 @@ export abstract class Renderer {
         // Render mode
         this._renderMode = options?.renderMode ?? Config.renderMode;
         this._idSource = Config.idSource;
-
-        // Multisample
-        this._multisample = Config.multisample;
 
         // Camera
         this._cameraMode = Config.cameraMode;

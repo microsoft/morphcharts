@@ -48,9 +48,6 @@ export class Config {
     public static readonly edgeForeground: ColorRGBA = [0, 0, 0, 1];
     public static readonly edgeBackground: ColorRGBA = [1, 1, 1, 1];
 
-    // Antialiasing
-    public static readonly multisample: number = 1; // Multisampling level
-
     // Stereo mode
     public static readonly stereoMode: string = "stereo";
 
