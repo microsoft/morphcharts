@@ -55,7 +55,7 @@ struct Camera {
     focusDistance: f32,
 }
 
-                                   //       offest  align  size
+                                   //       offset  align  size
 struct Uniforms {                  // ---------------------------
     position: vec3<f32>,           //            0*    16    12
     width: f32,                    //           12      4     4
@@ -92,7 +92,7 @@ struct Uniforms {                  // ---------------------------
 // 5    rect
 // 6    sphere
 // 7    spot
-                                   //       offest  align  size
+                                   //       offset  align  size
 struct Light {                     // -------------------------
     rotation: vec4<f32>,           //            0     16    16
     center: vec3<f32>,             //           16*    16    12
@@ -111,7 +111,7 @@ struct Light {                     // -------------------------
 }                                  // -------------------------
                                    //                  16   144
 
-                                   //       offest  align  size
+                                   //       offset  align  size
 struct Hittable {                  // -------------------------
     center0: vec3<f32>,            //            0*    16    12
     typeId: f32,                   //           12      4     4
@@ -142,7 +142,7 @@ struct Hittable {                  // -------------------------
 }                                  // -------------------------
                                    //                  16   208
 
-                                   //       offest  align  size
+                                   //       offset  align  size
 struct LinearBVHNode {             // -------------------------
     center: vec3<f32>,             //            0*    16    12
     primitivesOffset: f32,         //           12      4     4

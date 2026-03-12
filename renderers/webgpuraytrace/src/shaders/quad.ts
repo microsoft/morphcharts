@@ -9,7 +9,7 @@ const GAMMA = vec3<f32>(0.45454545f); // 1÷2.2
 struct ColorData {
     data : array<f32>,
 }
-                               //     offest  align  size
+                               //     offset  align  size
 struct Uniforms {              // -----------------------
     width: f32,                //          0*     4     4
     height: f32,               //          4      4     4
@@ -186,7 +186,7 @@ export class QuadUniformBufferData extends Float32Array {
     }
 
     public getEdgeBackground(value: Core.ColorRGBA) {
-        const offset = this.EDGE_BACKGROUND_OFFSET
+        const offset = this.EDGE_BACKGROUND_OFFSET;
         value[0] = this[offset];
         value[1] = this[offset + 1];
         value[2] = this[offset + 2];
