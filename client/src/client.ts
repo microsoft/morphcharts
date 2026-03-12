@@ -452,13 +452,6 @@ export class Main {
             this._updateUI();
         }
 
-        // Multisample
-        const antialiasSelect = document.getElementById("antialiasSelect") as HTMLInputElement;
-        antialiasSelect.value = Core.Config.multisample.toString();
-        antialiasSelect.oninput = () => {
-            this._renderer.multisample = parseInt(antialiasSelect.value);
-        }
-
         // Depth
         this._depthAutoCheckbox = document.getElementById("depthAuto") as HTMLInputElement;
         this._depthMinRange = document.getElementById("depthMinRange") as HTMLInputElement;
@@ -485,24 +478,20 @@ export class Main {
 
         // Render mode options
         const raytraceOptions = document.getElementById("raytraceOptions") as HTMLDivElement;
-        const colorOptions = document.getElementById("colorOptions") as HTMLDivElement;
         const edgeOptions = document.getElementById("edgeOptions") as HTMLDivElement;
         const depthOptions = document.getElementById("depthOptions") as HTMLDivElement;
         const segmentOptions = document.getElementById("segmentOptions") as HTMLDivElement;
         const renderModeChanged = () => {
             // Hide all options
             raytraceOptions.style.display = "none";
-            colorOptions.style.display = "none";
             edgeOptions.style.display = "none";
             depthOptions.style.display = "none";
             segmentOptions.style.display = "none";
             // Show options for selected render mode
             switch (this._renderer.renderMode) {
                 case "raytrace":
-                    raytraceOptions.style.display = "flex";
-                    break;
                 case "color":
-                    colorOptions.style.display = "flex";
+                    raytraceOptions.style.display = "flex";
                     break;
                 case "edge":
                     edgeOptions.style.display = "flex";

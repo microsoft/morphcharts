@@ -449,8 +449,6 @@
                                         for="modeDepth" class="radioLabel">Depth</label></div>
                                 <div><input type="radio" name="renderMode" id="modeSegment" value="segment" /><label
                                         for="modeSegment" class="radioLabel">Segment</label></div>
-                                <div><input type="radio" name="renderMode" id="modeTexture" value="texture" /><label
-                                        for="modeTexture" class="radioLabel">Texture</label></div>
                             </div>
                         </div>
                         <!-- render options -->
@@ -486,26 +484,14 @@
                                     <input type="button" id="focusResetButton" value="Reset" />
                                 </div>
                             </div>
-                            <!-- color options -->
-                            <div id="colorOptions" class="renderOptions">
-                                <!-- antialias -->
-                                <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
-                                    <label class="textboxLabel" style="width: 104px;">Antialias</label>
-                                    <div><select id="antialiasSelect" style="width: 100%;">
-                                            <option value="1">1x (none)</option>
-                                            <option value="2">2x</option>
-                                            <option value="3">3x</option>
-                                            <option value="4">4x</option>
-                                        </select></div>
-                                </div>
-                            </div>
+                            <!-- color options (shares raytraceOptions) -->
                             <!-- edge options -->
                             <div id="edgeOptions" class="renderOptions">
                                 <!-- color -->
                                 <div style="display: flex; flex-direction: row; gap: 8px; align-items: baseline;">
                                     <input type="radio" name="edgeMode" value="light" id="edgeLight" checked disabled />
                                     <label for="edgeLight" class="radioLabel disabled">Light</label>
-                                    <input type="radio" name="edgeMode" value="dark" id="edgeDart" disabled />
+                                    <input type="radio" name="edgeMode" value="dark" id="edgeDark" disabled />
                                     <label for="edgeDark" class="radioLabel disabled">Dark</label>
                                 </div>
                             </div>

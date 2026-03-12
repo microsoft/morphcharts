@@ -38,7 +38,6 @@ export class Main extends Core.Renderer {
     private _computeColorPipeline: GPUComputePipeline;
     private _computeNormalDepthPipeline: GPUComputePipeline;
     private _computeSegmentPipeline: GPUComputePipeline;
-    private _computeTexturePipeline: GPUComputePipeline;
     private _computeBindGroup1Layout: GPUBindGroupLayout
     private _computeBindGroup2Layout: GPUBindGroupLayout
     private _computeBindGroup3Layout: GPUBindGroupLayout
@@ -51,7 +50,6 @@ export class Main extends Core.Renderer {
     private _quadNormalPipeline: GPURenderPipeline;
     private _quadDepthPipeline: GPURenderPipeline;
     private _quadSegmentPipeline: GPURenderPipeline;
-    private _quadTexturePipeline: GPURenderPipeline;
     private _quadEdgePipeline: GPURenderPipeline;
     private _quadBindGroup1: GPUBindGroup;
     private _quadBindGroup2: GPUBindGroup;
@@ -352,13 +350,11 @@ export class Main extends Core.Renderer {
                     computeColorPipeline,
                     computeNormalDepthPipeline,
                     computeSegmentPipeline,
-                    computeTexturePipeline,
                     clearPipeline,
                     quadPipeline,
                     quadNormalPipeline,
                     quadDepthPipeline,
                     quadSegmentPipeline,
-                    quadTexturePipeline,
                     quadEdgePipeline,
                 ] = await Promise.all([
                     // Compute pipelines
@@ -381,11 +377,6 @@ export class Main extends Core.Renderer {
                         label: "Segment pipeline descriptor",
                         layout: this._computePipelineLayout,
                         compute: { module: computeModule, entryPoint: "segment" },
-                    }),
-                    this._device.createComputePipelineAsync({
-                        label: "Texture pipeline descriptor",
-                        layout: this._computePipelineLayout,
-                        compute: { module: computeModule, entryPoint: "texture" },
                     }),
                     this._device.createComputePipelineAsync({
                         label: "Clear pipeline descriptor",
@@ -422,13 +413,6 @@ export class Main extends Core.Renderer {
                         primitive: primitive,
                     }),
                     this._device.createRenderPipelineAsync({
-                        label: "Quad texture pipeline descriptor",
-                        layout: quadPipelineLayout,
-                        vertex: vertex,
-                        fragment: { module: quadModule, entryPoint: "frag_texture", targets: [colorState] },
-                        primitive: primitive,
-                    }),
-                    this._device.createRenderPipelineAsync({
                         label: "Quad edge pipeline descriptor",
                         layout: quadPipelineLayout,
                         vertex: vertex,
@@ -442,13 +426,11 @@ export class Main extends Core.Renderer {
                 this._computeColorPipeline = computeColorPipeline;
                 this._computeNormalDepthPipeline = computeNormalDepthPipeline;
                 this._computeSegmentPipeline = computeSegmentPipeline;
-                this._computeTexturePipeline = computeTexturePipeline;
                 this._clearPipeline = clearPipeline;
                 this._quadPipeline = quadPipeline;
                 this._quadNormalPipeline = quadNormalPipeline;
                 this._quadDepthPipeline = quadDepthPipeline;
                 this._quadSegmentPipeline = quadSegmentPipeline;
-                this._quadTexturePipeline = quadTexturePipeline;
                 this._quadEdgePipeline = quadEdgePipeline;
                 console.log(`WebGPU pipelines created ${Core.Time.formatDuration(performance.now() - start)}`);
 
@@ -574,12 +556,6 @@ export class Main extends Core.Renderer {
             this._computeUniformBufferData.setCameraTypeId(cameraType);
         }
 
-        // Multisample mode
-        if (this._hasMultisampleChanged) {
-            this._hasMultisampleChanged = false;
-            this.frameCount = 0; // Reset frame count on multisample change
-        }
-
         // Camera
         // TODO: Move change events to update
         if (this._hasCameraChanged) {
@@ -607,14 +583,6 @@ export class Main extends Core.Renderer {
         // Lighting
         this._computeUniformBufferData.setAmbientColor(this.ambientColor);
         this._computeUniformBufferData.setBackgroundColor(this.backgroundColor);
-
-        // Color render mode
-        switch (this._renderMode) {
-            case "color":
-                this._computeUniformBufferData.setAperture(0); // Disable aperture for color render mode
-                this._computeUniformBufferData.setMultisample(this._multisample);
-                break;
-        }
 
         // Id source
         this._computeUniformBufferData.setIdSource(this._idSource === "pick" ? 1 : 0);
@@ -1062,12 +1030,6 @@ export class Main extends Core.Renderer {
                 computePassEncoder.dispatchWorkgroups(dispatchX, dispatchY, 1);
                 computePassEncoder.end();
                 break;
-            // TODO: Remove texture render mode and pipeline, and add a textureType="uv" to the color/raytrace pipeline
-            case "texture":
-                computePassEncoder.setPipeline(this._computeTexturePipeline);
-                computePassEncoder.dispatchWorkgroups(dispatchX, dispatchY, 1);
-                computePassEncoder.end();
-                break;
             default:
                 // Raytrace
                 computePassEncoder.setPipeline(this._computePipeline);
@@ -1111,9 +1073,6 @@ export class Main extends Core.Renderer {
                 break;
             case "edge":
                 renderPassEncoder.setPipeline(this._quadEdgePipeline);
-                break;
-            case "texture":
-                renderPassEncoder.setPipeline(this._quadTexturePipeline);
                 break;
         }
         renderPassEncoder.setBindGroup(0, this._quadBindGroup1);
