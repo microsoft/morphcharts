@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MorphCharts — Coordinates</title>
+  <link rel="stylesheet" href="../css/common.css">
+</head>
+
+<body>
+  <header>
+    <a href="../index.html">Home</a>
+    <a href="../client.html">Try Online</a>
+    <a href="../gallery.html">Gallery</a>
+    <a href="./index.html">Docs</a>
+    <a href="https://github.com/microsoft/morphcharts">GitHub</a>
+  </header>
+
+  <h1>Coordinates</h1>
+
+  <p>
+    <a href="https://github.com/vega/vega">VEGA</a> specifications ("specs") define plot size using
+    <code>width</code> and <code>height</code>. These coordinates are used to specify <code>mark</code> positions
+    and sizes (typically mapping data values through <code>scale</code>s), and map directly to pixel positions.
+  </p>
+
+  <p>
+    MorphCharts specs also define plot size using <code>width</code> and <code>height</code>, optionally
+    adding <code>depth</code>. These coordinates are also used to specify <code>mark</code> positions and sizes.
+    However, they
+    do not map directly to pixel positions, for the following reasons:
+  </p>
+
+  <ul>
+    <li>
+      A <code>camera</code> (a <code>PerspectiveCamera</code> by default) to define the view. The
+      position and size of a <code>mark</code> on the screen will depend on <code>camera</code> properties such
+      as distance and field of view.
+    </li>
+    <li>
+      <code>mark</code> positions can optionally define a z-coordinate.
+    </li>
+    <li>
+      The <code>camera</code> view is rendered onto a canvas defined by a <code>width</code> and
+      <code>height</code>. This allows the user to change the size of the image, without changing the
+      <code>scene</code>.
+    </li>
+  </ul>
+
+  <p>
+    Since plot size no longer maps directly to pixel size, we can define plot size using arbitrary units, such as
+    <code>height</code>, <code>width</code>, and <code>depth</code> as a unit size of 1. However, since many spec
+    properties use <a href="https://github.com/vega/vega">VEGA</a> defaults (e.g. <code>fontSize</code>) it may be
+    more convenient to use typical <a href="https://github.com/vega/vega">VEGA</a> plot sizes.
+  </p>
+
+  <h2 id="plot-coordinates">Plot Coordinates</h2>
+
+  <pre><code>{
+  "width": 640,
+  "height": 360,
+  "depth": 640,
+  ...
+  "marks": [
+    {
+      "type": "rect",
+      "encode": {
+        "enter": {
+          "x": {"value": 320},
+          "y": {"value": 180},
+          "z": {"value": 320},
+          "width": {"value": 32},
+          "height": {"value": 32},
+          "depth": {"value": 32}
+        }
+      }
+    }
+  ]
+}</code></pre>
+  <div id="listing1" class="listing-caption">Listing 1. Plot coordinates for plot size, mark position and size.</div>
+
+  <p>
+    Plot coordinates define the plot dimensions at the top-level of the spec, as well as the position and size of marks.
+    The plot in <a class="cross-reference" href="#listing1">Listing 1</a> is <code>640x360x640 (WxHxD)</code> units in
+    size. The mark is a <code>32x32x32</code> cube in the center of the plot at <code>[320, 180, 320] (XYZ)</code>.
+  </p>
+
+  <p>
+    Note that mark positions and sizes are typically mapped indirectly from data values using a <code>scale</code>,
+    rather than using literal values.
+  </p>
+
+  <h2 id="camera-coordinates">Camera Coordinates</h2>
+
+  <p>Camera coordinates are defined by a unit cube which encloses the maximum plot dimension (<code>width</code>,
+    <code>height</code>, <code>depth</code>). Using camera coordinates can be convenient, as they are independent of
+    plot size. For example, the center of the plot is always at <code>[0.5, 0.5, 0.5]</code> in camera coordinates,
+    regardless of the plot size.
+  </p>
+
+  <p>
+    A <code>camera</code> and <code>light</code>s can optionally be included in the spec, and can be defined
+    in either camera coordinates or plot coordinates.
+  </p>
+
+  <pre><code>"camera": {
+  "position": [0, 1, 2]
+}
+...
+
+"lights": [
+  {
+    "type": "rect",
+    "position": [-1, 1, 1],
+    "size": 0.5
+  }
+]</code></pre>
+  <div id="listing2" class="listing-caption">Listing 2. Camera coordinates for camera and light positions.</div>
+
+  <p>
+    To specify <code>camera</code> and <code>light</code> properties in plot coordinates rather than camera coordinates,
+    use the <code>world</code> prefix, for example <code>worldPosition</code> instead of <code>position</code>.
+  </p>
+
+  <p>
+    If the same property is specified in both camera and plot coordinates, the camera coordinates take precedence. For
+    example, if <code>position</code> and <code>worldPosition</code> are both specified for a light, the light will
+    be positioned according to <code>position</code>.
+  </p>
+
+  <table>
+    <tr>
+      <th>Property</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+    <tr>
+      <td><code>position</code></td>
+      <td><code>[x, y, z]</code></td>
+      <td>Camera position</td>
+    </tr>
+    <tr>
+      <td><code>target</code></td>
+      <td><code>[x, y, z]</code></td>
+      <td>Camera look-at target</td>
+    </tr>
+    <tr>
+      <td><code>direction</code></td>
+      <td><code>[x, y, z]</code></td>
+      <td>View direction vector (alternative to <code>target</code>)</td>
+    </tr>
+    <tr>
+      <td><code>distance</code></td>
+      <td>number</td>
+      <td>Spherical offset distance from <code>position</code></td>
+    </tr>
+    <tr>
+      <td><code>altitude</code></td>
+      <td>degrees</td>
+      <td>Elevation from horizontal plane (0° horizontal, 90° up)</td>
+    </tr>
+    <tr>
+      <td><code>azimuth</code></td>
+      <td>degrees</td>
+      <td>Rotation around the Y axis (0° +Z, 90° +X)</td>
+    </tr>
+    <tr>
+      <td><code>focusDistance</code></td>
+      <td>number</td>
+      <td>Focus distance from <code>position</code></td>
+    </tr>
+  </table>
+  <div id="table1" class="listing-caption">Table 1. Camera position orientation, and focus distance.</div>
+
+  <table>
+    <tr>
+      <th>Property</th>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+    <tr>
+      <td><code>position</code></td>
+      <td><code>[x, y, z]</code></td>
+      <td>Light position</td>
+    </tr>
+    <tr>
+      <td><code>target</code></td>
+      <td><code>[x, y, z]</code></td>
+      <td>Light look-at target</td>
+    </tr>
+    <tr>
+      <td><code>direction</code></td>
+      <td><code>[x, y, z]</code></td>
+      <td>Light direction vector (alternative to <code>target</code>)</td>
+    </tr>
+    <tr>
+      <td><code>distance</code></td>
+      <td>number</td>
+      <td>Spherical offset distance from <code>position</code></td>
+    </tr>
+    <tr>
+      <td><code>altitude</code></td>
+      <td>degrees</td>
+      <td>Elevation from horizontal plane (0° horizontal, 90° up)</td>
+    </tr>
+    <tr>
+      <td><code>azimuth</code></td>
+      <td>degrees</td>
+      <td>Rotation around the Y axis (0° +Z, 90° +X)</td>
+    </tr>
+    <tr>
+      <td><code>size</code></td>
+      <td>number</td>
+      <td>Light size</td>
+    </tr>
+  </table>
+  <div id="table2" class="listing-caption">Table 2. Light position, orientation, and size.</div>
+
+  <h2 id="rendering-coordinates">Rendering Coordinates</h2>
+
+  <p>
+    The <code>canvas</code> size is defined by the <code>renderer</code> and specified in pixels. The size of the
+    <code>canvas</code> is set when creating the <code>renderer</code>, either implicitly from the
+    <code>&lt;canvas&gt;</code> element's size or explicitly via an <code>options</code> object:
+  </p>
+
+  <pre><code>const renderer = new WebGPURenderer.Main(canvas, {
+  width: 1920,
+  height: 1080
+});</code></pre>
+
+  <p>
+    Rendering coordinates are independent of plot coordinates — changing the canvas size changes the image resolution
+    without affecting the scene.
+  </p>
+
+  <nav class="page-nav">
+    <span></span>
+    <a href="./prerequisites.html">Next</a>
+  </nav>
+
+  <footer>
+    <span>© 2025 Microsoft</span>
+    <a href="https://go.microsoft.com/fwlink/?LinkId=521839">Privacy &amp; Cookies</a>
+    <a href="https://go.microsoft.com/fwlink/?linkid=2259814">Consumer Health Privacy</a>
+    <a href="https://www.microsoft.com/trademarks">Trademarks</a>
+    <a href="https://www.microsoft.com/en-us/servicesagreement/">Terms of Use</a>
+  </footer>
+  <script src="../js/copy.js"></script>
+</body>
+
+</html>

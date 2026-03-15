@@ -125,8 +125,6 @@ export class Main extends Core.Renderer {
         this._initializeDefaultVisuals(options);
     }
 
-    public start(): void { }
-    public stop(): void { }
     public get isSupported() { return navigator.gpu !== undefined; }
 
     private async _initializeAPIAsync(): Promise<boolean> {
@@ -175,287 +173,287 @@ export class Main extends Core.Renderer {
         try {
             const start = window.performance.now();
 
-                // Canvas
-                const canvasConfig: GPUCanvasConfiguration = {
-                    device: this._device,
-                    format: this._presentationFormat,
-                    // alphaMode: "opaque",
-                    alphaMode: "premultiplied",
-                };
-                this._context.configure(canvasConfig);
+            // Canvas
+            const canvasConfig: GPUCanvasConfiguration = {
+                device: this._device,
+                format: this._presentationFormat,
+                // alphaMode: "opaque",
+                alphaMode: "premultiplied",
+            };
+            this._context.configure(canvasConfig);
 
-                // Compute
-                const computeUniformBufferDescriptor: GPUBufferDescriptor = {
-                    label: "Compute uniform buffer",
-                    size: ComputeUniformBufferData.SIZE * 4,
-                    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-                };
-                this._computeUniformBuffer = this._device.createBuffer(computeUniformBufferDescriptor);
-                this._computeUniformBufferData = new ComputeUniformBufferData();
+            // Compute
+            const computeUniformBufferDescriptor: GPUBufferDescriptor = {
+                label: "Compute uniform buffer",
+                size: ComputeUniformBufferData.SIZE * 4,
+                usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+            };
+            this._computeUniformBuffer = this._device.createBuffer(computeUniformBufferDescriptor);
+            this._computeUniformBufferData = new ComputeUniformBufferData();
 
-                // Depth
-                const depthMinMaxBufferDescriptor: GPUBufferDescriptor = {
-                    label: "Depth min max buffer",
-                    size: 2 * 4,
-                    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
-                };
-                this._depthMinMaxBuffer = this._device.createBuffer(depthMinMaxBufferDescriptor);
-                const depthMinMaxBufferResultDescriptor: GPUBufferDescriptor = {
-                    label: "Depth min max result buffer",
-                    size: 2 * 4,
-                    usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
-                };
-                this._depthMinMaxResultBuffer = this._device.createBuffer(depthMinMaxBufferResultDescriptor);
+            // Depth
+            const depthMinMaxBufferDescriptor: GPUBufferDescriptor = {
+                label: "Depth min max buffer",
+                size: 2 * 4,
+                usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+            };
+            this._depthMinMaxBuffer = this._device.createBuffer(depthMinMaxBufferDescriptor);
+            const depthMinMaxBufferResultDescriptor: GPUBufferDescriptor = {
+                label: "Depth min max result buffer",
+                size: 2 * 4,
+                usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+            };
+            this._depthMinMaxResultBuffer = this._device.createBuffer(depthMinMaxBufferResultDescriptor);
 
-                // Quad
-                const quadUniformBufferDescriptor: GPUBufferDescriptor = {
-                    label: "Full screen quad uniform buffer",
-                    size: QuadUniformBufferData.SIZE * 4,
-                    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-                };
-                this._quadUniformBuffer = this._device.createBuffer(quadUniformBufferDescriptor);
-                this._quadUniformBufferData = new QuadUniformBufferData();
+            // Quad
+            const quadUniformBufferDescriptor: GPUBufferDescriptor = {
+                label: "Full screen quad uniform buffer",
+                size: QuadUniformBufferData.SIZE * 4,
+                usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+            };
+            this._quadUniformBuffer = this._device.createBuffer(quadUniformBufferDescriptor);
+            this._quadUniformBufferData = new QuadUniformBufferData();
 
-                // Sampler
-                this._sampler = this._device.createSampler({
-                    label: "Sampler",
-                    // TODO: Disable mipmapping for sdf fonts?
-                    magFilter: "linear",
-                    minFilter: "linear",
-                });
+            // Sampler
+            this._sampler = this._device.createSampler({
+                label: "Sampler",
+                // TODO: Disable mipmapping for sdf fonts?
+                magFilter: "linear",
+                minFilter: "linear",
+            });
 
-                // Placeholder texture
-                const textureSize: GPUExtent3DStrict = { width: 1, height: 1 }
-                const textureDescriptor: GPUTextureDescriptor = {
-                    label: "Placeholder texture",
-                    size: textureSize,
-                    format: this._presentationFormat,
-                    usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
-                };
-                this._texture = this._device.createTexture(textureDescriptor);
+            // Placeholder texture
+            const textureSize: GPUExtent3DStrict = { width: 1, height: 1 }
+            const textureDescriptor: GPUTextureDescriptor = {
+                label: "Placeholder texture",
+                size: textureSize,
+                format: this._presentationFormat,
+                usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
+            };
+            this._texture = this._device.createTexture(textureDescriptor);
 
-                // Placeholder light buffer
-                const emptyLightBufferDescriptor: GPUBufferDescriptor = {
-                    label: "Placeholder light buffer",
-                    size: LightBufferData.SIZE * 4, // Single light
-                    usage: GPUBufferUsage.STORAGE,
-                };
-                this._emptyLightBuffer = this._device.createBuffer(emptyLightBufferDescriptor);
+            // Placeholder light buffer
+            const emptyLightBufferDescriptor: GPUBufferDescriptor = {
+                label: "Placeholder light buffer",
+                size: LightBufferData.SIZE * 4, // Single light
+                usage: GPUBufferUsage.STORAGE,
+            };
+            this._emptyLightBuffer = this._device.createBuffer(emptyLightBufferDescriptor);
 
-                // Compute module
-                const computeShaderModuleDescriptor: GPUShaderModuleDescriptor = {
-                    code: ComputeShaderWgsl,
-                }
-                const computeModule = this._device.createShaderModule(computeShaderModuleDescriptor);
-                // Force synchronous shader validation to avoid deferred compilation stalls
-                await computeModule.getCompilationInfo();
-                console.log(`compute shader compiled ${Core.Time.formatDuration(performance.now() - start)}`);
-
-                // Compute pipeline
-                const computeBindGroup1LayoutDescriptor: GPUBindGroupLayoutDescriptor = {
-                    entries: [
-                        { binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: { type: "read-only-storage" } }, // Hittable buffer
-                        { binding: 3, visibility: GPUShaderStage.COMPUTE, buffer: { type: "read-only-storage" }, }, // LinearBVHNode buffer
-                        { binding: 4, visibility: GPUShaderStage.COMPUTE, sampler: { type: "filtering", } }, // Sampler
-                        { binding: 5, visibility: GPUShaderStage.COMPUTE, texture: { multisampled: false, sampleType: "float", viewDimension: "2d", } }, // Atlas texture
-                        { binding: 6, visibility: GPUShaderStage.COMPUTE, texture: { multisampled: false, sampleType: "float", viewDimension: "2d", } } // Background texture
-                    ]
-                };
-                const computeBindGroup2LayoutDescriptor: GPUBindGroupLayoutDescriptor = {
-                    entries: [
-                        { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: "storage" } }, // Output color buffer
-                    ]
-                };
-                const computeBindGroup3LayoutDescriptor: GPUBindGroupLayoutDescriptor = {
-                    entries: [
-                        { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: "uniform" } }, // Uniforms
-                        { binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: { type: "storage" } }, // Depth min max buffer
-                        { binding: 3, visibility: GPUShaderStage.COMPUTE, buffer: { type: "read-only-storage" } }, // Light buffer
-                    ]
-                };
-                this._computeBindGroup1Layout = this._device.createBindGroupLayout(computeBindGroup1LayoutDescriptor);
-                this._computeBindGroup2Layout = this._device.createBindGroupLayout(computeBindGroup2LayoutDescriptor);
-                this._computeBindGroup3Layout = this._device.createBindGroupLayout(computeBindGroup3LayoutDescriptor);
-                const computePipelineLayoutDescriptor = {
-                    label: "Compute pipeline layout descriptor",
-                    bindGroupLayouts: [
-                        this._computeBindGroup1Layout, // @group(0)
-                        this._computeBindGroup2Layout, // @group(1)
-                        this._computeBindGroup3Layout, // @group(2)
-                    ]
-                };
-                this._computePipelineLayout = this._device.createPipelineLayout(computePipelineLayoutDescriptor);
-                // Clear pipeline layout (needed before Promise.all)
-                const clearPipelineLayoutDescriptor: GPUPipelineLayoutDescriptor = {
-                    label: "Clear pipeline layout descriptor",
-                    bindGroupLayouts: [
-                        null, // @group(0)
-                        this._computeBindGroup2Layout, // @group(1)
-                        this._computeBindGroup3Layout, // @group(2)
-                    ]
-                };
-                const clearPipelineLayout: GPUPipelineLayout = this._device.createPipelineLayout(clearPipelineLayoutDescriptor);
-
-                // Quad shader module and layouts
-                const quadShaderDescriptor: GPUShaderModuleDescriptor = {
-                    label: "Quad shader descriptor",
-                    code: QuadWgsl
-                };
-                const quadModule = this._device.createShaderModule(quadShaderDescriptor);
-                // Force synchronous shader validation to avoid deferred compilation stalls
-                await quadModule.getCompilationInfo();
-                console.log(`quad shader compiled ${Core.Time.formatDuration(performance.now() - start)}`);
-                const quadBindGroup1LayoutDescriptor: GPUBindGroupLayoutDescriptor = {
-                    label: "Quad bind group 1 layout descriptor",
-                    entries: [
-                        { binding: 0, visibility: GPUShaderStage.FRAGMENT, buffer: { type: "read-only-storage" } }  // Color buffer
-                    ],
-                };
-                const quadBindGroup2LayoutDescriptor: GPUBindGroupLayoutDescriptor = {
-                    label: "Quad bind group 2 layout descriptor",
-                    entries: [
-                        { binding: 0, visibility: GPUShaderStage.FRAGMENT, buffer: { type: "uniform" } } // Uniforms
-                    ],
-                };
-                this._quadBindGroup1Layout = this._device.createBindGroupLayout(quadBindGroup1LayoutDescriptor);
-                this._quadBindGroup2Layout = this._device.createBindGroupLayout(quadBindGroup2LayoutDescriptor);
-                const quadPipelineLayoutDescriptor: GPUPipelineLayoutDescriptor = {
-                    label: "Quad pipeline layout descriptor",
-                    bindGroupLayouts: [
-                        this._quadBindGroup1Layout, // @group(0)
-                        this._quadBindGroup2Layout, // @group(1)
-                    ]
-                }
-                const quadPipelineLayout: GPUPipelineLayout = this._device.createPipelineLayout(quadPipelineLayoutDescriptor);
-                const vertex: GPUVertexState = {
-                    module: quadModule,
-                    entryPoint: "vert_main"
-                };
-                const primitive: GPUPrimitiveState = {
-                    topology: "triangle-list"
-                };
-                const colorState: GPUColorTargetState = {
-                    format: this._presentationFormat
-                };
-
-                // Require async pipeline creation
-                if (!this._device.createComputePipelineAsync || !this._device.createRenderPipelineAsync) {
-                    const message = "WebGPU async pipeline creation is not supported by this browser.";
-                    console.log(message);
-                    throw new Error(message);
-                }
-
-                const [
-                    computePipeline,
-                    computeColorPipeline,
-                    computeNormalDepthPipeline,
-                    computeSegmentPipeline,
-                    clearPipeline,
-                    quadPipeline,
-                    quadNormalPipeline,
-                    quadDepthPipeline,
-                    quadSegmentPipeline,
-                    quadEdgePipeline,
-                ] = await Promise.all([
-                    // Compute pipelines
-                    this._device.createComputePipelineAsync({
-                        label: "Compute pipeline descriptor",
-                        layout: this._computePipelineLayout,
-                        compute: { module: computeModule, entryPoint: "main" },
-                    }),
-                    this._device.createComputePipelineAsync({
-                        label: "Color pipeline descriptor",
-                        layout: this._computePipelineLayout,
-                        compute: { module: computeModule, entryPoint: "color" },
-                    }),
-                    this._device.createComputePipelineAsync({
-                        label: "Normal, depth pipeline descriptor",
-                        layout: this._computePipelineLayout,
-                        compute: { module: computeModule, entryPoint: "normalDepth" },
-                    }),
-                    this._device.createComputePipelineAsync({
-                        label: "Segment pipeline descriptor",
-                        layout: this._computePipelineLayout,
-                        compute: { module: computeModule, entryPoint: "segment" },
-                    }),
-                    this._device.createComputePipelineAsync({
-                        label: "Clear pipeline descriptor",
-                        layout: clearPipelineLayout,
-                        compute: { module: computeModule, entryPoint: "clear" },
-                    }),
-                    // Render pipelines
-                    this._device.createRenderPipelineAsync({
-                        label: "Quad pipeline descriptor",
-                        layout: quadPipelineLayout,
-                        vertex: vertex,
-                        fragment: { module: quadModule, entryPoint: "frag_main", targets: [colorState] },
-                        primitive: primitive,
-                    }),
-                    this._device.createRenderPipelineAsync({
-                        label: "Quad normal pipeline descriptor",
-                        layout: quadPipelineLayout,
-                        vertex: vertex,
-                        fragment: { module: quadModule, entryPoint: "frag_normal", targets: [colorState] },
-                        primitive: primitive,
-                    }),
-                    this._device.createRenderPipelineAsync({
-                        label: "Quad depth pipeline descriptor",
-                        layout: quadPipelineLayout,
-                        vertex: vertex,
-                        fragment: { module: quadModule, entryPoint: "frag_depth", targets: [colorState] },
-                        primitive: primitive,
-                    }),
-                    this._device.createRenderPipelineAsync({
-                        label: "Quad segment pipeline descriptor",
-                        layout: quadPipelineLayout,
-                        vertex: vertex,
-                        fragment: { module: quadModule, entryPoint: "frag_segment", targets: [colorState] },
-                        primitive: primitive,
-                    }),
-                    this._device.createRenderPipelineAsync({
-                        label: "Quad edge pipeline descriptor",
-                        layout: quadPipelineLayout,
-                        vertex: vertex,
-                        fragment: { module: quadModule, entryPoint: "frag_edge", targets: [colorState] },
-                        primitive: primitive,
-                    }),
-                ]);
-
-                // Assign compiled pipelines
-                this._computePipeline = computePipeline;
-                this._computeColorPipeline = computeColorPipeline;
-                this._computeNormalDepthPipeline = computeNormalDepthPipeline;
-                this._computeSegmentPipeline = computeSegmentPipeline;
-                this._clearPipeline = clearPipeline;
-                this._quadPipeline = quadPipeline;
-                this._quadNormalPipeline = quadNormalPipeline;
-                this._quadDepthPipeline = quadDepthPipeline;
-                this._quadSegmentPipeline = quadSegmentPipeline;
-                this._quadEdgePipeline = quadEdgePipeline;
-                console.log(`WebGPU pipelines created ${Core.Time.formatDuration(performance.now() - start)}`);
-
-                // Timestamp queries
-                this._hasTimestampSupport = this._device.features.has("timestamp-query");
-                if (this._hasTimestampSupport) {
-                    this._timestampQuerySet = this._device.createQuerySet({ type: "timestamp", count: 2 });
-                    this._timestampResolveBuffer = this._device.createBuffer({
-                        label: "Timestamp resolve buffer",
-                        size: 2 * 8,
-                        usage: GPUBufferUsage.QUERY_RESOLVE | GPUBufferUsage.COPY_SRC,
-                    });
-                    this._timestampReadBuffer = this._device.createBuffer({
-                        label: "Timestamp read buffer",
-                        size: 2 * 8,
-                        usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
-                    });
-                    console.log("gpu timestamp queries enabled");
-                } else {
-                    console.log("gpu timestamp queries not supported");
-                }
-            } catch (error) {
-                console.log("WebGPU resource initialization failed", error);
-                throw error;
+            // Compute module
+            const computeShaderModuleDescriptor: GPUShaderModuleDescriptor = {
+                code: ComputeShaderWgsl,
             }
+            const computeModule = this._device.createShaderModule(computeShaderModuleDescriptor);
+            // Force synchronous shader validation to avoid deferred compilation stalls
+            await computeModule.getCompilationInfo();
+            console.log(`compute shader compiled ${Core.Time.formatDuration(performance.now() - start)}`);
+
+            // Compute pipeline
+            const computeBindGroup1LayoutDescriptor: GPUBindGroupLayoutDescriptor = {
+                entries: [
+                    { binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: { type: "read-only-storage" } }, // Hittable buffer
+                    { binding: 3, visibility: GPUShaderStage.COMPUTE, buffer: { type: "read-only-storage" }, }, // LinearBVHNode buffer
+                    { binding: 4, visibility: GPUShaderStage.COMPUTE, sampler: { type: "filtering", } }, // Sampler
+                    { binding: 5, visibility: GPUShaderStage.COMPUTE, texture: { multisampled: false, sampleType: "float", viewDimension: "2d", } }, // Atlas texture
+                    { binding: 6, visibility: GPUShaderStage.COMPUTE, texture: { multisampled: false, sampleType: "float", viewDimension: "2d", } } // Background texture
+                ]
+            };
+            const computeBindGroup2LayoutDescriptor: GPUBindGroupLayoutDescriptor = {
+                entries: [
+                    { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: "storage" } }, // Output color buffer
+                ]
+            };
+            const computeBindGroup3LayoutDescriptor: GPUBindGroupLayoutDescriptor = {
+                entries: [
+                    { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: "uniform" } }, // Uniforms
+                    { binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: { type: "storage" } }, // Depth min max buffer
+                    { binding: 3, visibility: GPUShaderStage.COMPUTE, buffer: { type: "read-only-storage" } }, // Light buffer
+                ]
+            };
+            this._computeBindGroup1Layout = this._device.createBindGroupLayout(computeBindGroup1LayoutDescriptor);
+            this._computeBindGroup2Layout = this._device.createBindGroupLayout(computeBindGroup2LayoutDescriptor);
+            this._computeBindGroup3Layout = this._device.createBindGroupLayout(computeBindGroup3LayoutDescriptor);
+            const computePipelineLayoutDescriptor = {
+                label: "Compute pipeline layout descriptor",
+                bindGroupLayouts: [
+                    this._computeBindGroup1Layout, // @group(0)
+                    this._computeBindGroup2Layout, // @group(1)
+                    this._computeBindGroup3Layout, // @group(2)
+                ]
+            };
+            this._computePipelineLayout = this._device.createPipelineLayout(computePipelineLayoutDescriptor);
+            // Clear pipeline layout (needed before Promise.all)
+            const clearPipelineLayoutDescriptor: GPUPipelineLayoutDescriptor = {
+                label: "Clear pipeline layout descriptor",
+                bindGroupLayouts: [
+                    null, // @group(0)
+                    this._computeBindGroup2Layout, // @group(1)
+                    this._computeBindGroup3Layout, // @group(2)
+                ]
+            };
+            const clearPipelineLayout: GPUPipelineLayout = this._device.createPipelineLayout(clearPipelineLayoutDescriptor);
+
+            // Quad shader module and layouts
+            const quadShaderDescriptor: GPUShaderModuleDescriptor = {
+                label: "Quad shader descriptor",
+                code: QuadWgsl
+            };
+            const quadModule = this._device.createShaderModule(quadShaderDescriptor);
+            // Force synchronous shader validation to avoid deferred compilation stalls
+            await quadModule.getCompilationInfo();
+            console.log(`quad shader compiled ${Core.Time.formatDuration(performance.now() - start)}`);
+            const quadBindGroup1LayoutDescriptor: GPUBindGroupLayoutDescriptor = {
+                label: "Quad bind group 1 layout descriptor",
+                entries: [
+                    { binding: 0, visibility: GPUShaderStage.FRAGMENT, buffer: { type: "read-only-storage" } }  // Color buffer
+                ],
+            };
+            const quadBindGroup2LayoutDescriptor: GPUBindGroupLayoutDescriptor = {
+                label: "Quad bind group 2 layout descriptor",
+                entries: [
+                    { binding: 0, visibility: GPUShaderStage.FRAGMENT, buffer: { type: "uniform" } } // Uniforms
+                ],
+            };
+            this._quadBindGroup1Layout = this._device.createBindGroupLayout(quadBindGroup1LayoutDescriptor);
+            this._quadBindGroup2Layout = this._device.createBindGroupLayout(quadBindGroup2LayoutDescriptor);
+            const quadPipelineLayoutDescriptor: GPUPipelineLayoutDescriptor = {
+                label: "Quad pipeline layout descriptor",
+                bindGroupLayouts: [
+                    this._quadBindGroup1Layout, // @group(0)
+                    this._quadBindGroup2Layout, // @group(1)
+                ]
+            }
+            const quadPipelineLayout: GPUPipelineLayout = this._device.createPipelineLayout(quadPipelineLayoutDescriptor);
+            const vertex: GPUVertexState = {
+                module: quadModule,
+                entryPoint: "vert_main"
+            };
+            const primitive: GPUPrimitiveState = {
+                topology: "triangle-list"
+            };
+            const colorState: GPUColorTargetState = {
+                format: this._presentationFormat
+            };
+
+            // Require async pipeline creation
+            if (!this._device.createComputePipelineAsync || !this._device.createRenderPipelineAsync) {
+                const message = "WebGPU async pipeline creation is not supported by this browser.";
+                console.log(message);
+                throw new Error(message);
+            }
+
+            const [
+                computePipeline,
+                computeColorPipeline,
+                computeNormalDepthPipeline,
+                computeSegmentPipeline,
+                clearPipeline,
+                quadPipeline,
+                quadNormalPipeline,
+                quadDepthPipeline,
+                quadSegmentPipeline,
+                quadEdgePipeline,
+            ] = await Promise.all([
+                // Compute pipelines
+                this._device.createComputePipelineAsync({
+                    label: "Compute pipeline descriptor",
+                    layout: this._computePipelineLayout,
+                    compute: { module: computeModule, entryPoint: "main" },
+                }),
+                this._device.createComputePipelineAsync({
+                    label: "Color pipeline descriptor",
+                    layout: this._computePipelineLayout,
+                    compute: { module: computeModule, entryPoint: "color" },
+                }),
+                this._device.createComputePipelineAsync({
+                    label: "Normal, depth pipeline descriptor",
+                    layout: this._computePipelineLayout,
+                    compute: { module: computeModule, entryPoint: "normalDepth" },
+                }),
+                this._device.createComputePipelineAsync({
+                    label: "Segment pipeline descriptor",
+                    layout: this._computePipelineLayout,
+                    compute: { module: computeModule, entryPoint: "segment" },
+                }),
+                this._device.createComputePipelineAsync({
+                    label: "Clear pipeline descriptor",
+                    layout: clearPipelineLayout,
+                    compute: { module: computeModule, entryPoint: "clear" },
+                }),
+                // Render pipelines
+                this._device.createRenderPipelineAsync({
+                    label: "Quad pipeline descriptor",
+                    layout: quadPipelineLayout,
+                    vertex: vertex,
+                    fragment: { module: quadModule, entryPoint: "frag_main", targets: [colorState] },
+                    primitive: primitive,
+                }),
+                this._device.createRenderPipelineAsync({
+                    label: "Quad normal pipeline descriptor",
+                    layout: quadPipelineLayout,
+                    vertex: vertex,
+                    fragment: { module: quadModule, entryPoint: "frag_normal", targets: [colorState] },
+                    primitive: primitive,
+                }),
+                this._device.createRenderPipelineAsync({
+                    label: "Quad depth pipeline descriptor",
+                    layout: quadPipelineLayout,
+                    vertex: vertex,
+                    fragment: { module: quadModule, entryPoint: "frag_depth", targets: [colorState] },
+                    primitive: primitive,
+                }),
+                this._device.createRenderPipelineAsync({
+                    label: "Quad segment pipeline descriptor",
+                    layout: quadPipelineLayout,
+                    vertex: vertex,
+                    fragment: { module: quadModule, entryPoint: "frag_segment", targets: [colorState] },
+                    primitive: primitive,
+                }),
+                this._device.createRenderPipelineAsync({
+                    label: "Quad edge pipeline descriptor",
+                    layout: quadPipelineLayout,
+                    vertex: vertex,
+                    fragment: { module: quadModule, entryPoint: "frag_edge", targets: [colorState] },
+                    primitive: primitive,
+                }),
+            ]);
+
+            // Assign compiled pipelines
+            this._computePipeline = computePipeline;
+            this._computeColorPipeline = computeColorPipeline;
+            this._computeNormalDepthPipeline = computeNormalDepthPipeline;
+            this._computeSegmentPipeline = computeSegmentPipeline;
+            this._clearPipeline = clearPipeline;
+            this._quadPipeline = quadPipeline;
+            this._quadNormalPipeline = quadNormalPipeline;
+            this._quadDepthPipeline = quadDepthPipeline;
+            this._quadSegmentPipeline = quadSegmentPipeline;
+            this._quadEdgePipeline = quadEdgePipeline;
+            console.log(`WebGPU pipelines created ${Core.Time.formatDuration(performance.now() - start)}`);
+
+            // Timestamp queries
+            this._hasTimestampSupport = this._device.features.has("timestamp-query");
+            if (this._hasTimestampSupport) {
+                this._timestampQuerySet = this._device.createQuerySet({ type: "timestamp", count: 2 });
+                this._timestampResolveBuffer = this._device.createBuffer({
+                    label: "Timestamp resolve buffer",
+                    size: 2 * 8,
+                    usage: GPUBufferUsage.QUERY_RESOLVE | GPUBufferUsage.COPY_SRC,
+                });
+                this._timestampReadBuffer = this._device.createBuffer({
+                    label: "Timestamp read buffer",
+                    size: 2 * 8,
+                    usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+                });
+                console.log("gpu timestamp queries enabled");
+            } else {
+                console.log("gpu timestamp queries not supported");
+            }
+        } catch (error) {
+            console.log("WebGPU resource initialization failed", error);
+            throw error;
+        }
     }
 
     public createBufferVisual(buffer: Core.IBuffer) {

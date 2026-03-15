@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MorphCharts — Simple Camera</title>
+  <link rel="stylesheet" href="../css/common.css">
+</head>
+
+<body>
+  <header>
+    <a href="../index.html">Home</a>
+    <a href="../client.html">Try Online</a>
+    <a href="../gallery.html">Gallery</a>
+    <a href="./index.html">Docs</a>
+    <a href="https://github.com/microsoft/morphcharts">GitHub</a>
+  </header>
+
+  <h1>Simple Camera</h1>
+
+  <p>
+    This builds on the <a href="./simpleclient.html">Simple Client</a> by adding an interactive camera that supports
+    orbiting, panning, and zooming. The render loop runs continuously so the image updates as the user moves the camera.
+  </p>
+
+  <p>
+    To run this locally, make sure you have the <a href="./prerequisites.html">prerequisites</a> in place.
+  </p>
+
+  <h2 id="overview">Overview</h2>
+
+  <p>The differences from the simple client are:</p>
+
+  <ol>
+    <li>Create an <code>AltAzimuthPerspectiveCamera</code> and call <code>copyFrom</code> to initialize it from the
+      scene camera</li>
+    <li>Listen for <code>pointer</code> and <code>wheel</code> events on the canvas to drive the camera</li>
+    <li>Each frame, call <code>camera.update()</code>, then <code>renderer.copyCamera()</code> to push the camera state
+      to the renderer</li>
+    <li>The render loop restarts (if <code>maxSamples</code> has been reached) when the user interacts with the camera
+    </li>
+  </ol>
+
+  <h2 id="complete-example">Complete Example</h2>
+
+  <pre><code id="completeExample"></code></pre>
+
+  <figure>
+    <img src="../img/simplecamera1.jpg" alt="Rendered result — a cube on a white ground plane">
+    <figcaption>Figure 1. Rendered result — a cube on a white ground plane.</figcaption>
+  </figure>
+
+  <p><a href="../demos/simplecamera.html">Try it →</a></p>
+
+  <h2 id="step-by-step">Step-by-Step</h2>
+
+  <p>
+    The canvas, imports, renderer, spec parsing, and scene loading steps
+    are the same as the <a href="./simpleclient.html">Simple Client</a>.
+    The differences start at creating the interactive camera.
+  </p>
+
+  <h3 id="create-interactive-camera">Create the Interactive Camera</h3>
+
+  <p>
+    <code>AltAzimuthPerspectiveCamera</code> is a perspective camera that
+    supports orbiting (altitude/azimuth rotation), panning, and zooming.
+    Create one with the canvas dimensions, then call <code>copyFrom</code>
+    to initialize it from the scene camera:
+  </p>
+
+  <pre><code>const camera = new Core.Cameras.AltAzimuthPerspectiveCamera({
+  width:  canvas.width,
+  height: canvas.height,
+});
+camera.copyFrom(scene.camera);</code></pre>
+
+  <p>
+    <code>copyFrom</code> copies position, orientation, and
+    (for perspective cameras) <code>fov</code>, <code>aperture</code>, and
+    <code>focusDistance</code>. It clones vectors internally, so you don't
+    need to worry about shared references between the scene camera and the
+    interactive camera.
+  </p>
+
+  <h3 id="pointer-wheel-input">Pointer and Wheel Input</h3>
+
+  <p>
+    <code>AltAzimuthPerspectiveCamera</code> exposes three manipulation methods:
+  </p>
+
+  <table>
+    <tr>
+      <th>Method</th>
+      <th>Action</th>
+      <th>Input</th>
+    </tr>
+    <tr>
+      <td><code>camera.rotate(dx, dy)</code></td>
+      <td>Orbit around the scene</td>
+      <td>Left-click drag</td>
+    </tr>
+    <tr>
+      <td><code>camera.translate(dx, dy)</code></td>
+      <td>Pan the camera</td>
+      <td>Right-click drag, or Shift + left-click drag</td>
+    </tr>
+    <tr>
+      <td><code>camera.zoomWheel(deltaY, x, y)</code></td>
+      <td>Zoom toward the pointer position</td>
+      <td>Mouse wheel</td>
+    </tr>
+  </table>
+
+  <p>
+    Wire them up using standard pointer and wheel events:
+  </p>
+
+  <pre><code>let pointerDown = false;
+let pointerButton = 0;
+let lastX = 0;
+let lastY = 0;
+
+canvas.addEventListener('pointerdown', (e) => {
+  pointerDown = true;
+  pointerButton = e.button;
+  lastX = e.clientX;
+  lastY = e.clientY;
+  canvas.setPointerCapture(e.pointerId);
+});
+
+canvas.addEventListener('pointermove', (e) => {
+  if (!pointerDown) return;
+  const dx = e.clientX - lastX;
+  const dy = e.clientY - lastY;
+  lastX = e.clientX;
+  lastY = e.clientY;
+  if (pointerButton === 2 || e.shiftKey) {
+    camera.translate(dx, dy);
+  } else {
+    camera.rotate(dx, dy);
+  }
+  startLoop();
+});
+
+canvas.addEventListener('pointerup', () => { pointerDown = false; });
+canvas.addEventListener('contextmenu', (e) => { if (running) e.preventDefault(); });
+
+canvas.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  camera.zoomWheel(e.deltaY, e.offsetX, e.offsetY);
+  startLoop();
+}, { passive: false });</code></pre>
+
+  <p>
+    <code>setPointerCapture</code> ensures drag events continue even when
+    the pointer leaves the canvas. The <code>contextmenu</code> handler
+    prevents the browser menu from appearing on right-click while the
+    renderer is running; when stopped, right-click opens the browser menu
+    (e.g. to save the image). Each interaction calls <code>startLoop()</code>
+    to resume rendering if it has stopped.
+  </p>
+
+  <h3 id="render-loop">Render Loop</h3>
+
+  <p>
+    Each frame, call <code>camera.update()</code> to apply pending
+    manipulations, then call <code>renderer.copyCamera()</code> to push
+    the camera state to the renderer:
+  </p>
+
+  <pre><code>const maxSamples = 1000;
+let running = false;
+let previousTime = performance.now();
+
+function startLoop() {
+  if (running) return;
+  running = true;
+  previousTime = performance.now();
+  renderer.frameCount = 0;
+  requestAnimationFrame(tick);
+}
+
+function tick(currentTime) {
+  const elapsed = currentTime - previousTime;
+  previousTime = currentTime;
+
+  camera.update(elapsed);
+  renderer.copyCamera(camera);
+
+  renderer.updateAsync(elapsed);
+  renderer.renderAsync(elapsed);
+
+  if (renderer.frameCount < maxSamples) {
+    requestAnimationFrame(tick);
+  } else {
+    running = false;
+  }
+}
+startLoop();</code></pre>
+
+  <p>
+    The loop stops after <code>maxSamples</code> frames. When the user
+    interacts with the camera, <code>startLoop()</code> resets the frame
+    count and resumes rendering. Each camera move causes the image to
+    re-converge from scratch.
+  </p>
+
+  <nav class="page-nav">
+    <a href="./simpleclient.html">Previous</a>
+    <span></span>
+  </nav>
+
+  <footer>
+    <span>© 2025 Microsoft</span>
+    <a href="https://go.microsoft.com/fwlink/?LinkId=521839">Privacy &amp; Cookies</a>
+    <a href="https://go.microsoft.com/fwlink/?linkid=2259814">Consumer Health Privacy</a>
+    <a href="https://www.microsoft.com/trademarks">Trademarks</a>
+    <a href="https://www.microsoft.com/en-us/servicesagreement/">Terms of Use</a>
+  </footer>
+
+  <script src="../js/copy.js"></script>
+  <script>
+    fetch('../demos/simplecamera.html')
+      .then(r => r.text())
+      .then(text => { document.getElementById('completeExample').textContent = text; });
+  </script>
+</body>
+
+</html>

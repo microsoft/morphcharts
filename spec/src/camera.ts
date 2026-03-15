@@ -41,22 +41,21 @@ export class Camera {
         // TODO: Support different camera types via json.type (e.g. "perspective", "orthographic"), defaulting to "perspective"
 
         const camera = new Camera();
-        camera.position = json?.position || Core.vector3.clone(Core.Config.cameraPosition);
-        camera.fov = json?.fov * Core.Constants.RADIANS_PER_DEGREE || Core.Config.cameraFov;
-        camera.aperture = json?.aperture * 0.001 || Core.Config.cameraAperture; // Convert mm to m
-        camera.focusDistance = json?.focusDistance || Core.Config.cameraFocusDistance;
+        camera.fov = json.fov * Core.Constants.RADIANS_PER_DEGREE || Core.Config.cameraFov;
+        camera.aperture = json.aperture * 0.001 || Core.Config.cameraAperture; // Convert mm to m
 
-        // Position in world coordinates
-        if (json.worldPosition) {
-            const worldPosition = json.worldPosition;
+        // Focus distance in camera/world coordinates
+        camera.focusDistance = json.focusDistance ? json.focusDistance : json.focusWorldDistance ? plot.worldToCameraSize(json.focusWorldDistance) : Core.Config.cameraFocusDistance;
 
-            // Convert to camera coordinates
-            plot.worldToCameraPosition(worldPosition, camera.position);
+        // Position in camera/world coordinates
+        camera.position = json.position || (json.worldPosition ? Core.vector3.clone(json.worldPosition) : Core.vector3.clone(Core.Config.cameraPosition));
+        if (json.worldPosition && !json.position) {
+            plot.worldToCameraPosition(camera.position, camera.position);
         }
 
         // Spherical offset
-        if (json.distance && (json.altitude || json.azimuth)) {
-            const distance = json.distance;
+        if ((json.distance || json.worldDistance) && (json.altitude != undefined || json.azimuth != undefined)) {
+            const distance = json.distance || (json.worldDistance ? plot.worldToCameraSize(json.worldDistance) : 0);
             const altitude = json.altitude ? json.altitude * Core.Constants.RADIANS_PER_DEGREE : 0;
             const azimuth = json.azimuth ? json.azimuth * Core.Constants.RADIANS_PER_DEGREE : 0;
             const offset: Core.Vector3 = [
@@ -69,21 +68,20 @@ export class Camera {
             camera.position[2] += offset[2];
         }
 
-        // Target in world coordinates
-        let target = json?.target || Core.vector3.clone(Core.Config.cameraManipulationOrigin);
-        if (json.worldTarget) {
-            const worldTarget = json.worldTarget;
-
-            // Convert to camera coordinates
-            plot.worldToCameraPosition(worldTarget, target);
+        // Target in camera/world coordinates
+        let target = json.target || (json.worldTarget ? Core.vector3.clone(json.worldTarget) : Core.vector3.clone(Core.Config.cameraManipulationOrigin));
+        if (json.worldTarget && !json.target) {
+            plot.worldToCameraPosition(target, target);
         }
 
-        // Direction
-        if (json.direction) {
-            const direction = json.direction;
-            target[0] = camera.position[0] + direction[0];
-            target[1] = camera.position[1] + direction[1];
-            target[2] = camera.position[2] + direction[2];
+        // Direction in camera/world coordinates
+        const directionJSON = json.direction ? json.direction : json.worldDirection;
+        if (directionJSON) {
+
+            // Target
+            target[0] = camera.position[0] + directionJSON[0];
+            target[1] = camera.position[1] + directionJSON[1];
+            target[2] = camera.position[2] + directionJSON[2];
         }
 
         // Basis vectors

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <style>
+    body {
+      margin: 0;
+    }
+
+    canvas {
+      display: block;
+    }
+  </style>
+  <script type="importmap">
+  {
+    "imports": {
+      "core": "https://microsoft.github.io/morphcharts/lib/morphcharts-core.js",
+      "spec": "https://microsoft.github.io/morphcharts/lib/morphcharts-spec.js",
+      "webgpuraytrace": "https://microsoft.github.io/morphcharts/lib/morphcharts-webgpuraytrace.js"
+    }
+  }
+  </script>
+</head>
+
+<body>
+  <!-- Canvas -->
+  <canvas id="canvas" width="1280" height="720"></canvas>
+
+  <!-- Status -->
+  <div id="status" style="position: absolute; top: 8px; left: 8px; color: black; font-family: monospace;">
+    Initializing...</div>
+
+  <script type="module">
+    // Module imports
+    import * as Core from 'core';
+    import * as Spec from 'spec';
+    import * as WebGPURenderer from 'webgpuraytrace';
+
+    const canvas = document.getElementById('canvas');
+    const status = document.getElementById('status');
+
+    // Create and initialize renderer
+    const renderer = new WebGPURenderer.Main(canvas);
+    await renderer.initializeAsync();
+
+    // Parse a spec
+    status.textContent = 'Loading...';
+    const specJSON = {
+      "width": 640,
+      "height": 360,
+      "marks": [
+        {
+          "type": "rect",
+          "material": "glossy",
+          "encode": {
+            "enter": {
+              "xc": { "value": 320 },
+              "yc": { "value": 180 },
+              "width": { "value": 360 },
+              "depth": { "value": 360 },
+              "height": { "value": 360 }
+            }
+          }
+        },
+        {
+          "type": "rect",
+          "encode": {
+            "enter": {
+              "xc": { "value": 320 },
+              "width": { "value": 1280 },
+              "depth": { "value": 1280 },
+              "fill": { "value": "white" }
+            }
+          }
+        }
+      ]
+    };
+    const plot = await Spec.Plot.fromJSONAsync(specJSON);
+    const scene = await plot.parse();
+
+    // Load the scene
+    renderer.loadScene(scene);
+
+    // Create interactive camera
+    const camera = new Core.Cameras.AltAzimuthPerspectiveCamera({
+      width: canvas.width,
+      height: canvas.height,
+    });
+    camera.copyFrom(scene.camera);
+
+    // Pointer and wheel input
+    let pointerDown = false;
+    let pointerButton = 0;
+    let lastX = 0;
+    let lastY = 0;
+
+    canvas.addEventListener('pointerdown', (e) => {
+      pointerDown = true;
+      pointerButton = e.button;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      canvas.setPointerCapture(e.pointerId);
+    });
+
+    canvas.addEventListener('pointermove', (e) => {
+      if (!pointerDown) return;
+      const dx = e.clientX - lastX;
+      const dy = e.clientY - lastY;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      if (pointerButton === 2 || e.shiftKey) {
+        camera.translate(dx, dy);
+      } else {
+        camera.rotate(dx, dy);
+      }
+      startLoop();
+    });
+
+    canvas.addEventListener('pointerup', () => { pointerDown = false; });
+    canvas.addEventListener('contextmenu', (e) => { if (running) e.preventDefault(); });
+
+    canvas.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      camera.zoomWheel(e.deltaY, e.offsetX, e.offsetY);
+      startLoop();
+    }, { passive: false });
+
+    // Render loop
+    const maxSamples = 1000;
+    let running = false;
+    let previousTime = performance.now();
+
+    function startLoop() {
+      if (running) return;
+      running = true;
+      previousTime = performance.now();
+      renderer.frameCount = 0;
+      requestAnimationFrame(tick);
+    }
+
+    function tick(currentTime) {
+      const elapsed = currentTime - previousTime;
+      previousTime = currentTime;
+
+      camera.update(elapsed);
+      renderer.copyCamera(camera);
+
+      renderer.updateAsync(elapsed);
+      renderer.renderAsync(elapsed);
+      status.textContent = `Frame ${renderer.frameCount}`;
+
+      if (renderer.frameCount < maxSamples) {
+        requestAnimationFrame(tick);
+      } else {
+        running = false;
+      }
+    }
+    startLoop();
+  </script>
+</body>
+
+</html>
