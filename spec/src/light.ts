@@ -7,6 +7,8 @@ import { Plot } from "./plot.js";
 
 export class Light {
     public name: string;
+    public visible: boolean;
+    public hidden: boolean;
 
     public type: string;
     public position: Core.Vector3;
@@ -37,6 +39,8 @@ export class Light {
         const light = new Light();
         light.type = json.type;
         light.name = json.name;
+        light.visible = json.visible != undefined ? json.visible : true;
+        light.hidden = json.hidden != undefined ? json.hidden : true;
 
         // Group for signal parsing
         const group = plot.root;
