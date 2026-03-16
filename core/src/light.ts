@@ -20,6 +20,7 @@ export type LightType = typeof LightType[keyof typeof LightType];
 
 export interface ILightOptions {
     color?: Vector3; // RGB
+    hidden?: boolean; // Hidden from primary rays (default true)
 }
 
 export interface IRectLightOptions extends ILightOptions {
@@ -97,9 +98,12 @@ export interface IProjectorLightOptions extends ILightOptions {
 export abstract class Light {
     protected _color: Vector3; // RGB
     public get color(): Vector3 { return this._color; }
+    protected _hidden: boolean;
+    public get hidden(): boolean { return this._hidden; }
 
     constructor(options: ILightOptions) {
         this._color = options.color || [1, 1, 1]; // Default to white
+        this._hidden = options.hidden != undefined ? options.hidden : true;
     }
 
     protected _directionToRotation(direction: Vector3, rotationQuaternion: Quaternion) {
@@ -121,6 +125,7 @@ export abstract class Light {
 
     public toBuffer(buffer: LightBufferData, index: number) {
         buffer.setColor(index, this._color);
+        buffer.setHidden(index, this._hidden ? 1 : 0);
     }
 }
 
@@ -437,9 +442,17 @@ export class ProjectorLight extends Light {
 // |                    F32                    |                    F32                    |                    F32                    |                    F32                    |
 // | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 |
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// |   144    |   145    |   146    |   147    |   148    |   149    |   150    |   151    |   152    |   153    |   154    |   155    |   156    |   157    |   158    |   159    |
+// |                  hidden                   |          |          |          |          |          |          |          |          |          |          |          |          |
+// |                                           |          |          |          |          |          |          |          |          |          |          |          |          |
+// |                    F32                    |          |          |          |          |          |          |          |          |          |          |          |          |
+// | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 |
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 export class LightBufferData extends Float32Array {
-    public static readonly SIZE = 144 / 4;
+    public static readonly SIZE = 160 / 4;
 
     public readonly ROTATION_OFFSET = 0 / 4;
     public readonly CENTER_OFFSET = 16 / 4;
@@ -455,6 +468,7 @@ export class LightBufferData extends Float32Array {
     public readonly TEXTURE_COORDS_OFFSET = 96 / 4;
     public readonly TEXTURE_OFFSET_OFFSET = 112 / 4;
     public readonly TEXTURE_SCALE_OFFSET = 128 / 4;
+    public readonly HIDDEN_OFFSET = 144 / 4;
 
     constructor(count: number) {
         super(count * LightBufferData.SIZE);
@@ -616,6 +630,13 @@ export class LightBufferData extends Float32Array {
         this[offset + 1] = value[1];
         this[offset + 2] = value[2];
         this[offset + 3] = value[3];
+    }
+
+    public getHidden(index: number) {
+        return this[LightBufferData.SIZE * index + this.HIDDEN_OFFSET];
+    }
+    public setHidden(index: number, value: number) {
+        this[LightBufferData.SIZE * index + this.HIDDEN_OFFSET] = value;
     }
 
 }

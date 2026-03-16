@@ -104,10 +104,12 @@ struct Light {                     // -------------------------
     color2: vec3<f32>,             //           80*    16    12
     nearPlane: f32,                //           92      4     4
     texCoords: vec4<f32>,          //           96*    16    16
-    texOffset: vec4<f32>,          //          112*    16    12
-    texScale: vec4<f32>,           //          128*    16    12
+    texOffset: vec4<f32>,          //          112*    16    16
+    texScale: vec4<f32>,           //          128*    16    16
+    hidden: f32,                   //          144*    16     4
+    _padding: f32,                 //          148      4    12
 }                                  // -------------------------
-                                   //                  16   144
+                                   //                  16   160
 
                                    //       offset  align  size
 struct Hittable {                  // -------------------------
@@ -1214,11 +1216,15 @@ fn hitYzRect(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, H
     return true;
 }
 
-fn hitLights(ray: Ray, hitRecord: ptr<function, HitRecord>, seed: ptr<function, u32>) -> vec3<f32> {
+fn hitLights(ray: Ray, hitRecord: ptr<function, HitRecord>, seed: ptr<function, u32>, depth: u32) -> vec3<f32> {
     var hit: bool;
     var color = vec3<f32>(0f, 0f, 0f);
     for (var i: u32 = 0u; i < arrayLength(&lightBuffer.lights); i++) {
         let light = lightBuffer.lights[i];
+
+        // Skip hidden lights on primary rays
+        if (depth == 0u && light.hidden > 0f) { continue; }
+
         let lightTypeId = u32(light.typeId);
 
         // TODO: Split into separate direct and indirect functions
@@ -1237,7 +1243,10 @@ fn hitLights(ray: Ray, hitRecord: ptr<function, HitRecord>, seed: ptr<function, 
                 if (hitSpotLight(i, ray, &color, hitRecord, seed)) { hit = true; }
             }
         
-            // Indirect lighting
+            // Indirect lighting (area lights)
+            case 1u: {
+                if (hitDiskLight(i, ray, &color, hitRecord)) { hit = true; }
+            }
             case 5u: {
                 if (hitRectLight(i, ray, &color, hitRecord)) { hit = true; }
             }
@@ -1253,6 +1262,8 @@ fn hitLights(ray: Ray, hitRecord: ptr<function, HitRecord>, seed: ptr<function, 
       return max(uniforms.ambientColor, color);
     }
 
+    // No light hit: background for primary rays, ambient for bounced rays
+    if (depth == 0u) { return uniforms.backgroundColor.xyz; }
     return uniforms.ambientColor;
 }
 
@@ -1272,6 +1283,25 @@ fn hitRectLight(id: u32, ray: Ray, color: ptr<function, vec3<f32>>, hitRecord: p
     let p = oc + t * rotatedRay.direction;
     if (abs(p.x) > (*rotatedXyRect).size.x * 0.5f || abs(p.y) > (*rotatedXyRect).size.y * 0.5f) { return false; }
     *color += (*rotatedXyRect).color;
+    return true;
+}
+
+fn hitDiskLight(id: u32, ray: Ray, color: ptr<function, vec3<f32>>, hitRecord: ptr<function, HitRecord>) -> bool {
+    let disk = &lightBuffer.lights[id];
+    let center = (*disk).center;
+    let rotation = (*disk).rotation;
+    let invRotation = conjugate(rotation);
+    var rotatedRay: Ray;
+    rotatedRay.origin = rotateQuat(ray.origin - center, invRotation) + center;
+    rotatedRay.direction = rotateQuat(ray.direction, invRotation);
+    if (dot(rotatedRay.direction, vec3<f32>(0f, 0f, 1f)) > 0f) { return false; } // Front face only
+    let oc = rotatedRay.origin - center;
+    let t = -oc.z / rotatedRay.direction.z;
+    if (t < 0f) { return false; }
+    let p = oc + t * rotatedRay.direction;
+    let radius = (*disk).size.x * 0.5f;
+    if (dot(p.xy, p.xy) > radius * radius) { return false; }
+    *color += (*disk).color;
     return true;
 }
 
@@ -1632,14 +1662,11 @@ fn rayColor(ray: ptr<function, Ray>, seed: ptr<function, u32>) -> vec3<f32> {
         }
         else {
             // Miss
-            if (depth > 0u) {
-                // Bounced ray: sample direct lights
-                return hitLights(*ray, &hitRecord, seed) * color;
+            let lightColor = hitLights(*ray, &hitRecord, seed, depth);
+            if (depth == 0u) {
+                return lightColor;
             }
-            else {
-                // Primary ray: background only (lights hidden on first bounce)
-                return uniforms.backgroundColor.xyz;
-            }
+            return lightColor * color;
         }
     }
 }
