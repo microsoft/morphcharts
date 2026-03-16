@@ -49,62 +49,49 @@ export class Light {
             light.color[2] *= json.brightness;
         }
 
-        // Position
         light.position = [0, 0, 0];
-        if (json.position) {
-            if (Array.isArray(json.position) && json.position.length == 3) {
+        // Position in camera/world coordinates
+        const positionJSON = json.position ? json.position : json.worldPosition;
+        if (positionJSON) {
+            if (Array.isArray(positionJSON) && positionJSON.length == 3) {
                 // x
-                if (typeof json.position[0] == "number") { light.position[0] = json.position[0]; }
-                else if (typeof json.position[0] == "object" && json.position[0].signal) { light.position[0] = group.parseSignalValue(json.position[0].signal); }
-                else { throw new Error(`invalid light position ${json.position[0]}`); }
+                if (typeof positionJSON[0] == "number") { light.position[0] = positionJSON[0]; }
+                else if (typeof positionJSON[0] == "object" && positionJSON[0].signal) { light.position[0] = group.parseSignalValue(positionJSON[0].signal); }
+                else { throw new Error(`invalid light position ${positionJSON[0]}`); }
                 // y
-                if (typeof json.position[1] == "number") { light.position[1] = json.position[1]; }
-                else if (typeof json.position[1] == "object" && json.position[1].signal) { light.position[1] = group.parseSignalValue(json.position[1].signal); }
-                else { throw new Error(`invalid light position ${json.position[1]}`); }
+                if (typeof positionJSON[1] == "number") { light.position[1] = positionJSON[1]; }
+                else if (typeof positionJSON[1] == "object" && positionJSON[1].signal) { light.position[1] = group.parseSignalValue(positionJSON[1].signal); }
+                else { throw new Error(`invalid light position ${positionJSON[1]}`); }
                 // z
-                if (typeof json.position[2] == "number") { light.position[2] = json.position[2]; }
-                else if (typeof json.position[2] == "object" && json.position[2].signal) { light.position[2] = group.parseSignalValue(json.position[2].signal); }
-                else { throw new Error(`invalid light position ${json.position[2]}`); }
+                if (typeof positionJSON[2] == "number") { light.position[2] = positionJSON[2]; }
+                else if (typeof positionJSON[2] == "object" && positionJSON[2].signal) { light.position[2] = group.parseSignalValue(positionJSON[2].signal); }
+                else { throw new Error(`invalid light position ${positionJSON[2]}`); }
             }
-            else if (typeof json.position == "object" && json.position.signal) {
-                light.position = group.parseSignalValue(json.position.signal);
-                if (!Array.isArray(light.position) || light.position.length != 3) { throw new Error(`invalid light position ${json.position}`); }
+            else if (typeof positionJSON == "object" && positionJSON.signal) {
+                light.position = group.parseSignalValue(positionJSON.signal);
+                if (!Array.isArray(light.position) || light.position.length != 3) { throw new Error(`invalid light position ${positionJSON}`); }
             }
-            else { throw new Error(`invalid light position ${json.position}`); }
+            else { throw new Error(`invalid light position ${positionJSON}`); }
+
+            // If position is specified in world coordinates, convert to camera coordinates
+            if (json.worldPosition) {
+                plot.worldToCameraPosition(light.position, light.position);
+            }
         }
 
-        if (json.worldPosition) {
-            if (Array.isArray(json.worldPosition) && json.worldPosition.length == 3) {
-                // x
-                if (typeof json.worldPosition[0] == "number") { light.position[0] = json.worldPosition[0]; }
-                else if (typeof json.worldPosition[0] == "object" && json.worldPosition[0].signal) { light.position[0] = group.parseSignalValue(json.worldPosition[0].signal); }
-                else { throw new Error(`invalid light position ${json.worldPosition[0]}`); }
-                // y
-                if (typeof json.worldPosition[1] == "number") { light.position[1] = json.worldPosition[1]; }
-                else if (typeof json.worldPosition[1] == "object" && json.worldPosition[1].signal) { light.position[1] = group.parseSignalValue(json.worldPosition[1].signal); }
-                else { throw new Error(`invalid light position ${json.worldPosition[1]}`); }
-                // z
-                if (typeof json.worldPosition[2] == "number") { light.position[2] = json.worldPosition[2]; }
-                else if (typeof json.worldPosition[2] == "object" && json.worldPosition[2].signal) { light.position[2] = group.parseSignalValue(json.worldPosition[2].signal); }
-                else { throw new Error(`invalid light position ${json.worldPosition[2]}`); }
-            }
-            else if (typeof json.worldPosition == "object" && json.worldPosition.signal) {
-                light.position = group.parseSignalValue(json.worldPosition.signal);
-                if (!Array.isArray(light.position) || light.position.length != 3) { throw new Error(`invalid light position ${json.worldPosition}`); }
-            }
-            else { throw new Error(`invalid light world position ${json.worldPosition}`); }
-
-            // Convert to camera coordinates
-            plot.worldToCameraPosition(light.position, light.position);
-        }
-
-        // If distance, altitude, azimuth specified, compute position
-        if (json.distance && (json.altitude || json.azimuth)) {
-            // Distance
+        // Spherical offset
+        if ((json.distance || json.worldDistance) && (json.altitude != undefined || json.azimuth != undefined)) {
+            // Distance in camera/world coordinates
             let distance: number;
-            if (typeof json.distance == "number") { distance = json.distance; }
-            else if (typeof json.distance == "object" && json.distance.signal) { distance = group.parseSignalValue(json.distance.signal); }
-            else { throw new Error(`invalid light distance ${json.distance}`); }
+            const distanceJSON = json.distance ? json.distance : json.worldDistance;
+            if (typeof distanceJSON == "number") { distance = distanceJSON; }
+            else if (typeof distanceJSON == "object" && distanceJSON.signal) { distance = group.parseSignalValue(distanceJSON.signal); }
+            else { throw new Error(`invalid light distance ${distanceJSON}`); }
+
+            // If distance is specified in world coordinates, convert to camera coordinates
+            if (json.worldDistance) {
+                distance = plot.worldToCameraSize(distance);
+            }
 
             // Altitude
             let altitude: number;
@@ -124,6 +111,7 @@ export class Light {
             }
             else { azimuth = 0; }
 
+            // Offset in camera coordinates
             const offset: Core.Vector3 = [
                 distance * Math.cos(altitude) * Math.sin(azimuth),
                 distance * Math.sin(altitude),
@@ -134,21 +122,22 @@ export class Light {
             light.position[2] += offset[2];
         }
 
-        // Size, aspect
-        if (json.size != undefined) {
-            if (typeof json.size == "number") { light.size = json.size; }
-            else if (typeof json.size == "object" && json.size.signal) { light.size = group.parseSignalValue(json.size.signal); }
-            else { throw new Error(`invalid light size ${json.size}`); }
-        }
-        else if (json.worldSize != undefined) {
-            if (typeof json.worldSize == "number") { light.size = json.worldSize; }
-            else if (typeof json.worldSize == "object" && json.worldSize.signal) { light.size = group.parseSignalValue(json.worldSize.signal); }
-            else { throw new Error(`invalid light world size ${json.worldSize}`); }
-            // Scale to camera coordinates
-            light.size = plot.worldToCameraSize(light.size);
+        // Size in camera/world coordinates
+        const sizeJSON = json.size ? json.size : json.worldSize;
+        if (sizeJSON != undefined) {
+            if (typeof sizeJSON == "number") { light.size = sizeJSON; }
+            else if (typeof sizeJSON == "object" && sizeJSON.signal) { light.size = group.parseSignalValue(sizeJSON.signal); }
+            else { throw new Error(`invalid light size ${sizeJSON}`); }
+
+            // If size is specified in world coordinates, convert to camera coordinates
+            if (json.worldSize) {
+                light.size = plot.worldToCameraSize(light.size);
+            }
         }
         else { light.size = 1; }
-        if (json.aspect != undefined) {
+
+        // Aspect ratio
+        if (json.aspect) {
             if (typeof json.aspect == "number") { light.aspectRatio = json.aspect; }
             else if (typeof json.aspect == "object" && json.aspect.signal) { light.aspectRatio = group.parseSignalValue(json.aspect.signal); }
             else { throw new Error(`invalid light aspect ${json.aspect}`); }
@@ -157,27 +146,36 @@ export class Light {
 
         // Direction
         light.direction = [0, 0, 0];
-        if (json.target) {
+        // Target in camera/world coordinates
+        const targetJSON = json.target ? json.target : json.worldTarget;
+        if (targetJSON) {
             let target: Core.Vector3 = [0, 0, 0];
-            if (Array.isArray(json.target) && json.target.length == 3) {
+            if (Array.isArray(targetJSON) && targetJSON.length == 3) {
                 // x
-                if (typeof json.target[0] == "number") { target[0] = json.target[0]; }
-                else if (typeof json.target[0] == "object" && json.target[0].signal) { target[0] = group.parseSignalValue(json.target[0].signal); }
-                else { throw new Error(`invalid light target ${json.target[0]}`); }
+                if (typeof targetJSON[0] == "number") { target[0] = targetJSON[0]; }
+                else if (typeof targetJSON[0] == "object" && targetJSON[0].signal) { target[0] = group.parseSignalValue(targetJSON[0].signal); }
+                else { throw new Error(`invalid light target ${targetJSON[0]}`); }
                 // y
-                if (typeof json.target[1] == "number") { target[1] = json.target[1]; }
-                else if (typeof json.target[1] == "object" && json.target[1].signal) { target[1] = group.parseSignalValue(json.target[1].signal); }
-                else { throw new Error(`invalid light target ${json.target[1]}`); }
+                if (typeof targetJSON[1] == "number") { target[1] = targetJSON[1]; }
+                else if (typeof targetJSON[1] == "object" && targetJSON[1].signal) { target[1] = group.parseSignalValue(targetJSON[1].signal); }
+                else { throw new Error(`invalid light target ${targetJSON[1]}`); }
                 // z
-                if (typeof json.target[2] == "number") { target[2] = json.target[2]; }
-                else if (typeof json.target[2] == "object" && json.target[2].signal) { target[2] = group.parseSignalValue(json.target[2].signal); }
-                else { throw new Error(`invalid light target ${json.target[2]}`); }
+                if (typeof targetJSON[2] == "number") { target[2] = targetJSON[2]; }
+                else if (typeof targetJSON[2] == "object" && targetJSON[2].signal) { target[2] = group.parseSignalValue(targetJSON[2].signal); }
+                else { throw new Error(`invalid light target ${targetJSON[2]}`); }
             }
-            else if (typeof json.target == "object" && json.target.signal) {
-                target = group.parseSignalValue(json.target.signal);
-                if (!Array.isArray(target) || target.length != 3) { throw new Error(`invalid light target ${json.target}`); }
+            else if (typeof targetJSON == "object" && targetJSON.signal) {
+                target = group.parseSignalValue(targetJSON.signal);
+                if (!Array.isArray(target) || target.length != 3) { throw new Error(`invalid light target ${targetJSON}`); }
             }
-            else { throw new Error(`invalid light target ${json.target}`); }
+            else { throw new Error(`invalid light target ${targetJSON}`); }
+
+            // If target is specified in world coordinates, convert to camera coordinates
+            if (json.worldTarget) {
+                plot.worldToCameraPosition(target, target);
+            }
+
+            // Direction from position to target
             light.direction = [
                 target[0] - light.position[0],
                 target[1] - light.position[1],
@@ -187,65 +185,36 @@ export class Light {
             // Normalize
             Core.vector3.normalize(light.direction, light.direction);
         }
-        else if (json.worldTarget) {
-            let worldTarget: Core.Vector3 = [0, 0, 0];
-            if (Array.isArray(json.worldTarget) && json.worldTarget.length == 3) {
-                // x
-                if (typeof json.worldTarget[0] == "number") { worldTarget[0] = json.worldTarget[0]; }
-                else if (typeof json.worldTarget[0] == "object" && json.worldTarget[0].signal) { worldTarget[0] = group.parseSignalValue(json.worldTarget[0].signal); }
-                else { throw new Error(`invalid light world target ${json.worldTarget[0]}`); }
-                // y
-                if (typeof json.worldTarget[1] == "number") { worldTarget[1] = json.worldTarget[1]; }
-                else if (typeof json.worldTarget[1] == "object" && json.worldTarget[1].signal) { worldTarget[1] = group.parseSignalValue(json.worldTarget[1].signal); }
-                else { throw new Error(`invalid light world target ${json.worldTarget[1]}`); }
-                // z
-                if (typeof json.worldTarget[2] == "number") { worldTarget[2] = json.worldTarget[2]; }
-                else if (typeof json.worldTarget[2] == "object" && json.worldTarget[2].signal) { worldTarget[2] = group.parseSignalValue(json.worldTarget[2].signal); }
-                else { throw new Error(`invalid light world target ${json.worldTarget[2]}`); }
-            }
-            else if (typeof json.target == "object" && json.worldTarget.signal) {
-                worldTarget = group.parseSignalValue(json.worldTarget.signal);
-                if (!Array.isArray(worldTarget) || worldTarget.length != 3) { throw new Error(`invalid light world target ${json.target}`); }
-            }
-            else { throw new Error(`invalid light target ${json.target}`); }
 
-            // Convert to camera coordinates
-            plot.worldToCameraPosition(worldTarget, worldTarget);
-            light.direction = [
-                worldTarget[0] - light.position[0],
-                worldTarget[1] - light.position[1],
-                worldTarget[2] - light.position[2],
-            ];
+        // Direction in camera/world coordinates
+        const directionJSON = json.direction ? json.direction : json.worldDirection;
+        if (directionJSON) {
+            if (Array.isArray(directionJSON) && directionJSON.length == 3) {
+                // x
+                if (typeof directionJSON[0] == "number") { light.direction[0] = directionJSON[0]; }
+                else if (typeof directionJSON[0] == "object" && directionJSON[0].signal) { light.direction[0] = group.parseSignalValue(directionJSON[0].signal); }
+                else { throw new Error(`invalid light direction ${directionJSON[0]}`); }
+                // y
+                if (typeof directionJSON[1] == "number") { light.direction[1] = directionJSON[1]; }
+                else if (typeof directionJSON[1] == "object" && directionJSON[1].signal) { light.direction[1] = group.parseSignalValue(directionJSON[1].signal); }
+                else { throw new Error(`invalid light direction ${directionJSON[1]}`); }
+                // z
+                if (typeof directionJSON[2] == "number") { light.direction[2] = directionJSON[2]; }
+                else if (typeof directionJSON[2] == "object" && directionJSON[2].signal) { light.direction[2] = group.parseSignalValue(directionJSON[2].signal); }
+                else { throw new Error(`invalid light direction ${directionJSON[2]}`); }
+            }
+            else if (typeof directionJSON == "object" && directionJSON.signal) {
+                light.direction = group.parseSignalValue(directionJSON.signal);
+                if (!Array.isArray(light.direction) || light.direction.length != 3) { throw new Error(`invalid light direction ${directionJSON}`); }
+            }
+            else { throw new Error(`invalid light direction ${directionJSON}`); }
 
             // Normalize
             Core.vector3.normalize(light.direction, light.direction);
         }
-        else if (json.direction) {
-            if (Array.isArray(json.direction) && json.direction.length == 3) {
-                // x
-                if (typeof json.direction[0] == "number") { light.direction[0] = json.direction[0]; }
-                else if (typeof json.direction[0] == "object" && json.direction[0].signal) { light.direction[0] = group.parseSignalValue(json.direction[0].signal); }
-                else { throw new Error(`invalid light direction ${json.direction[0]}`); }
-                // y
-                if (typeof json.direction[1] == "number") { light.direction[1] = json.direction[1]; }
-                else if (typeof json.direction[1] == "object" && json.direction[1].signal) { light.direction[1] = group.parseSignalValue(json.direction[1].signal); }
-                else { throw new Error(`invalid light direction ${json.direction[1]}`); }
-                // z
-                if (typeof json.direction[2] == "number") { light.direction[2] = json.direction[2]; }
-                else if (typeof json.direction[2] == "object" && json.direction[2].signal) { light.direction[2] = group.parseSignalValue(json.direction[2].signal); }
-                else { throw new Error(`invalid light direction ${json.direction[2]}`); }
-            }
-            else if (typeof json.direction == "object" && json.direction.signal) {
-                light.direction = group.parseSignalValue(json.direction.signal);
-                if (!Array.isArray(light.direction) || light.direction.length != 3) { throw new Error(`invalid light direction ${json.direction}`); }
-            }
-            else { throw new Error(`invalid light direction ${json.direction}`); }
 
-            // Normalize
-            Core.vector3.normalize(light.direction, light.direction);
-        }
-        else {
-            // Point at origin
+        // Default to point at origin if position is specified but no direction/target
+        if (light.direction[0] == 0 && light.direction[1] == 0 && light.direction[2] == 0) {
             if (light.position[0] == 0 && light.position[1] == 0 && light.position[2] == 0) {
                 light.direction = [0, 0, -1];
             }

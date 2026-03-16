@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <script type="importmap">
+  {
+    "imports": {
+      "core": "https://microsoft.github.io/morphcharts/lib/morphcharts-core.js",
+      "spec": "https://microsoft.github.io/morphcharts/lib/morphcharts-spec.js",
+      "webgpuraytrace": "https://microsoft.github.io/morphcharts/lib/morphcharts-webgpuraytrace.js"
+    }
+  }
+  </script>
+</head>
+
+<body>
+  <!-- Canvas -->
+  <canvas id="canvas" width="1280" height="720"></canvas>
+  
+  <!-- Status -->
+  <div id="status" style="position: absolute; top: 8px; left: 8px; color: black; font-family: monospace;">
+    Initializing...</div>
+
+  <script type="module">
+    // Module imports
+    import * as Core from 'core';
+    import * as Spec from 'spec';
+    import * as WebGPURenderer from 'webgpuraytrace';
+
+    // Create the renderer
+    const canvas = document.getElementById('canvas');
+    const status = document.getElementById('status');
+    const renderer = new WebGPURenderer.Main(canvas);
+
+    // Initialize the renderer
+    await renderer.initializeAsync();
+
+    // Parse a spec and create a scene
+    status.textContent = 'Loading...';
+    const specJSON = {
+      "width": 640,
+      "height": 360,
+      "marks": [
+        {
+          "type": "rect",
+          "geometry": "sphere",
+          "material": "glossy",
+          "encode": {
+            "enter": {
+              "xc": { "value": 320 },
+              "yc": { "value": 180 },
+              "width": { "value": 360 }
+            }
+          }
+        },
+        {
+          "type": "rect",
+          "encode": {
+            "enter": {
+              "xc": { "value": 320 },
+              "width": { "value": 1280 },
+              "depth": { "value": 1280 },
+              "fill": { "value": "white" }
+            }
+          }
+        }
+      ]
+    };
+    const scene = await Spec.Plot.createSceneAsync(specJSON);
+
+    // Load the scene
+    renderer.loadScene(scene);
+
+    // Run a render loop
+    const maxSamples = 1000;
+    let previousTime = performance.now();
+    function tick(currentTime) {
+      const elapsed = currentTime - previousTime;
+      previousTime = currentTime;
+      renderer.updateAsync(elapsed);
+      renderer.renderAsync(elapsed);
+      status.textContent = `Frame ${renderer.frameCount}`;
+      if (renderer.frameCount < maxSamples) {
+        requestAnimationFrame(tick);
+      }
+    }
+    requestAnimationFrame(tick);
+  </script>
+</body>
+
+</html>

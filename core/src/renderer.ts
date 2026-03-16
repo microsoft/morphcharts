@@ -388,6 +388,9 @@ export abstract class Renderer {
         }
     }
 
+    public start(): void { }
+    public stop(): void { }
+
     // Factory methods for renderer-specific classes
     public abstract createBufferVisual(buffer: IBuffer): IBufferVisual;
     public abstract createTransitionBufferVisual(transitionBuffer: ITransitionBuffer): ITransitionBufferVisual;

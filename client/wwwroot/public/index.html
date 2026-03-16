@@ -2,172 +2,182 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>MorphCharts</title>
-    <link rel="stylesheet" href="./css/common.css">
-    <style>
-        .gallery img {
-            width: 100%;
-            height: auto;
-            /* border: 1px solid white;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MorphCharts</title>
+  <link rel="stylesheet" href="./css/common.css">
+  <style>
+    .gallery img {
+      width: 100%;
+      height: auto;
+      /* border: 1px solid white;
             outline: 1px solid white;
             box-sizing: border-box; */
-        }
+    }
 
-        .gallery {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            grid-template-rows: repeat(4, 1fr);
-        }
-    </style>
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      grid-template-rows: repeat(4, 1fr);
+    }
+  </style>
 </head>
 
 <body>
-    <header>
-        <a href="./index.html">Home</a>
-        <a href="./client.html">Try Online</a>
-        <a href="./gallery.html">Gallery</a>
-        <a href="./docs/index.html">Docs</a>
-        <a href="https://github.com/microsoft/morphcharts">GitHub</a>
-    </header>
+  <header>
+    <a href="./index.html">Home</a>
+    <a href="./client.html">Try Online</a>
+    <a href="./gallery.html">Gallery</a>
+    <a href="./docs/index.html">Docs</a>
+    <a href="https://github.com/microsoft/morphcharts">GitHub</a>
+  </header>
 
-    <h1 id="morphcharts">MorphCharts</h1>
+  <h1 id="morphcharts">MorphCharts</h1>
 
-    <div class="gallery">
-        <a href="./gallery.html?plot=bar2"><img src="./gallery/bar2_raytrace_640x360.jpg" alt="2D bar chart"></a>
-        <a href="./gallery.html?plot=bar4"><img src="./gallery/bar4_raytrace_640x360.jpg" alt="Stacked 2D bar chart"></a>
-        <a href="./gallery.html?plot=bar6"><img src="./gallery/bar6_raytrace_640x360.jpg" alt="Grouped 2D bar chart"></a>
-        <a href="./gallery.html?plot=bar7"><img src="./gallery/bar7_raytrace_640x360.jpg" alt="3D bar chart"></a>
-        <a href="./gallery.html?plot=bar9"><img src="./gallery/bar9_raytrace_640x360.jpg" alt="Facetted 2D bar chart"></a>
-        <a href="./gallery.html?plot=bar11"><img src="./gallery/bar11_raytrace_640x360.jpg" alt="2D unit histogram"></a>
-        <a href="./gallery.html?plot=donut1"><img src="./gallery/donut1_raytrace_640x360.jpg" alt="Donut chart"></a>
-        <a href="./gallery.html?plot=donut2"><img src="./gallery/donut2_raytrace_640x360.jpg" alt="Donut chart"></a>
-        <a href="./gallery.html?plot=donut3"><img src="./gallery/donut3_raytrace_640x360.jpg" alt="Facetted donut chart"></a>
-        <a href="./gallery.html?plot=histogram1"><img src="./gallery/histogram1_raytrace_640x360.jpg" alt="2D unit histogram"></a>
-        <a href="./gallery.html?plot=histogram2"><img src="./gallery/histogram2_raytrace_640x360.jpg" alt="3D unit histogram"></a>
-        <a href="./gallery.html?plot=line4"><img src="./gallery/line4_raytrace_640x360.jpg" alt="3D line chart"></a>
-        <a href="./gallery.html?plot=line5"><img src="./gallery/line5_raytrace_640x360.jpg" alt="3D line chart"></a>
-        <a href="./gallery.html?plot=sunburst1"><img src="./gallery/sunburst1_raytrace_640x360.jpg" alt="Sunburst chart"></a>
-        <a href="./gallery.html?plot=treemap2"><img src="./gallery/treemap2_raytrace_640x360.jpg" alt="Non-hierarchical treemap"></a>
-        <a href="./gallery.html?plot=treemap4"><img src="./gallery/treemap4_raytrace_640x360.jpg" alt="Hierarchical treemap"></a>
-        <a href="./gallery.html?plot=treemap6"><img src="./gallery/treemap6_raytrace_640x360.jpg" alt="Facetted non-hierarchical treemap"></a>
-        <a href="./gallery.html?plot=nodelink1"><img src="./gallery/nodelink1_raytrace_640x360.jpg" alt="3D node-link graph"></a>
-        <a href="./gallery.html?plot=area1"><img src="./gallery/area1_raytrace_640x360.jpg" alt="3D area chart"></a>
-        <a href="./gallery.html?plot=area2"><img src="./gallery/area2_raytrace_640x360.jpg" alt="3D area chart"></a>
-    </div>
+  <div class="gallery">
+    <a href="./gallery.html?plot=bar2"><img src="./gallery/bar2_raytrace_640x360.jpg" alt="2D bar chart"></a>
+    <a href="./gallery.html?plot=bar4"><img src="./gallery/bar4_raytrace_640x360.jpg" alt="Stacked 2D bar chart"></a>
+    <a href="./gallery.html?plot=bar6"><img src="./gallery/bar6_raytrace_640x360.jpg" alt="Grouped 2D bar chart"></a>
+    <a href="./gallery.html?plot=bar7"><img src="./gallery/bar7_raytrace_640x360.jpg" alt="3D bar chart"></a>
+    <a href="./gallery.html?plot=bar9"><img src="./gallery/bar9_raytrace_640x360.jpg" alt="Facetted 2D bar chart"></a>
+    <a href="./gallery.html?plot=bar11"><img src="./gallery/bar11_raytrace_640x360.jpg" alt="2D unit histogram"></a>
+    <a href="./gallery.html?plot=donut1"><img src="./gallery/donut1_raytrace_640x360.jpg" alt="Donut chart"></a>
+    <a href="./gallery.html?plot=donut2"><img src="./gallery/donut2_raytrace_640x360.jpg" alt="Donut chart"></a>
+    <a href="./gallery.html?plot=donut3"><img src="./gallery/donut3_raytrace_640x360.jpg"
+        alt="Facetted donut chart"></a>
+    <a href="./gallery.html?plot=histogram1"><img src="./gallery/histogram1_raytrace_640x360.jpg"
+        alt="2D unit histogram"></a>
+    <a href="./gallery.html?plot=histogram2"><img src="./gallery/histogram2_raytrace_640x360.jpg"
+        alt="3D unit histogram"></a>
+    <a href="./gallery.html?plot=line4"><img src="./gallery/line4_raytrace_640x360.jpg" alt="3D line chart"></a>
+    <a href="./gallery.html?plot=line5"><img src="./gallery/line5_raytrace_640x360.jpg" alt="3D line chart"></a>
+    <a href="./gallery.html?plot=sunburst1"><img src="./gallery/sunburst1_raytrace_640x360.jpg"
+        alt="Sunburst chart"></a>
+    <a href="./gallery.html?plot=treemap2"><img src="./gallery/treemap2_raytrace_640x360.jpg"
+        alt="Non-hierarchical treemap"></a>
+    <a href="./gallery.html?plot=treemap4"><img src="./gallery/treemap4_raytrace_640x360.jpg"
+        alt="Hierarchical treemap"></a>
+    <a href="./gallery.html?plot=treemap6"><img src="./gallery/treemap6_raytrace_640x360.jpg"
+        alt="Facetted non-hierarchical treemap"></a>
+    <a href="./gallery.html?plot=nodelink1"><img src="./gallery/nodelink1_raytrace_640x360.jpg"
+        alt="3D node-link graph"></a>
+    <a href="./gallery.html?plot=area1"><img src="./gallery/area1_raytrace_640x360.jpg" alt="3D area chart"></a>
+    <a href="./gallery.html?plot=area2"><img src="./gallery/area2_raytrace_640x360.jpg" alt="3D area chart"></a>
+  </div>
 
-    <p>MorphCharts is a visualization library for creating rich, immersive, and engaging 2D and 3D data visualizations.
-    </p>
+  <p>MorphCharts is a visualization library for creating rich, immersive, and engaging 2D and 3D data visualizations.
+  </p>
 
-    <h3>Getting Started</h3>
+  <h3>Getting Started</h3>
 
-    <p>You can <a href="./client.html">Try Online</a>, or install and run
-        locally
-        (see <a href="#installation">Installation</a>, below).</p>
+  <p>You can <a href="./client.html">Try Online</a>, or install and run
+    locally
+    (see <a href="#installation">Installation</a>, below).</p>
 
-    <img src="./img/client1.jpg" alt="Try Online page with visualization and specification" style="max-width: 100%; border: 1px solid black">
+  <img src="./img/client1.jpg" alt="Try Online page with visualization and specification"
+    style="max-width: 100%; border: 1px solid black">
 
-    <p>There are 2 principal ways to create charts using this library:</p>
-    <ol>
-        <li>Provide a <strong>JSON specification</strong> based on a subset of the <a
-                href="https://github.com/vega/vega">VEGA</a>
-            visualization grammar, with extensions to support 3D
-            visualizations.</li>
-        <li>Use <strong>code</strong> to create visualizations directly, with the <code>Core</code> library and a
-            <code>Renderer</code>.
-        </li>
-    </ol>
+  <p>There are 2 principal ways to create charts using this library:</p>
+  <ol>
+    <li>Provide a <strong>JSON specification</strong> based on a subset of the <a
+        href="https://github.com/vega/vega">VEGA</a>
+      visualization grammar, with extensions to support 3D
+      visualizations</li>
+    <li>Use <strong>code</strong> to create visualizations directly, with the <code>Core</code> library and a
+      <code>Renderer</code>
+    </li>
+  </ol>
 
-    <p></p>
+  <p></p>
 
-    <p>The JSON specification can define data sources and transformations, scales, axes, and
-        visualizations. Data sources can be defined in the following ways:</p>
+  <p>The JSON specification can define data sources and transformations, scales, axes, and
+    visualizations. Data sources can be defined in the following ways:</p>
 
-    <ol>
-        <li>Using an <strong>inline</strong> JSON definition.</li>
-        <li>Linking to an external file via a <strong>URL</strong>.</li>
-    </ol>
+  <ol>
+    <li>Using an <strong>inline</strong> JSON definition</li>
+    <li>Linking to an external file via a <strong>URL</strong></li>
+  </ol>
 
-    <p>The <a href="./client.html">Try Online</a> page also supports using <strong>local files</strong>.</p>
+  <p>The <a href="./client.html">Try Online</a> page also supports using <strong>local files</strong>.</p>
 
-    <h3>Gallery</h3>
+  <h3>Gallery</h3>
 
-    <p>Check out the <a href="./gallery.html">Gallery</a> to see more examples.</p>
+  <p>Check out the <a href="./gallery.html">Gallery</a> to see more examples.</p>
 
-    <h3>Rendering</h3>
+  <h3>Rendering</h3>
 
-    <p>Charts are principally rendered using procedural geometry and path tracing. Supported geometric primitives
-        include <strong>rectangles</strong>, <strong>cuboids</strong>, <strong>spheres</strong>,
-        <strong>cylinders</strong>, <strong>hex prisms</strong>, <strong>ring segments</strong>, and <strong>torus
-            segments</strong>.
-    </p>
+  <p>Charts are principally rendered using procedural geometry and path tracing. Supported geometric primitives
+    include <strong>rectangles</strong>, <strong>cuboids</strong>, <strong>spheres</strong>,
+    <strong>cylinders</strong>, <strong>hex prisms</strong>, <strong>ring segments</strong>, and <strong>torus
+      segments</strong>.
+  </p>
 
-    <p>Render pipelines are provided for:</p>
+  <p>Render pipelines are provided for:</p>
 
-    <ul>
-        <li><strong>Ray tracing</strong> with global illumination.</li>
-        <li><strong>Color</strong>, simple normal-based shading with directional and ambient lighting.</li>
-        <li><strong>Segment</strong> maps, useful for picking and edge detection.</li>
-        <li><strong>Normal</strong> maps.</li>
-        <li><strong>Depth</strong> maps.</li>
-        <li><strong>Edge</strong> outlines.</li>
-    </ul>
+  <ul>
+    <li><strong>Ray tracing</strong> with global illumination</li>
+    <li><strong>Color</strong>, simple normal-based shading with directional and ambient lighting</li>
+    <li><strong>Segment</strong> maps, useful for picking and edge detection</li>
+    <li><strong>Normal</strong> maps</li>
+    <li><strong>Depth</strong> maps</li>
+    <li><strong>Edge</strong> outlines</li>
+  </ul>
 
-    <p>The ray tracer supports rendering the following material types, which can be defined in the JSON specification:</p>
+  <p>The ray tracer supports rendering the following material types, which can be defined in the JSON specification:</p>
 
-    <ul>
-        <li><strong>Diffuse</strong> (Lambertian shading).</li>
-        <li><strong>Metal</strong>.</li>
-        <li><strong>Glass</strong>.</li>
-        <li><strong>Glossy</strong> (combining diffuse and glass properties).</li>
-        <li><strong>Emissive</strong> light sources.</li>
-    </ul>
+  <ul>
+    <li><strong>Diffuse</strong> (Lambertian shading)</li>
+    <li><strong>Metal</strong></li>
+    <li><strong>Glass</strong></li>
+    <li><strong>Glossy</strong> (combining diffuse and glass properties)</li>
+    <li><strong>Emissive</strong> light sources</li>
+  </ul>
 
-    <p>Materials can be rendered in <strong>solid color</strong>, or <strong>textured</strong>.</p>
+  <p>Materials can be rendered in <strong>solid color</strong>, or <strong>textured</strong>.</p>
 
-    <p>Visualizations can be generated at <strong>arbitrary resolutions</strong>. Single images can be created, typically up to 4K
-        (3840x2160px) resolution (depending on hardware). For larger resolutions, multiple <strong>image tiles</strong>
-        can be created, which can be stitched into an arbitrarily large image.</p>
+  <p>Visualizations can be generated at <strong>arbitrary resolutions</strong>. Single images can be created, typically
+    up to 4K
+    (3840x2160px) resolution (depending on hardware). For larger resolutions, multiple <strong>image tiles</strong>
+    can be created, which can be stitched into an arbitrarily large image.</p>
 
-    <h3>Components</h3>
+  <h3>Components</h3>
 
-    <p>The repo has the following components:</p>
+  <p>The repo has the following components:</p>
 
-    <ul>
-        <li><code>Core</code> library used by the other components.</li>
-        <li><code>Client</code> web site to demonstrate use of the visualization framework.</li>
-        <li><code>Renderers</code> for generating visualizations:
-            <ul>
-                <li><code>WebGPURaytrace</code>, for web browser rendering on the GPU using WebGPU.</li>
-            </ul>
-        </li>
-        <li>Visualization grammar <code>Spec</code> parser, based on a subset of the <a
-                href="https://github.com/vega/vega">VEGA</a> specification format, with extensions to support 3D
-            visualizations.</li>
-    </ul>
+  <ul>
+    <li><code>Core</code> library used by the other components</li>
+    <li><code>Client</code> web site to demonstrate use of the visualization framework</li>
+    <li><code>Renderers</code> for generating visualizations:
+      <ul>
+        <li><code>WebGPURaytrace</code>, for web browser rendering on the GPU using WebGPU</li>
+      </ul>
+    </li>
+    <li>Visualization grammar <code>Spec</code> parser, based on a subset of the <a
+        href="https://github.com/vega/vega">VEGA</a> specification format, with extensions to support 3D
+      visualizations</li>
+  </ul>
 
-    <h3 id="installation">Installation</h3>
+  <h3 id="installation">Installation</h3>
 
-    <p>The project can be installed and run locally using the following steps:</p>
+  <p>The project can be installed and run locally using the following steps:</p>
 
-    <ol>
-        <li>Clone the repo.</li>
-        <li><code>npm install</code> to install any required dependencies.</li>
-        <li>Build the project using <code>npm run dev-client</code>.</li>
-        <li>Start the web site using <code>npm run start-client</code>, which also opens the
-            <code>client.html</code>
-            page in the default web browser.
-        </li>
-    </ol>
+  <ol>
+    <li>Clone the repo</li>
+    <li><code>npm install</code> to install any required dependencies</li>
+    <li>Build the project using <code>npm run dev-client</code></li>
+    <li>Start the web site using <code>npm run start-client</code>, which also opens the
+      <code>client.html</code>
+      page in the default web browser
+    </li>
+  </ol>
 
-    <footer>
-        <span>© 2025 Microsoft</span>
-        <a href="https://go.microsoft.com/fwlink/?LinkId=521839">Privacy &amp; Cookies</a>
-        <a href="https://go.microsoft.com/fwlink/?linkid=2259814">Consumer Health Privacy</a>
-        <a href="https://www.microsoft.com/trademarks">Trademarks</a>
-        <a href="https://www.microsoft.com/en-us/servicesagreement/">Terms of Use</a>
-    </footer>
+  <footer>
+    <span>© 2025 Microsoft</span>
+    <a href="https://go.microsoft.com/fwlink/?LinkId=521839">Privacy &amp; Cookies</a>
+    <a href="https://go.microsoft.com/fwlink/?linkid=2259814">Consumer Health Privacy</a>
+    <a href="https://www.microsoft.com/trademarks">Trademarks</a>
+    <a href="https://www.microsoft.com/en-us/servicesagreement/">Terms of Use</a>
+  </footer>
 </body>
 
 </html>

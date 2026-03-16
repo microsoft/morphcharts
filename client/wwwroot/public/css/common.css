@@ -8,7 +8,6 @@ body {
     max-width: 1280px;
     margin: 0 auto;
     padding: 8px;
-    counter-reset: figure;
 }
 
 a {
@@ -40,7 +39,7 @@ header {
 }
 
 footer {
-    margin-top: 32px;
+    margin-top: 12px;
     border-top: 1px solid gray;
 }
 
@@ -112,9 +111,29 @@ figcaption {
     margin-top: 8px;
     font-size: 0.85em;
     color: gray;
-    counter-increment: figure;
 }
 
-figcaption::before {
-    content: "Figure " counter(figure) ". ";
+.listing-caption {
+    margin-top: -4px;
+    margin-bottom: 24px;
+    font-size: 0.85em;
+    color: gray;
 }
+
+.cross-reference {
+    color: royalblue;
+    text-decoration: none;
+}
+
+.page-nav {
+    display: flex;
+    justify-content: space-between;
+}
+
+/* .doc-index {} */
+
+.doc-index .upcoming {
+    color: gray;
+}
+
+/* .doc-index a {} */
