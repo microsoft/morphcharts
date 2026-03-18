@@ -9,12 +9,11 @@ import { Matrix3x3, quaternion, Quaternion, vector3, Vector3, Vector4 } from "./
 export const LightType = {
     directional: 0,
     disk: 1,
-    hemisphere: 2,
-    point: 3,
-    projector: 4,
-    rect: 5,
-    sphere: 6,
-    spot: 7,
+    point: 2,
+    projector: 3,
+    rect: 4,
+    sphere: 5,
+    spot: 6,
 } as const;
 export type LightType = typeof LightType[keyof typeof LightType];
 
@@ -55,11 +54,6 @@ export interface ISpotLightOptions extends ILightOptions {
 
 export interface IDirectionalLightOptions extends ILightOptions {
     direction?: Vector3; // Direction from position to target (normalized) 
-}
-
-export interface IHemisphereLightOptions extends ILightOptions {
-    direction?: Vector3; // Direction to zenith (normalized)
-    groundColor?: ColorRGB; // Lerp between light (sky) color and ground color based on direction
 }
 
 // A rectangular projector light, emitting a texture
@@ -284,26 +278,6 @@ export class DirectionalLight extends Light {
         super.toBuffer(buffer, index);
         buffer.setType(index, LightType.directional);
         buffer.setDirection(index, this._direction);
-    }
-}
-
-export class HemisphereLight extends Light {
-    protected _direction: Vector3; // Direction to zenith (normalized)
-    public get direction(): Vector3 { return this._direction; }
-    protected _groundColor: Vector3; // RGB
-    public get groundColor(): Vector3 { return this._groundColor; }
-
-    constructor(options: IHemisphereLightOptions) {
-        super(options);
-        this._direction = options.direction || [0, 1, 0];
-        this._groundColor = options.groundColor || [0, 0, 0]; // Default to black
-    }
-
-    public override toBuffer(buffer: LightBufferData, index: number) {
-        super.toBuffer(buffer, index);
-        buffer.setType(index, LightType.hemisphere);
-        buffer.setDirection(index, this._direction);
-        buffer.setColor2(index, this._groundColor);
     }
 }
 

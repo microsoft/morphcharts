@@ -84,12 +84,11 @@ struct Uniforms {                  // ---------------------------
 // ----------------
 // 0    directional
 // 1    disk
-// 2    hemisphere
-// 3    point
-// 4    projector
-// 5    rect
-// 6    sphere
-// 7    spot
+// 2    point
+// 3    projector
+// 4    rect
+// 5    sphere
+// 6    spot
                                    //       offset  align  size
 struct Light {                     // -------------------------
     rotation: vec4<f32>,           //            0     16    16
@@ -1233,13 +1232,13 @@ fn hitLights(ray: Ray, hitRecord: ptr<function, HitRecord>, seed: ptr<function, 
             case 0u: {
                 if (hitDirectionalLight(i, ray, &color, hitRecord, seed)) { hit = true; }
             }
-            case 3u: {
+            case 2u: {
                 if (hitPointLight(i, ray, &color, hitRecord, seed)) { hit = true; }
             }
-            case 4u: {
+            case 3u: {
                 if (hitProjectorLight(i, ray, &color, hitRecord, seed)) { hit = true; }
             }
-            case 7u: {
+            case 6u: {
                 if (hitSpotLight(i, ray, &color, hitRecord, seed)) { hit = true; }
             }
         
@@ -1247,10 +1246,10 @@ fn hitLights(ray: Ray, hitRecord: ptr<function, HitRecord>, seed: ptr<function, 
             case 1u: {
                 if (hitDiskLight(i, ray, &color, hitRecord)) { hit = true; }
             }
-            case 5u: {
+            case 4u: {
                 if (hitRectLight(i, ray, &color, hitRecord)) { hit = true; }
             }
-            case 6u: {
+            case 5u: {
                 if (hitSphereLight(i, ray, &color, hitRecord)) { hit = true; }
             }
             default: {}
@@ -1821,7 +1820,7 @@ fn color(@builtin(global_invocation_id) globalId : vec3<u32>) {
                         color += specular * light.color * specularIntensity;
                     }
                 }
-                case 3u: {
+                case 2u: {
                     // Point light
                     // Fire a shadow ray towards the light
                     shadowRay.origin = hitRecord.position;
@@ -1840,7 +1839,7 @@ fn color(@builtin(global_invocation_id) globalId : vec3<u32>) {
                         color += specular * light.color * specularIntensity;
                     }
                 }
-                case 4u: {
+                case 3u: {
                     // Projector light
                     let center = light.center;
                     var direction = center - hitRecord.position;
@@ -1900,7 +1899,7 @@ fn color(@builtin(global_invocation_id) globalId : vec3<u32>) {
                         color += specular * light.color * specularIntensity;
                     }
                 }
-                case 7u: {
+                case 6u: {
                     // Spot light
                     // Fire a shadow ray towards the light
                     shadowRay.origin = hitRecord.position;
