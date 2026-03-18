@@ -21,6 +21,7 @@ window.onload = () => {
 export class Main {
     private _canvas: HTMLCanvasElement;
     private _isRunning: boolean;
+    private _hasFatalError: boolean;
     private _initializePromise: Promise<void>;
     private _animationFrame: number;
     private _previousTime: DOMHighResTimeStamp;
@@ -291,9 +292,11 @@ export class Main {
             console.log("spec changed");
             this._hasSpecChanged = true;
             this._updateDebug(0);
-            this._hideError();
+            if (!this._hasFatalError) {
+                this._hideError();
+            }
 
-            if (!this._isRunning) {
+            if (!this._isRunning && !this._hasFatalError) {
                 this._startStopButton.disabled = this._editor.content.trim().length == 0;
             }
         };
@@ -357,22 +360,30 @@ export class Main {
 
         // GPU initialization and sample loading run in parallel
         const sample = new URLSearchParams(window.location.search).get("plot");
-        await Promise.all([
-            // GPU: adapter, device, pipeline compilation
-            this._renderer.initializeAsync({
-                atlasOptions: { width: 4096, height: 4096, type: "font" },
-                glyphRasterizerOptions: {
-                    size: 192,
-                    border: 0x18,     // 24px
-                    edgeValue: Core.Config.sdfBuffer,
-                    maxDistance: 0x40, // 64px
-                },
-            }),
-            // Sample: load initial spec from querystring or use empty spec
-            this._loadInitialSampleAsync(sample),
-            // Gallery: load sample index and build gallery grid
-            this._loadGalleryAsync(),
-        ]);
+        try {
+            await Promise.all([
+                // GPU: adapter, device, pipeline compilation
+                this._renderer.initializeAsync({
+                    atlasOptions: { width: 4096, height: 4096, type: "font" },
+                    glyphRasterizerOptions: {
+                        size: 192,
+                        border: 0x18,     // 24px
+                        edgeValue: Core.Config.sdfBuffer,
+                        maxDistance: 0x40, // 64px
+                    },
+                }),
+                // Sample: load initial spec from querystring or use empty spec
+                this._loadInitialSampleAsync(sample),
+                // Gallery: load sample index and build gallery grid
+                this._loadGalleryAsync(),
+            ]);
+        }
+        catch (error) {
+            this._hasFatalError = true;
+            this._showError(error instanceof Error ? error.message : String(error));
+            this._startStopButton.disabled = true;
+            return;
+        }
 
         console.log(`client initialized ${Core.Time.formatDuration((performance.now() - start))}`);
     }

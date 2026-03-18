@@ -230,9 +230,6 @@ export class Light {
             }
         }
 
-        // Hemisphere light
-        if (json.groundColor) { light.color2 = Color.parse(json.groundColor); }
-
         // Spot light
         if (json.type === "spot") {
             if (json.falloff != undefined) { light.falloff = json.falloff; }

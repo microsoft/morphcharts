@@ -133,6 +133,9 @@ export class Main extends Core.Renderer {
             const gpu: GPU = navigator.gpu;
             this._presentationFormat = gpu.getPreferredCanvasFormat();
             this._adapter = await gpu.requestAdapter();
+            if (!this._adapter) {
+                throw new Error("WebGPU adapter not available");
+            }
             const requiredFeatures: GPUFeatureName[] = [];
             if (this._adapter.features.has("timestamp-query")) {
                 requiredFeatures.push("timestamp-query");

@@ -212,14 +212,6 @@ export class Plot {
                                 hidden: this.lights[i].hidden,
                             }));
                             break;
-                        case "hemisphere":
-                            lights.push(new Core.HemisphereLight({
-                                color: this.lights[i].color,
-                                direction: this.lights[i].direction,
-                                groundColor: this.lights[i].color2,
-                                hidden: this.lights[i].hidden,
-                            }));
-                            break;
                         case "spot":
                             lights.push(new Core.SpotLight({
                                 center: this.lights[i].position,
