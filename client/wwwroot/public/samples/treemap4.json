@@ -61,7 +61,7 @@
           "_paddingInnerMultiplier": 0.9,
           "_paddingOuterMultiplier": 0.9,
           "size": [640,360],
-          "as": ["x0", "y0", "x1", "y1", "depth", "children", "size", "descendents"]
+          "as": ["x0", "y0", "x1", "y1", "depth", "children", "size", "descendants"]
         }
       ]
     },

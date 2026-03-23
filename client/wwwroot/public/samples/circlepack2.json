@@ -38,7 +38,7 @@
           "field": "size",
           "sort": {"field": "size", "order": "descending"},          
           "size": [{"signal": "width"},{"signal": "depth"}],
-          "as": ["x", "y", "r", "depth", "children", "size0", "descendents"]
+          "as": ["x", "y", "r", "depth", "children", "size0", "descendants"]
         }
       ]
     },

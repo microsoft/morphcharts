@@ -208,7 +208,7 @@
           "field": "value",
           "_sort": {"field": "value", "order": "descending"},
           "size": [{"signal": "width"},{"signal": "depth"}],
-          "as": ["x", "y", "r", "depth", "children", "size", "descendents"]
+          "as": ["x", "y", "r", "depth", "children", "size", "descendants"]
         },
         {"type": "formula", "expr": "datum.r/length(toString(datum.value))", "as": "fontSize"}
       ]

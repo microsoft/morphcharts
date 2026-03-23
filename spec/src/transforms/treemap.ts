@@ -60,7 +60,7 @@ export class Treemap extends Transform {
         let depthColumn = "depth";
         let childrenColumn = "children";
         let sizeColumn = "size";
-        let descendentsColumn = "descendents";
+        let descendantsColumn = "descendants";
 
         // Support flat hierarchy (no stratify)
         if (!hierarchy) {
@@ -194,7 +194,7 @@ export class Treemap extends Transform {
         const children = hierarchy.children;
         const depths = new Uint32Array(dataset.length);
         const sizes = new Float32Array(dataset.length);
-        const descendents = new Uint32Array(dataset.length);
+        const descendants = new Uint32Array(dataset.length);
         let maxDepth = 0;
         const buildTree = (parentId: number, depth: number) => {
             const parentIndex = indices[parentId];
@@ -206,7 +206,7 @@ export class Treemap extends Transform {
                     buildTree(childId, depth + 1);
                     const childIndex = indices[childId];
                     totalSize += sizes[childIndex];
-                    descendents[parentIndex] += descendents[childIndex] + 1; // +1 for the child itself
+                    descendants[parentIndex] += descendants[childIndex] + 1; // +1 for the child itself
                 }
                 if (sizeValues) {
                     const parentSize = sizeValues[parentIndex];
@@ -222,8 +222,8 @@ export class Treemap extends Transform {
                 const size = sizeValues ? sizeValues[parentIndex] : 1; // Default to unit size
                 sizes[parentIndex] = size;
                 
-                // No-op (descendents typed array initialized to zero)
-                // descendents[parentIndex] = 0;
+                // No-op (descendants typed array initialized to zero)
+                // descendants[parentIndex] = 0;
             }
             depths[parentIndex] = depth;
             maxDepth = Math.max(maxDepth, depth);
@@ -339,11 +339,11 @@ export class Treemap extends Transform {
                     if (childIds !== undefined) { row.push(childIds.length.toString()); }
                     else { row.push("0"); }
                     row.push(sizes[i].toString()); // size
-                    row.push(descendents[i].toString()); // descendents
+                    row.push(descendants[i].toString()); // descendants
                 }
 
                 // As
-                // For hierarchy, use [x0, y0, x1, y1, depth, children, size, descendents]
+                // For hierarchy, use [x0, y0, x1, y1, depth, children, size, descendants]
                 if (this._transformJSON.as) {
                     const as = this._transformJSON.as;
                     if (Array.isArray(as)) {
@@ -354,7 +354,7 @@ export class Treemap extends Transform {
                         if (as.length > 4) { depthColumn = as[4]; }
                         if (as.length > 5) { childrenColumn = as[5]; }
                         if (as.length > 6) { sizeColumn = as[6]; }
-                        if (as.length > 7) { descendentsColumn = as[7]; }
+                        if (as.length > 7) { descendantsColumn = as[7]; }
                     }
                 }
 
@@ -373,7 +373,7 @@ export class Treemap extends Transform {
                 dataset.columnTypes.push(Core.Data.ColumnType.integer);
                 dataset.headings.push(sizeColumn);
                 dataset.columnTypes.push(Core.Data.ColumnType.float);
-                dataset.headings.push(descendentsColumn);
+                dataset.headings.push(descendantsColumn);
                 dataset.columnTypes.push(Core.Data.ColumnType.integer);
                 console.log(`treemap width ${width} height ${height} ${dataset.length} rows ${Core.Time.formatDuration(performance.now() - start)}`);
                 return dataset;

@@ -32,7 +32,7 @@ export class Tree3D extends Transform {
         const ids: number[] = [];
         const depths = new Uint32Array(dataset.length);
         const sizes = new Float32Array(dataset.length);
-        const descendents = new Uint32Array(dataset.length);
+        const descendants = new Uint32Array(dataset.length);
         let maxDepth = 0;
         const buildTree = (parentId: number, depth: number) => {
             const parentIndex = indices[parentId];
@@ -45,7 +45,7 @@ export class Tree3D extends Transform {
                     buildTree(childId, depth + 1);
                     const childIndex = indices[childId];
                     totalSize += sizes[childIndex];
-                    descendents[parentIndex] += descendents[childIndex] + 1; // +1 for the child itself
+                    descendants[parentIndex] += descendants[childIndex] + 1; // +1 for the child itself
                 }
                 if (sizeValues) {
                     const parentSize = sizeValues[parentIndex];
@@ -60,7 +60,7 @@ export class Tree3D extends Transform {
                 // Leaf node
                 const size = sizeValues ? sizeValues[parentIndex] : 1; // Default to unit size
                 sizes[parentIndex] = size;
-                descendents[parentIndex] = 0;
+                descendants[parentIndex] = 0;
             }
             depths[parentIndex] = depth;
             maxDepth = Math.max(maxDepth, depth);
@@ -156,7 +156,7 @@ export class Tree3D extends Transform {
                     if (childIds !== undefined) { row.push(childIds.length.toString()); }
                     else { row.push("0"); }
                     row.push(sizes[i].toString()); // size
-                    row.push(descendents[i].toString()); // descendents
+                    row.push(descendants[i].toString()); // descendants
                 }
 
                 // As
@@ -166,7 +166,7 @@ export class Tree3D extends Transform {
                 let depth = "depth";
                 let _children = "children";
                 let size = "size";
-                let _descendents = "descendents";
+                let _descendants = "descendants";
                 if (this._transformJSON.as) {
                     const as = this._transformJSON.as;
                     if (Array.isArray(as)) {
@@ -176,7 +176,7 @@ export class Tree3D extends Transform {
                         if (as.length > 3) { depth = as[3].toString(); }
                         if (as.length > 4) { _children = as[4].toString(); }
                         if (as.length > 5) { size = as[5].toString(); }
-                        if (as.length > 6) { _descendents = as[6].toString(); }
+                        if (as.length > 6) { _descendants = as[6].toString(); }
                     }
                 }
 
@@ -193,7 +193,7 @@ export class Tree3D extends Transform {
                 dataset.columnTypes.push(Core.Data.ColumnType.float);
                 dataset.headings.push(size);
                 dataset.columnTypes.push(Core.Data.ColumnType.float);
-                dataset.headings.push(_descendents);
+                dataset.headings.push(_descendants);
                 dataset.columnTypes.push(Core.Data.ColumnType.float);
                 console.log(`tree3d ${dataset.length} rows ${Core.Time.formatDuration(performance.now() - start)}`);
                 return dataset;

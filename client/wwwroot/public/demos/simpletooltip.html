@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <style>
+    .tooltip {
+      display: none;
+      position: absolute;
+      border: 1px solid white;
+      border-radius: 4px;
+      background-color: black;
+      color: white;
+      padding: 4px 8px;
+      font-family: monospace;
+      pointer-events: none;
+    }
+  </style>
+  <script type="importmap">
+  {
+    "imports": {
+      "core": "https://microsoft.github.io/morphcharts/lib/morphcharts-core.js",
+      "spec": "https://microsoft.github.io/morphcharts/lib/morphcharts-spec.js",
+      "webgpuraytrace": "https://microsoft.github.io/morphcharts/lib/morphcharts-webgpuraytrace.js"
+    }
+  }
+  </script>
+</head>
+
+<body>
+  <!-- canvas, tooltip, status -->
+  <canvas id="canvas" width="1280" height="720"></canvas>
+  <div class="tooltip" id="tooltip"></div>
+  <div id="status" style="position: absolute; top: 8px; left: 8px; color: black; font-family: monospace;">
+    Initializing...</div>
+
+  <script type="module">
+    // Module imports
+    import * as Core from 'core';
+    import * as Spec from 'spec';
+    import * as WebGPURenderer from 'webgpuraytrace';
+
+    // Get DOM elements
+    const canvas = document.getElementById('canvas');
+    const tooltip = document.getElementById('tooltip');
+    const status = document.getElementById('status');
+
+    // Create and initialize renderer
+    const renderer = new WebGPURenderer.Main(canvas);
+    await renderer.initializeAsync();
+
+    // Parse a spec from a URL
+    // status.textContent = 'Loading...';
+    // const response = await fetch("spec.json");
+    // const specJSON = await response.json();
+    // const scene = await Spec.Plot.createSceneAsync(specJSON);
+
+    // Parse a spec from an inline object
+    status.textContent = 'Loading...';
+    const specJSON = {
+      "width": 640,
+      "height": 360,
+      "data": [
+        {
+          "name": "table",
+          "values": [
+            { "category": "A", "size": 20 },
+            { "category": "B", "size": 40 },
+            { "category": "C", "size": 60 },
+            { "category": "D", "size": 80 },
+            { "category": "E", "size": 100 }
+          ]
+        }
+      ],
+      "scales": [
+        {
+          "name": "x",
+          "type": "band",
+          "domain": { "data": "table", "field": "category" },
+          "range": "width",
+          "padding": 0.25,
+        },
+        {
+          "name": "y",
+          "type": "linear",
+          "domain": { "data": "table", "field": "size" },
+          "range": "height"
+        }
+      ],
+      "marks": [
+        {
+          "type": "rect",
+          "geometry": "cylinder",
+          "material": "glossy",
+          "from": { "data": "table" },
+          "encode": {
+            "enter": {
+              "xc": { "scale": "x", "field": "category" },
+              "yc": { "scale": "y", "field": "size", "mult": 0.5 },
+              "width": { "scale": "x", "band": 1 },
+              "height": { "scale": "y", "field": "size" }
+            }
+          }
+        },
+        {
+          "type": "rect",
+          "encode": {
+            "enter": {
+              "xc": { "value": 320 },
+              "width": { "value": 1280 },
+              "depth": { "value": 1280 },
+              "fill": { "value": "white" }
+            }
+          }
+        }
+      ]
+    };
+    const scene = await Spec.Plot.createSceneAsync(specJSON);
+
+    // Load the scene
+    renderer.loadScene(scene);
+
+    // Create interactive camera
+    const camera = new Core.Cameras.AltAzimuthPerspectiveCamera({
+      width: canvas.width,
+      height: canvas.height,
+    });
+    camera.copyFrom(scene.camera);
+
+    // Create a segment renderer
+    const segmentCanvas = document.createElement('canvas');
+    segmentCanvas.width = canvas.width;
+    segmentCanvas.height = canvas.height;
+    const segmentRenderer = new WebGPURenderer.Main(segmentCanvas, {
+      renderMode: 'segment',
+    });
+    segmentRenderer.idSource = 'pick';
+    await segmentRenderer.initializeAsync();
+    segmentRenderer.loadScene(scene);
+
+    // Read back the segment pixels via a 2D canvas
+    const readbackCanvas = document.createElement('canvas');
+    readbackCanvas.width = canvas.width;
+    readbackCanvas.height = canvas.height;
+    const readbackCtx = readbackCanvas.getContext('2d', { willReadFrequently: true });
+    let segmentPixels;
+
+    // Deferred segment re-render after camera changes
+    const segmentRegenerateDelay = 500; // ms to wait after last camera move before regenerating pick image
+    let segmentDirty = false;
+    let lastCameraMoveTime = 0;
+
+    async function regenerateSegmentImage() {
+      segmentRenderer.copyCamera(camera);
+      segmentRenderer.frameCount = 0;
+      await segmentRenderer.updateAsync(0);
+      await segmentRenderer.renderAsync(0);
+      readbackCtx.drawImage(segmentCanvas, 0, 0);
+      segmentPixels = readbackCtx.getImageData(0, 0, canvas.width, canvas.height).data;
+      segmentDirty = false;
+      console.log('segment image regenerated');
+    }
+
+    // Initial segment render
+    await regenerateSegmentImage();
+
+    // Pointer and wheel input
+    let pointerDown = false;
+    let pointerButton = 0;
+    let lastX = 0;
+    let lastY = 0;
+
+    canvas.addEventListener('pointerdown', (e) => {
+      pointerDown = true;
+      pointerButton = e.button;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      canvas.setPointerCapture(e.pointerId);
+    });
+
+    canvas.addEventListener('pointermove', (e) => {
+      if (!pointerDown) return;
+      const dx = e.clientX - lastX;
+      const dy = e.clientY - lastY;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      if (pointerButton === 2 || e.shiftKey) {
+        camera.translate(dx, dy);
+      } else {
+        camera.rotate(dx, dy);
+      }
+      segmentDirty = true;
+      lastCameraMoveTime = performance.now();
+      startLoop();
+    });
+
+    canvas.addEventListener('pointerup', () => { pointerDown = false; });
+    canvas.addEventListener('contextmenu', (e) => { if (running) e.preventDefault(); });
+
+    canvas.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      camera.zoomWheel(e.deltaY, e.offsetX, e.offsetY);
+      segmentDirty = true;
+      lastCameraMoveTime = performance.now();
+      startLoop();
+    }, { passive: false });
+
+    // Render loop
+    const maxSamples = 1000;
+    let running = false;
+    let previousTime = performance.now();
+
+    function startLoop() {
+      if (running) return;
+      running = true;
+      previousTime = performance.now();
+      renderer.frameCount = 0;
+      requestAnimationFrame(tick);
+    }
+
+    function tick(currentTime) {
+      const elapsed = currentTime - previousTime;
+      previousTime = currentTime;
+
+      camera.update(elapsed);
+      renderer.copyCamera(camera);
+
+      // Regenerate segment image after camera settles
+      if (segmentDirty && (performance.now() - lastCameraMoveTime) >= segmentRegenerateDelay) {
+        regenerateSegmentImage();
+      }
+
+      renderer.updateAsync(elapsed);
+      renderer.renderAsync(elapsed);
+      status.textContent = `Frame ${renderer.frameCount}`;
+
+      if (renderer.frameCount < maxSamples) {
+        requestAnimationFrame(tick);
+      } else {
+        running = false;
+      }
+    }
+    startLoop();
+
+    // Format value helper function
+    function formatValue(value, fmt) {
+      if (!fmt) return value;
+      const n = Number(value);
+      if (isNaN(n)) return value;
+      return new Intl.NumberFormat(undefined, fmt).format(n);
+    }
+
+    // Define tooltip fields
+    const tooltipFields = [
+      { field: 'category', label: 'Category' },
+      { field: 'size', label: 'Size', format: { style: 'decimal', minimumFractionDigits: 1, maximumFractionDigits: 1 } },
+    ];
+
+    // Look up segment color on mouse move (suppress during drag)
+    canvas.addEventListener('mousemove', function (e) {
+      if (pointerDown) { tooltip.style.display = 'none'; return; }
+      const rect = canvas.getBoundingClientRect();
+      const px = Math.floor(((e.clientX - rect.left) / rect.width) * canvas.width);
+      const py = Math.floor(((e.clientY - rect.top) / rect.height) * canvas.height);
+
+      if (px < 0 || px >= canvas.width || py < 0 || py >= canvas.height) {
+        tooltip.style.display = 'none';
+        return;
+      }
+
+      // Read color from segment image, decode to pick ID
+      const offset = (py * canvas.width + px) * 4;
+      const color = [segmentPixels[offset] / 255, segmentPixels[offset + 1] / 255, segmentPixels[offset + 2] / 255];
+      const pickId = Core.Color.colorRGBToNumber(color);
+
+      // Map pick ID → { dataset, rowIndex } via the Pick registry
+      const info = Core.Pick.get(pickId);
+      if (!info || info.rowIndex < 0 || info.rowIndex >= info.dataset.rows.length) {
+        tooltip.style.display = 'none';
+        return;
+      }
+      const { dataset, rowIndex } = info;
+      const row = dataset.rows[rowIndex];
+
+      // Build tooltip lines only for fields that exist in this dataset
+      const lines = [];
+      for (const f of tooltipFields) {
+        const col = dataset.headings.indexOf(f.field);
+        if (col < 0) continue;
+        const value = row[col];
+        if (value === undefined || value === null) continue;
+        lines.push((f.label || f.field) + ': ' + formatValue(value, f.format));
+      }
+      if (lines.length === 0) {
+        tooltip.style.display = 'none';
+        return;
+      }
+      const html = lines.join('<br>');
+
+      // Position the tooltip's bottom-left corner just above the cursor
+      tooltip.innerHTML = html;
+      tooltip.style.display = 'block';
+      const tipRect = tooltip.getBoundingClientRect();
+      tooltip.style.left = (e.clientX - rect.left) + 'px';
+      tooltip.style.top = (e.clientY - rect.top - tipRect.height - 8) + 'px';
+    });
+
+    canvas.addEventListener('mouseleave', function () {
+      tooltip.style.display = 'none';
+    });
+  </script>
+</body>
+
+</html>
