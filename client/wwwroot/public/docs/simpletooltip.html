@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MorphCharts — Simple Tooltip</title>
+  <link rel="stylesheet" href="../css/common.css">
+</head>
+
+<body>
+  <header>
+    <a href="../index.html">Home</a>
+    <a href="../client.html">Try Online</a>
+    <a href="../gallery.html">Gallery</a>
+    <a href="./index.html">Docs</a>
+    <a href="https://github.com/microsoft/morphcharts">GitHub</a>
+  </header>
+
+  <h1>Simple Tooltip</h1>
+
+  <p>
+    This builds on the <a href="./simplecamera.html">Simple Camera</a> by adding a tooltip that displays data values
+    for the mark under the pointer. It uses a second renderer in segment mode to map pixel positions to data rows.
+  </p>
+
+  <p>
+    The example on this page can be tried directly using the link below. To build and run your own version, make
+    sure you have the <a href="./prerequisites.html">prerequisites</a> in place.
+  </p>
+
+  <h2 id="overview">Overview</h2>
+
+  <p>The differences from the simple camera are:</p>
+
+  <ol>
+    <li>The spec includes inline <code>data</code> and <code>scales</code> to create a data-driven bar chart</li>
+    <li>A second <code>renderer</code> runs in <code>segment</code> mode with <code>idSource</code> set to
+      <code>'pick'</code>, rendering a single frame to produce a pick image
+    </li>
+    <li>On mouse move, the pick image pixel under the pointer is read, decoded to a pick ID, and looked up via
+      <code>Core.Pick.get()</code> to retrieve the corresponding data row
+    </li>
+    <li>A tooltip element displays the data values for the picked row</li>
+    <li>The pick image is regenerated after camera moves settle</li>
+  </ol>
+
+  <h2 id="complete-example">Complete Example</h2>
+
+  <pre><code id="completeExample"></code></pre>
+
+  <figure>
+    <img src="../img/simpletooltip1.jpg"
+      alt="Rendered result — a tooltip showing data values for the mark under the pointer">
+    <figcaption>Figure 1. Rendered result — a tooltip showing data values for the mark under the pointer.</figcaption>
+  </figure>
+
+  <p><a href="../demos/simpletooltip.html">Try Online</a></p>
+
+  <h2 id="step-by-step">Step-by-Step</h2>
+
+  <p>
+    The canvas, imports, renderer, spec parsing, scene loading, and camera manipulation steps are the same as the
+    <a href="./simplecamera.html">Simple Camera</a>. The differences start at the segment renderer.
+  </p>
+
+  <h3 id="data-driven-spec">Data-Driven Spec</h3>
+
+  <p>
+    Unlike the previous examples, this spec includes inline <code>data</code> and <code>scales</code> to create a
+    bar chart. The marks reference the data via <code>from</code> and map values through scales:
+  </p>
+
+  <pre><code>const specJSON = {
+  "width": 640,
+  "height": 360,
+  "data": [
+    {
+      "name": "table",
+      "values": [
+        { "category": "A", "size": 20 },
+        { "category": "B", "size": 40 },
+        ...
+      ]
+    }
+  ],
+  "scales": [
+    { "name": "x", "type": "band", "domain": { "data": "table", "field": "category" }, "range": "width" },
+    { "name": "y", "type": "linear", "domain": { "data": "table", "field": "size" }, "range": "height" }
+  ],
+  "marks": [
+    {
+      "type": "rect",
+      "from": { "data": "table" },
+      "encode": {
+        "enter": {
+          "xc": { "scale": "x", "field": "category" },
+          "height": { "scale": "y", "field": "size" },
+          ...
+        }
+      }
+    }
+  ]
+};</code></pre>
+
+  <h3 id="segment-renderer">Segment Renderer</h3>
+
+  <p>
+    A second <code>renderer</code> renders a single frame in <code>segment</code> mode with
+    <code>idSource</code> set to <code>'pick'</code>. Each pixel in the segment image encodes a unique pick ID
+    for the mark it covers:
+  </p>
+
+  <pre><code>const segmentCanvas = document.createElement('canvas');
+segmentCanvas.width = canvas.width;
+segmentCanvas.height = canvas.height;
+const segmentRenderer = new WebGPURenderer.Main(segmentCanvas, {
+  renderMode: 'segment',
+});
+segmentRenderer.idSource = 'pick';
+await segmentRenderer.initializeAsync();
+segmentRenderer.loadScene(scene);</code></pre>
+
+  <p>
+    The segment image is read back into a pixel array via a 2D canvas for CPU-side lookup.
+    A <code>regenerateSegmentImage</code> function handles rendering and readback, and is called once at
+    startup and again after camera moves settle:
+  </p>
+
+  <pre><code>const readbackCanvas = document.createElement('canvas');
+readbackCanvas.width = canvas.width;
+readbackCanvas.height = canvas.height;
+const readbackCtx = readbackCanvas.getContext('2d', { willReadFrequently: true });
+let segmentPixels;
+
+async function regenerateSegmentImage() {
+  segmentRenderer.copyCamera(camera);
+  segmentRenderer.frameCount = 0;
+  await segmentRenderer.updateAsync(0);
+  await segmentRenderer.renderAsync(0);
+  readbackCtx.drawImage(segmentCanvas, 0, 0);
+  segmentPixels = readbackCtx.getImageData(0, 0, canvas.width, canvas.height).data;
+  segmentDirty = false;
+}
+
+await regenerateSegmentImage();</code></pre>
+
+  <h3 id="pick-lookup">Pick Lookup</h3>
+
+  <p>
+    On mouse move, the pixel under the pointer is read from the segment image and decoded to a pick ID.
+    <code>Core.Pick.get()</code> maps the pick ID to a <code>dataset</code> and <code>rowIndex</code>:
+  </p>
+
+  <pre><code>const offset = (py * canvas.width + px) * 4;
+const color = [
+  segmentPixels[offset] / 255,
+  segmentPixels[offset + 1] / 255,
+  segmentPixels[offset + 2] / 255
+];
+const pickId = Core.Color.colorRGBToNumber(color);
+const info = Core.Pick.get(pickId);
+if (info) {
+  const row = info.dataset.rows[info.rowIndex];
+  // Display row data in tooltip
+}</code></pre>
+
+  <h3 id="tooltip-display">Tooltip Display</h3>
+
+  <p>
+    A <code>tooltipFields</code> array defines which data columns to show and their labels. The tooltip is
+    positioned above the pointer:
+  </p>
+
+  <pre><code>const tooltipFields = [
+  { field: 'category', label: 'Category' },
+  { field: 'size', label: 'Size' },
+];
+
+// Build tooltip lines from matched fields
+const lines = [];
+for (const f of tooltipFields) {
+  const col = dataset.headings.indexOf(f.field);
+  if (col < 0) continue;
+  lines.push(f.label + ': ' + row[col]);
+}</code></pre>
+
+  <p>
+    The tooltip is hidden during camera drag and when the pointer leaves the canvas.
+  </p>
+
+  <h3 id="segment-regeneration">Segment Regeneration</h3>
+
+  <p>
+    After the camera moves, the pick image becomes stale. Camera interactions set
+    <code>segmentDirty = true</code> and record the time of the last move. In the render loop, once
+    <code>segmentRegenerateDelay</code> milliseconds have elapsed since the last interaction,
+    <code>regenerateSegmentImage</code> is called to re-render and read back the segment image.
+  </p>
+
+  <nav class="page-nav">
+    <a href="./simplecamera.html">Previous</a>
+    <span></span>
+  </nav>
+
+  <footer>
+    <span>© 2025 Microsoft</span>
+    <a href="https://go.microsoft.com/fwlink/?LinkId=521839">Privacy &amp; Cookies</a>
+    <a href="https://go.microsoft.com/fwlink/?linkid=2259814">Consumer Health Privacy</a>
+    <a href="https://www.microsoft.com/trademarks">Trademarks</a>
+    <a href="https://www.microsoft.com/en-us/servicesagreement/">Terms of Use</a>
+  </footer>
+
+  <script src="../js/copy.js"></script>
+  <script>
+    fetch('../demos/simpletooltip.html')
+      .then(r => r.text())
+      .then(text => { document.getElementById('completeExample').textContent = text; });
+  </script>
+</body>
+
+</html>

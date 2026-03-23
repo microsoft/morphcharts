@@ -33,7 +33,7 @@
       "source": "raw2", 
       "transform": [
         {"type": "stratify", "key": "id", "parentKey": "parent"},
-        {"type": "partition", "field": "size", "size": [{"signal": "2*PI"},{"signal": "width/2"}], "as": ["x0", "y0", "x1", "y1", "depth", "children", "size0", "descendents"]},
+        {"type": "partition", "field": "size", "size": [{"signal": "2*PI"},{"signal": "width/2"}], "as": ["x0", "y0", "x1", "y1", "depth", "children", "size0", "descendants"]},
         {"type": "formula", "expr": "(datum.x0+datum.x1)/2", "as": "xc"},
         {"type": "formula", "expr": "(datum.y0+datum.y1)/2", "as": "yc"}
       ]

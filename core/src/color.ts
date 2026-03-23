@@ -19,13 +19,21 @@ export type ColorRGB = [number, number, number];
 export type ColorHSV = [number, number, number];
 
 export class Color {
+    public static numberToColorRGB(number: number, color: ColorRGB) {
+        color[0] = (number & 0xff) / 0xff; // r, [0,255]
+        color[1] = ((number & 0xff00) >>> 8) / 0xff; // g, [256,65535]
+        color[2] = ((number & 0xff0000) >>> 16) / 0xff; // b, [65536,16777215]
+    }
+    public static colorRGBToNumber(color: ColorRGB): number {
+        return color[0] * 0xff + ((color[1] * 0xff) << 8) + ((color[2] * 0xff) << 16);
+    }
+
     public static numberToColorRGBA(number: number, color: ColorRGBA) {
         color[0] = (number & 0xff) / 0xff; // r, [0,255]
         color[1] = ((number & 0xff00) >>> 8) / 0xff; // g, [256,65535]
         color[2] = ((number & 0xff0000) >>> 16) / 0xff; // b, [65536,16777215]
         color[3] = ((number & 0xff000000) >>> 24) / 0xff; // a, [16777216,4294967295]
     }
-
     public static colorRGBAToNumber(color: ColorRGBA): number {
         return color[0] * 0xff + ((color[1] * 0xff) << 8) + ((color[2] * 0xff) << 16) + ((color[3] * 0xff) << 24);
     }

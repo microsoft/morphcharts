@@ -57,9 +57,9 @@ export class Pack extends Transform {
         let depthColumn = "depth";
         let childrenColumn = "children";
         let sizeColumn = "size";
-        let descendentsColumn = "descendents";
+        let descendantsColumn = "descendants";
         const as = this._transformJSON.as;
-        // Default ["x", "y", "r", "depth", "size", "children", "descendents"]
+        // Default ["x", "y", "r", "depth", "size", "children", "descendants"]
         if (Array.isArray(as)) {
             if (as.length > 0) { xColumn = as[0]; }
             if (as.length > 1) { yColumn = as[1]; }
@@ -67,7 +67,7 @@ export class Pack extends Transform {
             if (as.length > 3) { depthColumn = as[3]; }
             if (as.length > 4) { childrenColumn = as[4]; }
             if (as.length > 5) { sizeColumn = as[5]; }
-            if (as.length > 6) { descendentsColumn = as[6]; }
+            if (as.length > 6) { descendantsColumn = as[6]; }
         }
 
         // Sizes
@@ -83,7 +83,7 @@ export class Pack extends Transform {
         const children = hierarchy.children;
         const depths = new Uint32Array(dataset.length);
         const sizes = new Float64Array(dataset.length);
-        const descendents = new Uint32Array(dataset.length);
+        const descendants = new Uint32Array(dataset.length);
         const radii = new Float64Array(dataset.length);
         const relativeX = new Float64Array(dataset.length);
         const relativeY = new Float64Array(dataset.length);
@@ -136,7 +136,7 @@ export class Pack extends Transform {
                 for (let i = 0; i < childIds.length; i++) {
                     const childId = childIds[i];
                     buildTree(childId, depth + 1);
-                    descendents[parentIndex] += descendents[indices[childId]] + 1; // +1 for the child itself
+                    descendants[parentIndex] += descendants[indices[childId]] + 1; // +1 for the child itself
                 }
 
                 // Pack children using the pre-sorted order from hierarchy children
@@ -158,8 +158,8 @@ export class Pack extends Transform {
                 // Leaf node radius is sqrt(size) so that area is proportional to size
                 radii[parentIndex] = Math.sqrt(size);
 
-                // No-op (descendents typed array initialized to zero)
-                // descendents[parentIndex] = 0;
+                // No-op (descendants typed array initialized to zero)
+                // descendants[parentIndex] = 0;
             }
             depths[parentIndex] = depth;
             maxDepth = Math.max(maxDepth, depth);
@@ -210,7 +210,7 @@ export class Pack extends Transform {
             if (childIds !== undefined) { row.push(childIds.length.toString()); }
             else { row.push("0"); }
             row.push(sizes[i].toString()); // sizes
-            row.push(descendents[i].toString()); // descendents
+            row.push(descendants[i].toString()); // descendants
         }
 
         // Add headings, columnTypes
@@ -226,7 +226,7 @@ export class Pack extends Transform {
         dataset.columnTypes.push(Core.Data.ColumnType.integer);
         dataset.headings.push(sizeColumn);
         dataset.columnTypes.push(Core.Data.ColumnType.float);
-        dataset.headings.push(descendentsColumn);
+        dataset.headings.push(descendantsColumn);
         dataset.columnTypes.push(Core.Data.ColumnType.integer);
         console.log(`circle pack ${dataset.length} rows ${Math.round(performance.now() - start)}ms`);
         return dataset;

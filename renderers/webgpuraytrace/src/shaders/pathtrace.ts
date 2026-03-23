@@ -744,7 +744,7 @@ fn hitTubeSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, 
     let e = size.y - rounding;
     let r = (outerr + innerr) * 0.5f;
     let th = outerr - innerr - rounding * 2f;
-    for (var i: u32 = 0u; i < 128u; i = i + 1u) {
+    for (var i: u32 = 0u; i < 256u; i++) {
         let position = rayAt(ray, t);
         let oc = position - center;
         let distance = abs(mapTubeSdf(oc, r, th, e, rounding));
@@ -791,7 +791,7 @@ fn hitBoxFrameSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<functi
     let r = (*boxFrameSdf).rounding;
     let size = (*boxFrameSdf).size0 * 0.5f;
     let e = (*boxFrameSdf).parameter0 * size.x - r; // Thickness in size units
-    for (var i: u32 = 0u; i < 128u; i++) {
+    for (var i: u32 = 0u; i < 256u; i++) {
         let position = rayAt(ray, t);
         let oc = position - center;
         let distance = abs(mapBoxFrameSdf(oc, size, e, r));
@@ -833,7 +833,7 @@ fn hitBoxSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, H
     let r = (*boxSdf).rounding;
     let size = (*boxSdf).size0 * 0.5f - r;
     let center = (*boxSdf).center0;
-    for (var i: u32 = 0u; i < 128u; i = i + 1u) {
+    for (var i: u32 = 0u; i < 256u; i++) {
         let position = rayAt(ray, t);
         let oc = position - center;
         let distance = abs(mapBoxSdf(oc, size, r)); // abs handles rays starting inside the SDF
@@ -891,7 +891,7 @@ fn hitCappedTorusSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<fun
     let halfThickness = (outerRadius - innerRadius) * 0.5f + padding;
     let startAngle = (*cappedTorusSdf).parameter1;
     let endAngle = (*cappedTorusSdf).parameter2;
-    for (var i: u32 = 0u; i < 128u; i = i + 1u) {
+    for (var i: u32 = 0u; i < 256u; i++) {
         let position = rayAt(ray, t);
         let oc = position - center;
         let distance = abs(mapCappedTorusSdf(oc, startAngle, endAngle, radius, halfThickness, padding)); 
@@ -935,7 +935,7 @@ fn hitCylinderSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<functi
     let r1 = (*cylinderSdf).rounding;
     let r0 = size.x - r1;
     let h0 = size.y - r1;
-    for (var i: u32 = 0u; i < 128u; i = i + 1u) {
+    for (var i: u32 = 0u; i < 256u; i++) {
         let position = rayAt(ray, t);
         let oc = position - center;
         let distance = abs(mapCylinderSdf(oc, h0, r0, r1));
@@ -982,7 +982,7 @@ fn hitHexPrismSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<functi
     let center = (*hexPrismSdf).center0;
     let hx = size.x - r;
     let hy = size.y - r;
-    for (var i: u32 = 0u; i < 128u; i = i + 1u) {
+    for (var i: u32 = 0u; i < 256u; i++) {
         let position = rayAt(ray, t);
         let oc = position - center;
         let distance = abs(mapHexPrismSdf(oc, hx, hy, r));
@@ -1042,7 +1042,7 @@ fn hitQuadSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, 
     let pb = vec2<f32>(-halfWidth, -halfHeight + b * height);
     let pc = vec2<f32>(halfWidth, -halfHeight + c * height);
     let pd = vec2<f32>(halfWidth, -halfHeight + d * height);
-    for (var i: u32 = 0u; i < 128u; i = i + 1u) {
+    for (var i: u32 = 0u; i < 256u; i++) {
         let position = rayAt(ray, t);
         let oc = position - center;
         let distance = abs(mapQuadSdf(oc, pa, pb, pd, pc, halfThickness));
@@ -1091,7 +1091,7 @@ fn hitRingSdf(id: u32, ray: Ray, tMin: f32, tMax: f32, hitRecord: ptr<function, 
     let startAngle = (*ringSdf).parameter1;
     let endAngle = (*ringSdf).parameter2;
     let height = size.z * 0.5f + padding;
-    for (var i: u32 = 0u; i < 128u; i = i + 1u) {
+    for (var i: u32 = 0u; i < 256u; i++) {
         let position = rayAt(ray, t);
         let oc = position - center;
         let distance = abs(mapRingSdf(oc, startAngle, endAngle, radius, halfThickness, height, padding));
