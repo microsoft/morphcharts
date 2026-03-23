@@ -25,6 +25,7 @@ export abstract class Mark {
     public abstract process(plot: Plot, scene: IScene): void;
 
     protected async _fromJSONAsync(markJSON: any): Promise<void> {
+        this.type = markJSON.type;
         this.name = markJSON.name;
         this.geometry = markJSON.geometry;
         this.material = markJSON.material;

@@ -141,6 +141,7 @@ async function regenerateSegmentImage() {
   readbackCtx.drawImage(segmentCanvas, 0, 0);
   segmentPixels = readbackCtx.getImageData(0, 0, canvas.width, canvas.height).data;
   segmentDirty = false;
+  if (lastMouseX >= 0) { updateTooltip(lastMouseX, lastMouseY); }
 }
 
 await regenerateSegmentImage();</code></pre>
@@ -186,7 +187,8 @@ for (const f of tooltipFields) {
 }</code></pre>
 
   <p>
-    The tooltip is hidden during camera drag and when the pointer leaves the canvas.
+    The tooltip is hidden during camera drag, while the segment image is stale, and when the pointer leaves the
+    canvas. After regeneration, the tooltip is automatically refreshed at the last known pointer position.
   </p>
 
   <h3 id="segment-regeneration">Segment Regeneration</h3>

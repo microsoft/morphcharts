@@ -149,6 +149,72 @@
     let segmentDirty = false;
     let lastCameraMoveTime = 0;
 
+    // Format value helper function
+    function formatValue(value, fmt) {
+      if (!fmt) return value;
+      const n = Number(value);
+      if (isNaN(n)) return value;
+      return new Intl.NumberFormat(undefined, fmt).format(n);
+    }
+
+    // Define tooltip fields
+    const tooltipFields = [
+      { field: 'category', label: 'Category' },
+      { field: 'size', label: 'Size', format: { style: 'decimal', minimumFractionDigits: 1, maximumFractionDigits: 1 } },
+    ];
+
+    // Track last mouse position for tooltip refresh after segment regeneration
+    let lastMouseX = -1;
+    let lastMouseY = -1;
+
+    // Show tooltip for the given client coordinates
+    function updateTooltip(clientX, clientY) {
+      const rect = canvas.getBoundingClientRect();
+      const px = Math.floor(((clientX - rect.left) / rect.width) * canvas.width);
+      const py = Math.floor(((clientY - rect.top) / rect.height) * canvas.height);
+
+      if (px < 0 || px >= canvas.width || py < 0 || py >= canvas.height) {
+        tooltip.style.display = 'none';
+        return;
+      }
+
+      // Read color from segment image, decode to pick ID
+      const offset = (py * canvas.width + px) * 4;
+      const color = [segmentPixels[offset] / 255, segmentPixels[offset + 1] / 255, segmentPixels[offset + 2] / 255];
+      const pickId = Core.Color.colorRGBToNumber(color);
+
+      // Map pick ID → { dataset, rowIndex } via the Pick registry
+      const info = Core.Pick.get(pickId);
+      if (!info || info.rowIndex < 0 || info.rowIndex >= info.dataset.rows.length) {
+        tooltip.style.display = 'none';
+        return;
+      }
+      const { dataset, rowIndex } = info;
+      const row = dataset.rows[rowIndex];
+
+      // Build tooltip lines only for fields that exist in this dataset
+      const lines = [];
+      for (const f of tooltipFields) {
+        const col = dataset.headings.indexOf(f.field);
+        if (col < 0) continue;
+        const value = row[col];
+        if (value === undefined || value === null) continue;
+        lines.push((f.label || f.field) + ': ' + formatValue(value, f.format));
+      }
+      if (lines.length === 0) {
+        tooltip.style.display = 'none';
+        return;
+      }
+      const html = lines.join('<br>');
+
+      // Position the tooltip's bottom-left corner just above the cursor
+      tooltip.innerHTML = html;
+      tooltip.style.display = 'block';
+      const tipRect = tooltip.getBoundingClientRect();
+      tooltip.style.left = (clientX - rect.left) + 'px';
+      tooltip.style.top = (clientY - rect.top - tipRect.height - 8) + 'px';
+    }
+
     async function regenerateSegmentImage() {
       segmentRenderer.copyCamera(camera);
       segmentRenderer.frameCount = 0;
@@ -157,7 +223,7 @@
       readbackCtx.drawImage(segmentCanvas, 0, 0);
       segmentPixels = readbackCtx.getImageData(0, 0, canvas.width, canvas.height).data;
       segmentDirty = false;
-      console.log('segment image regenerated');
+      if (lastMouseX >= 0) { updateTooltip(lastMouseX, lastMouseY); }
     }
 
     // Initial segment render
@@ -241,70 +307,17 @@
     }
     startLoop();
 
-    // Format value helper function
-    function formatValue(value, fmt) {
-      if (!fmt) return value;
-      const n = Number(value);
-      if (isNaN(n)) return value;
-      return new Intl.NumberFormat(undefined, fmt).format(n);
-    }
-
-    // Define tooltip fields
-    const tooltipFields = [
-      { field: 'category', label: 'Category' },
-      { field: 'size', label: 'Size', format: { style: 'decimal', minimumFractionDigits: 1, maximumFractionDigits: 1 } },
-    ];
-
-    // Look up segment color on mouse move (suppress during drag)
+    // Look up segment color on mouse move (suppress during drag or stale segment)
     canvas.addEventListener('mousemove', function (e) {
-      if (pointerDown) { tooltip.style.display = 'none'; return; }
-      const rect = canvas.getBoundingClientRect();
-      const px = Math.floor(((e.clientX - rect.left) / rect.width) * canvas.width);
-      const py = Math.floor(((e.clientY - rect.top) / rect.height) * canvas.height);
-
-      if (px < 0 || px >= canvas.width || py < 0 || py >= canvas.height) {
-        tooltip.style.display = 'none';
-        return;
-      }
-
-      // Read color from segment image, decode to pick ID
-      const offset = (py * canvas.width + px) * 4;
-      const color = [segmentPixels[offset] / 255, segmentPixels[offset + 1] / 255, segmentPixels[offset + 2] / 255];
-      const pickId = Core.Color.colorRGBToNumber(color);
-
-      // Map pick ID → { dataset, rowIndex } via the Pick registry
-      const info = Core.Pick.get(pickId);
-      if (!info || info.rowIndex < 0 || info.rowIndex >= info.dataset.rows.length) {
-        tooltip.style.display = 'none';
-        return;
-      }
-      const { dataset, rowIndex } = info;
-      const row = dataset.rows[rowIndex];
-
-      // Build tooltip lines only for fields that exist in this dataset
-      const lines = [];
-      for (const f of tooltipFields) {
-        const col = dataset.headings.indexOf(f.field);
-        if (col < 0) continue;
-        const value = row[col];
-        if (value === undefined || value === null) continue;
-        lines.push((f.label || f.field) + ': ' + formatValue(value, f.format));
-      }
-      if (lines.length === 0) {
-        tooltip.style.display = 'none';
-        return;
-      }
-      const html = lines.join('<br>');
-
-      // Position the tooltip's bottom-left corner just above the cursor
-      tooltip.innerHTML = html;
-      tooltip.style.display = 'block';
-      const tipRect = tooltip.getBoundingClientRect();
-      tooltip.style.left = (e.clientX - rect.left) + 'px';
-      tooltip.style.top = (e.clientY - rect.top - tipRect.height - 8) + 'px';
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+      if (pointerDown || segmentDirty) { tooltip.style.display = 'none'; return; }
+      updateTooltip(e.clientX, e.clientY);
     });
 
     canvas.addEventListener('mouseleave', function () {
+      lastMouseX = -1;
+      lastMouseY = -1;
       tooltip.style.display = 'none';
     });
   </script>
