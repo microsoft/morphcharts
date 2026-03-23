@@ -119,7 +119,7 @@ export class Scatter extends LayoutBase {
 
         // Cumulative layout bounds
         this._updateCumulativeLayoutBounds();
-        console.log(`${this.constructor.name.toLowerCase()} layout ${count} rows ${Time.formatDuration(performance.now() - start)}`);
+        console.log(`scatter layout ${count} rows ${Time.formatDuration(performance.now() - start)}`);
     }
 
     public update(buffer: IBuffer, ids: ArrayLike<number>, options: IVertexOptions): void {
@@ -131,6 +131,6 @@ export class Scatter extends LayoutBase {
 
         // Update vertex buffer
         super.update(buffer, ids, options);
-        console.log(`${this.constructor.name.toLowerCase()} update ${count} rows ${Time.formatDuration(performance.now() - start)}`);
+        console.log(`scatter update ${count} rows ${Time.formatDuration(performance.now() - start)}`);
     }
 }

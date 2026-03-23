@@ -205,7 +205,7 @@ export class Group extends Mark {
                 baseColumnIndex = dataset.getColumnIndex(field);
             }
             if (baseColumnIndex == -1) {
-                throw new Error(`mark encoding field ${field} not found in mark type ${this.constructor.name}`);
+                throw new Error(`mark encoding field ${field} not found in ${this.type} mark`);
             }
             switch (baseDataset.getColumnType(baseColumnIndex)) {
                 case Core.Data.ColumnType.float:
