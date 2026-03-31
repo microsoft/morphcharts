@@ -1312,7 +1312,9 @@ fn hitSphereLight(id: u32, ray: Ray, color: ptr<function, vec3<f32>>, hitRecord:
     let c = dot(oc, oc) - radius * radius;
     var h = b * b - c;
     if (h < 0f) { return false; }
-    if (b < 0f) { return false; } // Ensure ray towards light
+    // Ensure at least one intersection is in front of the ray
+    h = sqrt(h);
+    if (-b - h < 0f && -b + h < 0f) { return false; }
     *color += (*sphere).color;
     return true;
 }
