@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MorphCharts — Lighting</title>
+  <link rel="stylesheet" href="../css/common.css">
+</head>
+
+<body>
+  <header>
+    <a href="../index.html">Home</a>
+    <a href="../client.html">Try Online</a>
+    <a href="../gallery.html">Gallery</a>
+    <a href="./index.html">Docs</a>
+    <a href="https://github.com/microsoft/morphcharts">GitHub</a>
+  </header>
+
+  <h1>Lighting</h1>
+
+  <h2>Contents</h2>
+
+  <ul>
+    <li><a href="#ambient">Ambient</a> — base illumination</li>
+    <li><a href="#rect-light">Rect Light</a> — rectangular area light</li>
+    <li><a href="#disk-light">Disk Light</a> — circular area light</li>
+    <li><a href="#sphere-light">Sphere Light</a> — spherical area light</li>
+    <li><a href="#directional-light">Directional Light</a> — parallel rays</li>
+    <li><a href="#point-light">Point Light</a> — omnidirectional point source</li>
+    <li><a href="#spot-light">Spot Light</a> — light cone with falloff</li>
+    <li><a href="#projector-light">Projector Light</a> — textured projection</li>
+    <li><a href="#emissive-marks">Emissive Marks</a> — data-driven area lights</li>
+    <li><a href="#standard-lighting">Standard Lighting</a> — standard light setups</li>
+  </ul>
+
+  <p>
+    MorphCharts supports several light types for illuminating scenes. They can be divided into the following categories:
+  </p>
+
+  <ul>
+    <li><a href="#ambient">Ambient</a> — base illumination</li>
+    <li><a href="#area-lights">Area Lights</a> — global illumination</li>
+    <li><a href="#direct-lights">Direct Lights</a> — shadow rays</li>
+    <li><a href="#emissive-marks">Emissive Marks</a> — data-driven area lights</li>
+  </ul>
+
+  <p>
+    <a href="#ambient">Ambient</a> light is defined as a top-level spec property.
+    <a href="#area-lights">Area lights</a> and <a href="#direct-lights">direct lights</a> are defined in the spec's
+    <code>lights</code> array.
+    <a href="#emissive-marks">Emissive marks</a> are regular marks with an emissive material.
+  </p>
+
+  <h2 id="ambient">Ambient</h2>
+
+  <p>
+    Ambient light provides a base level of illumination for all surfaces, regardless of position or orientation.
+    Defined as a top-level spec property, it accepts either a named color or CSS color string and defaults to
+    <code>white</code>. Set to <code>black</code> to disable ambient lighting.
+  </p>
+
+  <pre><code id="ambientSpec"></code></pre>
+  <div class="listing-caption">Listing 1. Ambient light example</div>
+
+  <figure>
+    <img src="../img/ambientlight1.jpg" alt="Ambient light example">
+    <figcaption>Figure 1. Ambient light example.</figcaption>
+  </figure>
+
+  <p><a href="../client.html?plot=../demos/ambientlight1.json">Try Online</a></p>
+
+  <p>
+    To try the other light types, copy the light definition(s) from the examples below and modify the above
+    specification accordingly. Ensure the <code>ambient</code> property is set to <code>black</code>.
+  </p>
+
+  <p>
+    The <code>background</code> property defines the color seen when a ray misses all geometry. It defaults to
+    <code>black</code> and is also a top-level spec property.
+  </p>
+
+  <h2 id="common-properties">Common Properties</h2>
+
+  <p><a href="#area-lights">Area lights</a> and <a href="#direct-lights">Direct lights</a> are defined in the spec's
+    <code>lights</code> array. These lights share many common properties:
+  </p>
+
+  <table>
+    <tr>
+      <th>Property</th>
+      <th>Type</th>
+      <th>Default</th>
+      <th>Description</th>
+    </tr>
+    <tr>
+      <td><code>type</code></td>
+      <td>string</td>
+      <td>—</td>
+      <td>Light type (required)</td>
+    </tr>
+    <tr>
+      <td><code>color</code></td>
+      <td>string</td>
+      <td><code>white</code></td>
+      <td>Light color (CSS color string)</td>
+    </tr>
+    <tr>
+      <td><code>brightness</code></td>
+      <td>number</td>
+      <td><code>1</code></td>
+      <td>Multiplier applied to color</td>
+    </tr>
+    <tr>
+      <td><code>position</code></td>
+      <td><code>[x, y, z]</code></td>
+      <td><code>[0, 0, 0]</code></td>
+      <td>Position in camera coordinates</td>
+    </tr>
+    <tr>
+      <td><code>distance</code></td>
+      <td>number</td>
+      <td>—</td>
+      <td>Spherical distance offset from <code>position</code></td>
+    </tr>
+    <tr>
+      <td><code>altitude</code></td>
+      <td>degrees</td>
+      <td><code>0</code></td>
+      <td>Spherical elevation from horizontal plane (0° = horizontal, 90° = up)</td>
+    </tr>
+    <tr>
+      <td><code>azimuth</code></td>
+      <td>degrees</td>
+      <td><code>0</code></td>
+      <td>Spherical rotation around Y axis (0° = +Z, 90° = +X)</td>
+    </tr>
+    <tr>
+      <td><code>visible</code></td>
+      <td>boolean</td>
+      <td><code>true</code></td>
+      <td>If <code>false</code>, the light is excluded from the scene</td>
+    </tr>
+  </table>
+
+  <p>
+    Positions can be specified in either camera coordinates or plot coordinates using the
+    <code>world</code> prefix, for example <code>worldPosition</code> instead of <code>position</code> (see <a
+      href="./coordinates.html#camera-coordinates">Coordinates</a>).
+  </p>
+
+  <p>
+    For lights supporting a direction (e.g. <a href="#rect-light">Rect Light</a>, <a href="#disk-light">Disk Light</a>,
+    <a href="#directional-light">Directional Light</a>, <a href="#spot-light">Spot Light</a>, <a
+      href="#projector-light">Projector Light</a>), the following properties can be used:
+  </p>
+
+  <table>
+    <tr>
+      <th>Property</th>
+      <th>Type</th>
+      <th>Default</th>
+      <th>Description</th>
+    </tr>
+    <tr>
+      <td><code>direction</code></td>
+      <td><code>[x, y, z]</code></td>
+      <td>toward origin</td>
+      <td>Direction vector (normalized internally)</td>
+    </tr>
+    <tr>
+      <td><code>target</code></td>
+      <td><code>[x, y, z]</code></td>
+      <td>—</td>
+      <td>Look-at target (alternative to <code>direction</code>)</td>
+    </tr>
+  </table>
+
+  <p>
+    Directions can be specified in either camera coordinates or plot coordinates using the
+    <code>world</code> prefix, for example <code>worldTarget</code> instead of <code>target</code> (see <a
+      href="./coordinates.html#camera-coordinates">Coordinates</a>). <code>direction</code> takes precedence over
+    <code>target</code> if both are specified.
+  </p>
+
+  <p>
+    For lights supporting a size (e.g. <a href="#rect-light">Rect Light</a>, <a href="#disk-light">Disk Light</a>, <a
+      href="#sphere-light">Sphere Light</a>), the size property can be used:
+  </p>
+
+  <table>
+    <tr>
+      <th>Property</th>
+      <th>Type</th>
+      <th>Default</th>
+      <th>Description</th>
+    </tr>
+    <tr>
+      <td><code>size</code></td>
+      <td>number</td>
+      <td><code>1</code></td>
+      <td>Size of the light (e.g. width, diameter)</td>
+    </tr>
+  </table>
+
+  <p>
+    <code>size</code> can also be specified in plot coordinates using <code>worldSize</code> (see <a
+      href="./coordinates.html#camera-coordinates">Coordinates</a>).
+  </p>
+
+  <p>
+    Camera coordinates take precedence over world coordinates if both are specified.
+  </p>
+
+  <h2 id="area-lights">Area Lights</h2>
+
+  <p>Area lights emit light from a surface, thereby enabling soft shadows. Area lights are supported in the
+    <code>raytrace</code> render mode.
+  </p>
+
+  <ul>
+    <li><a href="#rect-light">Rect Light</a> — rectangular area light</li>
+    <li><a href="#disk-light">Disk Light</a> — circular area light</li>
+    <li><a href="#sphere-light">Sphere Light</a> — spherical area light</li>
+  </ul>
+
+  <p>Area lights also support a <code>hidden</code> property:</p>
+
+  <table>
+    <tr>
+      <th>Property</th>
+      <th>Type</th>
+      <th>Default</th>
+      <th>Description</th>
+    </tr>
+    <tr>
+      <td><code>hidden</code></td>
+      <td>boolean</td>
+      <td><code>true</code></td>
+      <td>When <code>true</code>, the light source is not directly visible to the camera (you see its effect but not the
+        light
+        itself). Set to <code>false</code> to see the light source directly — useful for debugging light placement</td>
+    </tr>
+  </table>
+
+  <h3 id="rect-light">Rect Light</h3>
+
+  <p>
+    A rectangular area light produces soft shadows with size proportional to the light's area.
+    Larger lights create softer shadows.
+  </p>
+
+  <pre><code>  "lights": [
+    {
+      "type": "rect",
+      "aspect": 1,
+      "size": 1,
+      "position": [-0.5, 0.5, 0.5],
+      "color": "lightgoldenrodyellow",
+      "brightness": 1
+    }
+  ],</code></pre>
+
+  <table>
+    <tr>
+      <th>Property</th>
+      <th>Type</th>
+      <th>Default</th>
+      <th>Description</th>
+    </tr>
+    <tr>
+      <td><code>aspect</code></td>
+      <td>number</td>
+      <td><code>1</code></td>
+      <td>Width / height ratio</td>
+    </tr>
+  </table>
+
+  <figure>
+    <img src="../img/rectlight1.jpg" alt="Rect light example">
+    <figcaption>Figure 2. Rect light example.</figcaption>
+  </figure>
+
+  <h3 id="disk-light">Disk Light</h3>
+
+  <p>
+    A circular area light produces soft shadows with size proportional to the light's diameter.
+    Larger lights create softer shadows.
+  </p>
+
+  <pre><code>  "lights": [
+    {
+      "type": "disk",
+      "size": 1,
+      "position": [-0.5, 0.5, 0.5],
+      "color": "lightgoldenrodyellow",
+      "brightness": 1
+    }
+  ],</code></pre>
+
+  <p>
+    The <code>size</code> property specifies the diameter of the disk light.
+  </p>
+
+  <h3 id="sphere-light">Sphere Light</h3>
+
+  <p>
+    A spherical area light produces soft shadows with size proportional to the light's diameter.
+    Larger lights create softer shadows.
+  </p>
+
+  <pre><code>  "lights": [
+    {
+      "type": "sphere",
+      "size": 1,
+      "position": [-0.5, 0.5, 0.5],
+      "color": "lightgoldenrodyellow",
+      "brightness": 1
+    }
+  ],</code></pre>
+
+  <p>
+    The <code>size</code> property specifies the diameter of the sphere light.
+  </p>
+
+  <h2 id="direct-lights">Direct Lights</h2>
+
+  <p>
+    Direct lights emit light from a point or along a direction. The light source is not directly visible to the camera
+    (you see its effect but not the light itself). They are supported in <code>color</code> render mode and in
+    <code>raytrace</code> render mode when using <code>diffuse</code> materials (since they do not support specular
+    reflections or refractions). Direct lights produce hard shadows since they have no area.
+  </p>
+
+  <ul>
+    <li><a href="#directional-light">Directional Light</a> — parallel rays</li>
+    <li><a href="#point-light">Point Light</a> — omnidirectional point source</li>
+    <li><a href="#spot-light">Spot Light</a> — light cone with falloff</li>
+    <li><a href="#projector-light">Projector Light</a> — textured projection</li>
+  </ul>
+
+  <h3 id="directional-light">Directional Light</h3>
+
+  <p>
+    A directional light simulates a distant light source (like the sun) where all rays are parallel. Only
+    <code>direction</code> matters — <code>position</code> is ignored.
+  </p>
+
+  <pre><code>  "lights": [
+    {
+      "type": "directional",
+      "direction": [0.408, -0.408, -0.816],
+      "color": "lightgoldenrodyellow",
+      "brightness": 1
+    }
+  ],</code></pre>
+
+  <figure>
+    <img src="../img/directionallight1.jpg" alt="Directional light example">
+    <figcaption>Figure 3. Directional light example.</figcaption>
+  </figure>
+
+
+  <h3 id="point-light">Point Light</h3>
+
+  <p>
+    A point light is an infinitely small point source that emits light in all directions.
+  </p>
+
+  <pre><code>  "lights": [
+    {
+      "type": "point",
+      "distance": 1,
+      "altitude": 45,
+      "azimuth": 0,
+      "color": "red",
+      "brightness": 1
+    },
+    {
+      "type": "point",
+      "distance": 1,
+      "altitude": 45,
+      "azimuth": 120,
+      "color": "green",
+      "brightness": 1
+    },
+    {
+      "type": "point",
+      "distance": 1,
+      "altitude": 45,
+      "azimuth": 240,
+      "color": "blue",
+      "brightness": 1
+    }
+  ],</code></pre>
+
+  <figure>
+    <img src="../img/pointlight1.jpg" alt="Point light example">
+    <figcaption>Figure 4. Point light example.</figcaption>
+  </figure>
+
+  <h3 id="spot-light">Spot Light</h3>
+
+  <p>
+    A spot light is a cone-shaped light with configurable angle and falloff. Useful for focused illumination, stage
+    lighting,
+    or highlighting specific areas of a scene.
+  </p>
+
+  <pre><code>  "lights": [
+    {
+      "type": "spot",
+      "distance": 1,
+      "altitude": 45,
+      "azimuth": 0,
+      "angle": 90,
+      "falloff": 20,
+      "color": "red",
+      "brightness": 2
+    },
+    {
+      "type": "spot",
+      "distance": 1,
+      "altitude": 45,
+      "azimuth": 120,
+      "angle": 90,
+      "falloff": 20,
+      "color": "green",
+      "brightness": 2
+    },
+    {
+      "type": "spot",
+      "distance": 1,
+      "altitude": 45,
+      "azimuth": 240,
+      "angle": 90,
+      "falloff": 20,
+      "color": "blue",
+      "brightness": 2
+    }
+  ],</code></pre>
+
+  <table>
+    <tr>
+      <th>Property</th>
+      <th>Type</th>
+      <th>Default</th>
+      <th>Description</th>
+    </tr>
+    <tr>
+      <td><code>angle</code></td>
+      <td>degrees</td>
+      <td>30°</td>
+      <td>Cone angle (full width)</td>
+    </tr>
+    <tr>
+      <td><code>falloff</code></td>
+      <td>number</td>
+      <td>1</td>
+      <td>Falloff exponent (higher = sharper edge)</td>
+    </tr>
+  </table>
+
+  <figure>
+    <img src="../img/spotlight1.jpg" alt="Spot light example">
+    <figcaption>Figure 5. Spot light example.</figcaption>
+  </figure>
+
+  <h3 id="projector-light">Projector Light</h3>
+
+  <p>
+    A projector light projects a texture onto the scene, like a slide projector. The texture can be a checkerboard
+    pattern or an image texture.
+  </p>
+
+  <pre><code>  "lights": [
+    {
+      "type": "projector",
+      "aspect": 1,
+      "worldPosition": [320, 270, 180],
+      "direction": [0, -1, 0],
+      "angle": 90,
+      "brightness": 2,
+      "texture": {
+        "checker": {
+          "color1": "yellow",
+          "color2": "black"
+        },
+        "texScale": {"x": 0.5, "y": 32},
+        "texOffset": {"x": 0.25, "y": 0}
+      }
+    } 
+  ],</code></pre>
+
+  <table>
+    <tr>
+      <th>Property</th>
+      <th>Type</th>
+      <th>Default</th>
+      <th>Description</th>
+    </tr>
+    <tr>
+      <td><code>angle</code></td>
+      <td>degrees</td>
+      <td><code>30</code></td>
+      <td>Vertical field of view</td>
+    </tr>
+    <tr>
+      <td><code>aspect</code></td>
+      <td>number</td>
+      <td><code>1</code></td>
+      <td>Width / height ratio of the projection</td>
+    </tr>
+    <tr>
+      <td><code>nearPlane</code></td>
+      <td>number</td>
+      <td><code>0.1</code></td>
+      <td>Distance from light center along direction to near clipping plane for intersection tests and uv mapping</td>
+    </tr>
+  </table>
+
+  <figure>
+    <img src="../img/projectorlight1.jpg" alt="Projector light with checkerboard pattern">
+    <figcaption>Figure 6. Projector light with checkerboard pattern.</figcaption>
+  </figure>
+
+  <pre><code>  "lights": [
+    {
+      "type": "projector",
+      "aspect": 1,
+      "worldPosition": [320, 270, 180],
+      "direction": [0, -1, 0],
+      "angle": 90,
+      "brightness": 2,
+      "texture": {
+        "image": "texture",
+        "texScale": {"y": -1}
+      } 
+    }
+  ],</code></pre>
+
+  <figure>
+    <img src="../img/projectorlight2.jpg" alt="Projector light with image texture">
+    <figcaption>Figure 7. Projector light with image texture.</figcaption>
+  </figure>
+
+  <h2 id="emissive-marks">Emissive Marks</h2>
+
+  <p>
+    In addition to the light types above, any mark can act as an area light by setting its <code>material</code> to
+    <code>light</code>. The mark becomes a light-emitting surface, illuminating nearby objects. Emissive marks are
+    supported in <code>raytrace</code> mode.
+  </p>
+
+  <pre><code>  "marks": [
+    {
+      "type": "rect",
+      "geometry": "sphere",
+      "material": "light",
+      "encode": {
+        "enter": {
+          "xc": {"value": 320},
+          "yc": {"value": 90},
+          "zc": {"value": 180},
+          "width": {"value": 180},
+          "fill": {
+            "color": {
+              "h": {"value": 180},
+              "s": {"value": 0.5},
+              "l": {"value": 1}
+            }
+          }
+        }
+      }
+    }
+  ]</code></pre>
+
+  <figure>
+    <img src="../img/emissivemark1.jpg" alt="Emissive mark example">
+    <figcaption>Figure 8. Emissive mark example.</figcaption>
+  </figure>
+
+  <p>
+    Since emissive marks are regular marks, they support data binding — you can create arrays of lights driven
+    by data, positioned and colored through scales. The mark's <code>fill</code> color and size determine the
+    light's color and intensity.
+  </p>
+
+  <h2 id="standard-lighting">Standard Lighting</h2>
+
+  <p>
+    Standard lighting setups are arrangements of lights that can be easily applied to a scene. For example, <a
+      href="https://en.wikipedia.org/wiki/Three-point_lighting">three-point lighting</a> consists of a key light, fill
+    light, and back light arranged in a specific configuration to create balanced and visually appealing illumination.
+  </p>
+
+  <pre><code>  "lights": [
+    {
+      "type": "rect",
+      "size": 0.5,
+      "distance": 1,
+      "altitude": 45,
+      "azimuth": -45,
+      "color": "lightgoldenrodyellow",
+      "brightness": 8
+    },
+    {
+      "type": "rect",
+      "size": 0.5,
+      "distance": 1,
+      "altitude": 45,
+      "azimuth": 45,
+      "color": "lightgoldenrodyellow",
+      "brightness": 2
+    },
+    {
+      "type": "rect",
+      "size": 0.5,
+      "distance": 1,
+      "altitude": 45,
+      "azimuth": -135,
+      "color": "lightgoldenrodyellow",
+      "brightness": 2
+    }
+  ],</code></pre>
+
+  <figure>
+    <img src="../img/threepointlighting1.jpg" alt="Three-point lighting example">
+    <figcaption>Figure 9. Three-point lighting example.</figcaption>
+  </figure>
+
+  <nav class="page-nav">
+    <a href="./coordinates.html">Previous</a>
+    <a href="./prerequisites.html">Next</a>
+  </nav>
+
+  <footer>
+    <span>© 2025 Microsoft</span>
+    <a href="https://go.microsoft.com/fwlink/?LinkId=521839">Privacy &amp; Cookies</a>
+    <a href="https://go.microsoft.com/fwlink/?linkid=2259814">Consumer Health Privacy</a>
+    <a href="https://www.microsoft.com/trademarks">Trademarks</a>
+    <a href="https://www.microsoft.com/en-us/servicesagreement/">Terms of Use</a>
+  </footer>
+  <script src="../js/copy.js"></script>
+  <script>
+    fetch('../demos/ambientlight1.json')
+      .then(r => r.text())
+      .then(text => { document.getElementById('ambientSpec').textContent = text; });
+  </script>
+</body>
+
+</html>

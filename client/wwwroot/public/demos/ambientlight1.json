@@ -1,0 +1,88 @@
+{
+  "title": "Ambient Lighting Example",
+  "description": "Scene lit only by ambient light",
+
+  "width": 640,
+  "height": 180, 
+  "depth": 360,
+
+  "camera": {
+    "distance": 2,
+    "altitude": 30,
+    "azimuth": 30,
+    "worldTarget": [320, 0, 180]
+  },
+
+  "images": [
+    {"name": "test", "url": "textures/calibrate.png"}
+  ],
+
+  "ambient": "white",
+  "background": "black",
+
+  "lights": [],
+ 
+  "marks": [
+    {
+      "type": "rect",
+      "geometry": "xzrect",
+      "encode": {
+        "enter": {
+          "xc": {"value": 320},
+          "zc": {"value": 180},
+          "yc": {"value": -0.01},
+          "width": {"value": 3200},
+          "depth": {"value": 3200},
+          "fill":  {"value": "white"}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "boxframesdf",
+      "encode": {
+        "enter": {
+          "xc": {"value": 120},
+          "yc": {"value": 90},
+          "zc": {"value": 180},
+          "thickness": {"value": 30},
+          "width": {"value": 120},
+          "depth": {"value": 120},
+          "height": {"value": 180},
+          "rounding": {"value": 1},
+          "fill":  {"value": "lightgray"}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "sphere",
+      "encode": {
+        "enter": {
+          "xc": {"value": 320},
+          "yc": {"value": 90},
+          "zc": {"value": 180},
+          "width": {"value": 180},
+          "fill":  {"value": "lightgray"}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "tubesdf",
+      "encode": {
+        "enter": {
+          "xc": {"value": 520},
+          "yc": {"value": 90},
+          "zc": {"value": 180},
+          "innerRadius": {"value": 60},
+          "width": {"value": 120},
+          "depth": {"value": 120},
+          "height": {"value": 180},
+          "rounding": {"value": 1},
+          "fill":  {"value": "lightgray"}
+        }
+      }
+    }
+  ]
+}

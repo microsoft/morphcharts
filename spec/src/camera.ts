@@ -47,10 +47,18 @@ export class Camera {
         // Focus distance in camera/world coordinates
         camera.focusDistance = json.focusDistance ? json.focusDistance : json.focusWorldDistance ? plot.worldToCameraSize(json.focusWorldDistance) : Core.Config.cameraFocusDistance;
 
+        // Default position
+        camera.position = [0, 0, 0];
+        let hasPosition = false;
+
         // Position in camera/world coordinates
-        camera.position = json.position || (json.worldPosition ? Core.vector3.clone(json.worldPosition) : Core.vector3.clone(Core.Config.cameraPosition));
-        if (json.worldPosition && !json.position) {
+        if (json.position) {
+            camera.position = json.position;
+            hasPosition = true;
+        } else if (json.worldPosition) {
+            camera.position = Core.vector3.clone(json.worldPosition);
             plot.worldToCameraPosition(camera.position, camera.position);
+            hasPosition = true;
         }
 
         // Spherical offset
@@ -66,6 +74,12 @@ export class Camera {
             camera.position[0] += offset[0];
             camera.position[1] += offset[1];
             camera.position[2] += offset[2];
+            hasPosition = true;
+        }
+
+        // Default position if not set by position/worldPosition or spherical offset
+        if (!hasPosition) {
+            camera.position = Core.vector3.clone(Core.Config.cameraPosition);
         }
 
         // Target in camera/world coordinates

@@ -226,7 +226,6 @@ export class SphereLight extends Light {
 
 // A point light with a a direction, cone angle, and falloff
 // The falloff increases with angle from the center direction, reaching zero at the cone angle
-// The circular size servers as a hit target and light gathering area for ray tracing (similar to the projection light)
 export class SpotLight extends Light {
     protected _rotation: Quaternion; // Rotation
     public get rotation(): Quaternion { return this._rotation; }
@@ -238,14 +237,11 @@ export class SpotLight extends Light {
     public get angle(): number { return this._angle; }
     protected _falloff: number; // Falloff exponent
     public get falloff(): number { return this._falloff; }
-    protected _nearPlane: number; // Near plane distance
-    public get nearPlane(): number { return this._nearPlane; }
 
     constructor(options: ISpotLightOptions) {
         super(options);
         this._center = options.center || [0, 0, 0];
         this._direction = options.direction || [0, 0, -1];
-        this._nearPlane = options.nearPlane || 0.1;
         this._angle = (options.angle || 30) * Constants.RADIANS_PER_DEGREE; // Convert to radians
         this._falloff = options.falloff == undefined ? 1 : options.falloff;
 
@@ -259,7 +255,6 @@ export class SpotLight extends Light {
         buffer.setCenter(index, this._center);
         buffer.setDirection(index, this._direction);
         buffer.setRotation(index, this._rotation);
-        buffer.setNearPlane(index, this._nearPlane);
         buffer.setAngle(index, this._angle);
         buffer.setFalloff(index, this._falloff);
     }
