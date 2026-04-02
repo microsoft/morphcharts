@@ -27,7 +27,6 @@
     "renderers/webgpuraytrace",
     "spec",
     "server",
-    "client",
-    "webgpuraytrace"
+    "client"
   ]
 }
