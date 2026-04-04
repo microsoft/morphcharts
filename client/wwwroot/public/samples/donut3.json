@@ -120,7 +120,7 @@
           "depth": {"signal": "max(width,depth)*2"},
           "fill": {"value": "white"},
           "_fill": {
-            "checker": {"color0": {"value": "white"}, "color1": {"value": "whitesmoke"}},
+            "checker": {"color1": {"value": "white"}, "color2": {"value": "whitesmoke"}},
             "texScale": {"x": {"value": 5}, "z": {"value": 5}},
             "texOffset": {"x": {"value": 0.25}, "z": {"value": 0}}
           }

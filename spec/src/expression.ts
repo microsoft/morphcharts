@@ -124,7 +124,7 @@ export class Expression {
                 let string = "";
                 while (i < closingQuote) {
                     // Note that a query of field names with dates won't work, e.g. datum.date=='2023-03-23', instead use datum.date==1679529600000
-                    if (!/[a-zA-Z0-9_ ()%+-]/.test(expr[i])) {
+                    if (!/[a-zA-Z0-9_ ()%+\-,.\/:@&#]/.test(expr[i])) {
                         throw new Error("expression invalid string literal character");
                     }
                     string += expr[i];
@@ -173,9 +173,10 @@ export class Expression {
                     let found = false;
                     for (const key in group.signals) {
                         if (expr.substring(i, i + key.length) == key) {
+                            // Ensure complete token match (not a prefix of a longer identifier)
+                            const nextChar = expr[i + key.length];
+                            if (nextChar && /[a-zA-Z0-9_]/.test(nextChar)) { continue; }
                             const signal = group.signals[key];
-                            // const result = signal.update().toString()
-                            // Maintain brackets for arrays
                             const result = JSON.stringify(signal.update());
                             expression += result;
                             i += key.length;
