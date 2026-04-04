@@ -22,24 +22,23 @@
   <p>
     <a href="https://github.com/vega/vega">VEGA</a> specifications ("specs") define plot size using
     <code>width</code> and <code>height</code>. These coordinates are used to specify <code>mark</code> positions
-    and sizes (typically mapping data values through <code>scale</code>s), and map directly to pixel positions.
+    and sizes (typically mapping data values through a <code>scale</code>), and map directly to pixel positions.
   </p>
 
   <p>
     MorphCharts specs also define plot size using <code>width</code> and <code>height</code>, optionally
     adding <code>depth</code>. These coordinates are also used to specify <code>mark</code> positions and sizes.
-    However, they
-    do not map directly to pixel positions, for the following reasons:
+    However, they do not map directly to pixel positions, for the following reasons:
   </p>
 
   <ul>
     <li>
-      A <code>camera</code> (a <code>PerspectiveCamera</code> by default) to define the view. The
-      position and size of a <code>mark</code> on the screen will depend on <code>camera</code> properties such
-      as distance and field of view.
+      The view is defined by a <code>camera</code>, by default, a <code>PerspectiveCamera</code>. The position and size
+      of a <code>mark</code> on the screen will depend on <code>camera</code> properties such as distance and field of
+      view.
     </li>
     <li>
-      <code>mark</code> positions can optionally define a z-coordinate.
+      The position of a <code>mark</code> can optionally define a z-coordinate.
     </li>
     <li>
       The <code>camera</code> view is rendered onto a canvas defined by a <code>width</code> and
@@ -49,10 +48,11 @@
   </ul>
 
   <p>
-    Since plot size no longer maps directly to pixel size, we can define plot size using arbitrary units, such as
-    <code>height</code>, <code>width</code>, and <code>depth</code> as a unit size of 1. However, since many spec
-    properties use <a href="https://github.com/vega/vega">VEGA</a> defaults (e.g. <code>fontSize</code>) it may be
-    more convenient to use typical <a href="https://github.com/vega/vega">VEGA</a> plot sizes.
+    Since plot size no longer maps directly to pixel size, we can define plot size using arbitrary units. For example,
+    we could define <code>height</code>, <code>width</code>, and <code>depth</code> as a unit size of 1. However, since
+    many spec properties use <a href="https://github.com/vega/vega">VEGA</a> defaults (e.g. <code>fontSize</code>) it
+    may
+    be more convenient to use typical <a href="https://github.com/vega/vega">VEGA</a> plot sizes.
   </p>
 
   <h2 id="plot-coordinates">Plot Coordinates</h2>
@@ -83,7 +83,7 @@
   <p>
     Plot coordinates define the plot dimensions at the top-level of the spec, as well as the position and size of marks.
     The plot in <a class="cross-reference" href="#listing1">Listing 1</a> is <code>640x360x640 (WxHxD)</code> units in
-    size. The mark is a <code>32x32x32</code> cube in the center of the plot at <code>[320, 180, 320] (XYZ)</code>.
+    size. The mark is a <code>32x32x32</code> cube in the center of the plot at <code>(320, 180, 320) (XYZ)</code>.
   </p>
 
   <p>
@@ -95,12 +95,13 @@
 
   <p>Camera coordinates are defined by a unit cube which encloses the maximum plot dimension (<code>width</code>,
     <code>height</code>, <code>depth</code>). Using camera coordinates can be convenient, as they are independent of
-    plot size. For example, the center of the plot is always at <code>[0.5, 0.5, 0.5]</code> in camera coordinates,
-    regardless of the plot size.
+    plot size. For example, the center of the plot is always at <code>(0, 0, 0)</code> in camera coordinates,
+    regardless of the plot size. The maximum plot dimension ranges from <code>-0.5</code> to <code>0.5</code> in camera
+    coordinates.
   </p>
 
   <p>
-    A <code>camera</code> and <code>light</code>s can optionally be included in the spec, and can be defined
+    A <code>camera</code> and <code>light</code> array can optionally be included in the spec, and can be defined
     in either camera coordinates or plot coordinates.
   </p>
 
@@ -216,6 +217,28 @@
     </tr>
   </table>
   <div id="table2" class="listing-caption">Table 2. Light position, orientation, and size.</div>
+
+  <p>
+    Camera <code>position</code> can be specified using Cartesian coordinates, or using spherical coordinates with
+    <code>distance</code>, <code>altitude</code> and/or <code>azimuth</code>. If both Cartesian and spherical
+    coordinates are specified, the spherical coordinates are used to offset the Cartesian coordinates. Without
+    Cartesian coordinates, the spherical offset is from the plot center, <code>(0, 0, 0)</code> (camera coordinates).
+  </p>
+
+  <p>
+    Figure 1 shows the relationship between plot coordinates and camera coordinates. The innermost bounding box shows a
+    cube mark positioned at the plot center <code>(0, 0, 0)</code> in camera coordinates, or
+    <code>(width/2, height/2, depth/2)</code> in plot coordinates. The next bounding box shows the plot dimensions in
+    both plot coordinates (upper value) and camera coordinates (lower value) at each vertex. Plot coordinates range from
+    <code>(0, 0, 0)</code> to <code>(width, height, depth)</code>. The outermost bounding box shows the unit cube
+    representing camera coordinates, which range from <code>(-0.5, -0.5, -0.5)</code> to <code>(0.5, 0.5, 0.5)</code>.
+    The cardinal axes are also shown.
+  </p>
+
+  <figure>
+    <img src="../img/coordinates1.png" alt="Plot and camera coordinates">
+    <figcaption>Figure 1. Plot and camera coordinates.</figcaption>
+  </figure>
 
   <h2 id="rendering-coordinates">Rendering Coordinates</h2>
 

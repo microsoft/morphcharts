@@ -1,0 +1,615 @@
+{
+  "title": "Coordinates",
+  "description": "Coordinates",
+
+  "signals": [
+    {"name": "width", "value": 640},
+    {"name": "height", "value": 160},
+    {"name": "depth", "value": 320},
+    {"name": "size", "value": 160},
+    {"name": "maxD", "update": "max(width,depth,height)"}
+  ],
+
+  "camera": {
+    "distance": 2.8,
+    "altitude": 15,
+    "azimuth": 15,
+    "worldTarget": [320, 0, 160]
+  },
+
+  "encode": {
+    "enter": {
+      "strokeWidth": {"value": 1},
+      "stroke": {"value": "gray"}
+    }
+  },
+
+  "marks": [
+    {
+      "type": "rect",
+      "geometry": "xzrect",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "zc": {"signal": "depth/2"},
+          "width": {"signal": "width"},
+          "depth": {"signal": "depth"},
+          "fill": {
+            "checker": {"color1": {"value": "white"}, "color2": {"value": "whitesmoke"}},
+            "texScale": {"x": {"signal": "2*width/depth"}, "z": {"value": 2}}
+          }
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "boxframesdf",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "yc": {"signal": "height/2"},
+          "zc": {"signal": "depth/2"},
+          "thickness": {"value": 1},
+          "fill": {"value": "dimgray"},
+          "width": {"signal": "size"},
+          "height": {"signal": "size"},
+          "depth": {"signal": "size"}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "boxframesdf",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "yc": {"signal": "height/2"},
+          "zc": {"signal": "depth/2"},
+          "width": {"signal": "maxD"},
+          "height": {"signal": "maxD"},
+          "depth": {"signal": "maxD"},
+          "thickness": {"value": 1},
+          "fill": { "value": "gray"}
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"signal": "width"},
+          "y": {"signal": "height"},
+          "z": {"signal": "depth"},
+          "align": {"value": "left"},
+          "baseline": {"value": "bottom"},
+          "font": {"value": "monospace"},
+          "fontSize": {"value": 24},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.5},
+          "text": {"signal": "'('+toString(width)+', '+toString(height)+', '+toString(depth)+')'"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"signal": "width"},
+          "y": {"signal": "height"},
+          "z": {"value": 0},
+          "align": {"value": "left"},
+          "baseline": {"value": "bottom"},
+          "font": {"value": "monospace"},
+          "fontSize": {"value": 24},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.5},
+          "text": {"signal": "'('+toString(width)+', '+toString(height)+', 0)'"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"signal": "width"},
+          "y": {"value": 0},
+          "z": {"value": 0},
+          "align": {"value": "left"},
+          "baseline": {"value": "bottom"},
+          "font": {"value": "monospace"},
+          "fontSize": {"value": 24},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.5},
+          "text": {"signal": "'('+toString(width)+', 0, 0)'"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"signal": "width"},
+          "y": {"value": 0},
+          "z": {"signal": "depth"},
+          "align": {"value": "left"},
+          "baseline": {"value": "bottom"},
+          "font": {"value": "monospace"},
+          "fontSize": {"value": 24},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.5},
+          "text": {"signal": "'('+toString(width)+', 0, '+toString(depth)+')'"}
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"signal": "width"},
+          "y": {"signal": "height"},
+          "z": {"signal": "depth"},
+          "align": {"value": "left"},
+          "baseline": {"value": "top"},
+          "font": {"value": "monospace"},
+          "fontSize": {"value": 24},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.5},
+          "text": {"signal": "'('+toString(width/2/maxD)+', '+toString(height/2/maxD)+', '+toString(depth/2/maxD)+')'"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"signal": "width"},
+          "y": {"signal": "height"},
+          "z": {"value": 0},
+          "align": {"value": "left"},
+          "baseline": {"value": "top"},
+          "font": {"value": "monospace"},
+          "fontSize": {"value": 24},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.5},
+          "text": {"signal": "'('+toString(width/2/maxD)+', '+toString(height/2/maxD)+', '+toString(-depth/2/maxD)+')'"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"signal": "width"},
+          "y": {"value": 0},
+          "z": {"value": 0},
+          "align": {"value": "left"},
+          "baseline": {"value": "top"},
+          "font": {"value": "monospace"},
+          "fontSize": {"value": 24},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.5},
+          "text": {"signal": "'('+toString(width/2/maxD)+', '+toString(-height/2/maxD)+', '+toString(-depth/2/maxD)+')'"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"signal": "width"},
+          "y": {"value": 0},
+          "z": {"signal": "depth"},
+          "align": {"value": "left"},
+          "baseline": {"value": "top"},
+          "font": {"value": "monospace"},
+          "fontSize": {"value": 24},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.5},
+          "text": {"signal": "'('+toString(width/2/maxD)+', '+toString(-height/2/maxD)+', '+toString(depth/2/maxD)+')'"}
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"value": 0},
+          "y": {"signal": "height"},
+          "z": {"signal": "depth"},
+          "align": {"value": "right"},
+          "baseline": {"value": "bottom"},
+          "font": {"value": "monospace"},
+          "fontSize": {"value": 24},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.5},
+          "text": {"signal": "'(0, '+toString(height)+', '+toString(depth)+')'"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"value": 0},
+          "y": {"signal": "height"},
+          "z": {"value": 0},
+          "align": {"value": "right"},
+          "baseline": {"value": "bottom"},
+          "font": {"value": "monospace"},
+          "fontSize": {"value": 24},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.5},
+         "text": {"signal": "'(0, '+toString(height)+', 0)'"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"value": 0},
+          "y": {"value": 0},
+          "z": {"value": 0},
+          "align": {"value": "right"},
+          "baseline": {"value": "bottom"},
+          "font": {"value": "monospace"},
+          "fontSize": {"value": 24},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.5},
+          "text": {"signal": "'(0, 0, 0)'"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"value": 0},
+          "y": {"value": 0},
+          "z": {"signal": "depth"},
+          "align": {"value": "right"},
+          "baseline": {"value": "bottom"},
+          "font": {"value": "monospace"},
+          "fontSize": {"value": 24},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.5},
+          "text": {"signal": "'(0, 0, '+toString(depth)+')'"}
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"value": 0},
+          "y": {"signal": "height"},
+          "z": {"signal": "depth"},
+          "align": {"value": "right"},
+          "baseline": {"value": "top"},
+          "font": {"value": "monospace"},
+          "fontSize": {"value": 24},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.5},
+          "text": {"signal": "'('+toString(-width/2/maxD)+', '+toString(height/2/maxD)+', '+toString(depth/2/maxD)+')'"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"value": 0},
+          "y": {"signal": "height"},
+          "z": {"value": 0},
+          "align": {"value": "right"},
+          "baseline": {"value": "top"},
+          "font": {"value": "monospace"},
+          "fontSize": {"value": 24},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.5},
+          "text": {"signal": "'('+toString(-width/2/maxD)+', '+toString(height/2/maxD)+', '+toString(-depth/2/maxD)+')'"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"value": 0},
+          "y": {"value": 0},
+          "z": {"value": 0},
+          "align": {"value": "right"},
+          "baseline": {"value": "top"},
+          "font": {"value": "monospace"},
+          "fontSize": {"value": 24},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.5},
+          "text": {"signal": "'('+toString(-width/2/maxD)+', '+toString(-height/2/maxD)+', '+toString(-depth/2/maxD)+')'"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"value": 0},
+          "y": {"value": 0},
+          "z": {"signal": "depth"},
+          "align": {"value": "right"},
+          "baseline": {"value": "top"},
+          "font": {"value": "monospace"},
+          "fontSize": {"value": 24},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.5},
+          "text": {"signal": "'('+toString(-width/2/maxD)+', '+toString(-height/2/maxD)+', '+toString(depth/2/maxD)+')'"}
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"signal": "width/2"},
+          "y": {"signal": "height/2"},
+          "z": {"signal": "depth/2"},
+          "baseline": {"value": "bottom"},
+          "font": {"value": "monospace"},
+          "fontSize": {"value": 24},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.5},
+          "text": {"signal": "'('+toString(width/2)+', '+toString(height/2)+', '+toString(depth/2)+')'"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"signal": "width/2"},
+          "y": {"signal": "height/2"},
+          "z": {"signal": "depth/2"},
+          "baseline": {"value": "top"},
+          "font": {"value": "monospace"},
+          "fontSize": {"value": 24},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.5},
+          "text": {"value": "(0, 0, 0)"}
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"signal": "(width-maxD)/2"},
+          "y": {"signal": "(height-maxD)/2"},
+          "z": {"signal": "(depth-maxD)/2"},
+          "align": {"value": "right"},
+          "font": {"value": "monospace"},
+          "fontSize": {"value": 24},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.5},
+          "text": {"value": "(-0.5,-0.5,-0.5)"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"signal": "(width-maxD)/2"},
+          "y": {"signal": "(height+maxD)/2"},
+          "z": {"signal": "(depth+maxD)/2"},
+          "align": {"value": "right"},
+          "font": {"value": "monospace"},
+          "fontSize": {"value": 24},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.5},
+          "text": {"value": "(-0.5,0.5,0.5)"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"signal": "(width+maxD)/2"},
+          "y": {"signal": "(height-maxD)/2"},
+          "z": {"signal": "(depth+maxD)/2"},
+          "align": {"value": "left"},
+          "font": {"value": "monospace"},
+          "fontSize": {"value": 24},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.5},
+          "text": {"value": "(0.5,-0.5,0.5)"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"signal": "(width+maxD)/2"},
+          "y": {"signal": "(height+maxD)/2"},
+          "z": {"signal": "(depth-maxD)/2"},
+          "align": {"value": "left"},
+          "font": {"value": "monospace"},
+          "fontSize": {"value": 24},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.5},
+          "text": {"value": "(0.5,0.5,-0.5)"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"signal": "(width-maxD)/2"},
+          "y": {"signal": "(height-maxD)/2"},
+          "z": {"signal": "(depth+maxD)/2"},
+          "align": {"value": "right"},
+          "font": {"value": "monospace"},
+          "fontSize": {"value": 24},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.5},
+          "text": {"value": "(-0.5,-0.5,0.5)"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"signal": "(width+maxD)/2"},
+          "y": {"signal": "(height-maxD)/2"},
+          "z": {"signal": "(depth-maxD)/2"},
+          "align": {"value": "left"},
+          "font": {"value": "monospace"},
+          "fontSize": {"value": 24},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.5},
+          "text": {"value": "(0.5,-0.5,-0.5)"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"signal": "(width-maxD)/2"},
+          "y": {"signal": "(height+maxD)/2"},
+          "z": {"signal": "(depth-maxD)/2"},
+          "align": {"value": "right"},
+          "font": {"value": "monospace"},
+          "fontSize": {"value": 24},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.5},
+          "text": {"value": "(-0.5,0.5,-0.5)"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"signal": "(width+maxD)/2"},
+          "y": {"signal": "(height+maxD)/2"},
+          "z": {"signal": "(depth+maxD)/2"},
+          "align": {"value": "left"},
+          "font": {"value": "monospace"},
+          "fontSize": {"value": 24},          
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.5},
+          "text": {"value": "(0.5,0.5,0.5)"}
+        }
+      }
+    },
+
+    {
+      "type": "rule",
+      "geometry": "cylinder",
+      "encode": {
+        "enter": {
+          "x": {"signal": "(width+size)/2"},
+          "x2": {"signal": "maxD"},
+          "y": {"signal": "height/2"},
+          "y2": {"signal": "height/2"},
+          "z": {"signal": "depth/2"},
+          "z2": {"signal": "depth/2"},
+          "strokeWidth": {"value": 5},
+          "stroke": { "value": "red"}
+        }
+      }
+    },
+    {
+      "type": "rule",
+      "geometry": "cylinder",
+      "encode": {
+        "enter": {
+          "x": {"signal": "width/2"},
+          "x2": {"signal": "width/2"},
+          "y": {"signal": "(height+size)/2"},
+          "y2": {"signal": "(height+maxD)/2"},
+          "z": {"signal": "depth/2"},
+          "z2": {"signal": "depth/2"},
+          "strokeWidth": {"value": 5},
+          "stroke": { "value": "green"}
+        }
+      }
+    },
+    {
+      "type": "rule",
+      "geometry": "cylinder",
+      "encode": {
+        "enter": {
+          "x": {"signal": "width/2"},
+          "x2": {"signal": "width/2"},
+          "y": {"signal": "height/2"},
+          "y2": {"signal": "height/2"},
+          "z": {"signal": "(depth+size)/2"},
+          "z2": {"signal": "(depth+maxD)/2"},
+          "strokeWidth": {"value": 5},
+          "stroke": { "value": "blue"}
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"signal": "maxD"},
+          "y": {"signal": "height/2"},
+          "z": {"signal": "depth/2"},
+          "align": {"value": "left"},
+          "font": {"value": "monospace"},
+          "fontSize": {"value": 24},
+          "fill": {"value": "red"},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.5},
+          "text": {"value": "x"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"signal": "width/2"},
+          "y": {"signal": "(height+maxD)/2"},
+          "z": {"signal": "depth/2"},
+          "baseline": {"value": "bottom"},
+          "font": {"value": "monospace"},
+          "fontSize": {"value": 24},
+          "fill": {"value": "green"},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.5},
+          "text": {"value": "y"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"signal": "width/2"},
+          "y": {"signal": "height/2"},
+          "z": {"signal": "(depth+maxD)/2", "offset": 24},
+          "font": {"value": "monospace"},
+          "fontSize": {"value": 24},
+          "fill": {"value": "blue"},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.5},
+          "text": {"value": "z"}
+        }
+      }
+    }
+  ]
+}
