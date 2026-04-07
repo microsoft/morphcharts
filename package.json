@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "typescript": "^5.8.2",
-    "vite": "^6.4.1"
+    "vite": "^6.4.2"
   },
   "workspaces": [
     "core",
