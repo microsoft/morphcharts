@@ -405,6 +405,9 @@ export class Albers extends Projection {
                 }
             }
         }
+
+        // Project center
+        projection._projectedCenter = projection._project(projection.center[0], projection.center[1]);
         return projection;
     }
 
@@ -412,17 +415,26 @@ export class Albers extends Projection {
     public project(longitude: number, latitude: number): Core.Vector2 {
         const xy = this._project(longitude, latitude);
         if (xy) {
-            // Scale
-            xy[0] *= this.scale;
-            xy[1] *= this.scale;
+            // Subtract center
+            xy[0] -= this._projectedCenter[0];
+            xy[1] -= this._projectedCenter[1];
+
+            // Scale and translate
+            xy[0] = this.translate[0] + this.scale * xy[0];
+            xy[1] = this.translate[1] + this.scale * xy[1];
         }
         return xy;
     }
 
     public unproject(x: number, y: number): Core.Vector2 {
-        // Reverse scale
-        x /= this.scale;
-        y /= this.scale;
+        // Reverse translate and scale
+        x = (x - this.translate[0]) / this.scale;
+        y = (y - this.translate[1]) / this.scale;
+
+        // Add center
+        x += this._projectedCenter[0];
+        y += this._projectedCenter[1];
+
         return this._unproject(x, y);
     }
 }
