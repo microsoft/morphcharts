@@ -205,7 +205,7 @@ export class Main {
 
         // Renderer (sync object creation — GPU init runs in _initializeAsync)
         this._renderer = new WebGPURenderer.Main(this._canvas);
-        (window as any).renderer = this._renderer; // Expose for console benchmarking: await renderer.benchmarkAsync()
+        (window as any).renderer = this._renderer; // Expose renderer for console access
         this._renderer.deviceLostCallback = (reason, message) => {
             this._stop();
             this._startStopButton.disabled = true;

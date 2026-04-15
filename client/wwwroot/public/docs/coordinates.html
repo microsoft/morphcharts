@@ -51,8 +51,12 @@
     Since plot size no longer maps directly to pixel size, we can define plot size using arbitrary units. For example,
     we could define <code>height</code>, <code>width</code>, and <code>depth</code> as a unit size of 1. However, since
     many spec properties use <a href="https://github.com/vega/vega">VEGA</a> defaults (e.g. <code>fontSize</code>) it
-    may
-    be more convenient to use typical <a href="https://github.com/vega/vega">VEGA</a> plot sizes.
+    may be more convenient to use typical <a href="https://github.com/vega/vega">VEGA</a> plot sizes.
+  </p>
+
+  <p>
+    MorphCharts uses a right-hand coordinate system: <code>x</code> increases to the right, <code>y</code> increases
+    upward, and <code>z</code> increases toward the viewer.
   </p>
 
   <h2 id="plot-coordinates">Plot Coordinates</h2>
@@ -240,6 +244,88 @@
     <figcaption>Figure 1. Plot and camera coordinates.</figcaption>
   </figure>
 
+  <p><a href="../client.html?plot=coordinates1">View in Online Editor</a></p>
+
+  <p>The conversion formulae between plot and camera coordinates are:</p>
+
+  <math display="block" style="margin-bottom: 8px">
+    <mi>scale</mi>
+    <mo>=</mo>
+    <mfrac>
+      <mn>1</mn>
+      <mrow>
+        <mi>max</mi>
+        <mo>(</mo>
+        <mi>w</mi>
+        <mo>,</mo>
+        <mi>h</mi>
+        <mo>,</mo>
+        <mi>d</mi>
+        <mo>)</mo>
+      </mrow>
+    </mfrac>
+  </math>
+
+  <math display="block" style="margin-bottom: 8px">
+    <msub>
+      <mi>x</mi>
+      <mi>camera</mi>
+    </msub>
+    <mo>=</mo>
+    <mi>scale</mi>
+    <mo>×</mo>
+    <mo>(</mo>
+    <msub>
+      <mi>x</mi>
+      <mi>plot</mi>
+    </msub>
+    <mo>−</mo>
+    <mfrac>
+      <mi>w</mi>
+      <mn>2</mn>
+    </mfrac>
+    <mo>)</mo>
+  </math>
+
+  <math display="block">
+    <msub>
+      <mi>x</mi>
+      <mi>plot</mi>
+    </msub>
+    <mo>=</mo>
+    <mfrac>
+      <msub>
+        <mi>x</mi>
+        <mi>camera</mi>
+      </msub>
+      <mi>scale</mi>
+    </mfrac>
+    <mo>+</mo>
+    <mfrac>
+      <mi>w</mi>
+      <mn>2</mn>
+    </mfrac>
+  </math>
+
+  <p>
+    The same applies for <var>y</var> (with <var>h</var>) and <var>z</var> (with <var>d</var>).
+    For sizes (e.g. light <code>size</code>, <code>worldSize</code> etc.), the conversion is simply:
+  </p>
+
+  <math display="block">
+    <msub>
+      <mi>size</mi>
+      <mi>camera</mi>
+    </msub>
+    <mo>=</mo>
+    <mi>scale</mi>
+    <mo>×</mo>
+    <msub>
+      <mi>size</mi>
+      <mi>plot</mi>
+    </msub>
+  </math>
+
   <h2 id="rendering-coordinates">Rendering Coordinates</h2>
 
   <p>
@@ -270,6 +356,7 @@
     <a href="https://www.microsoft.com/trademarks">Trademarks</a>
     <a href="https://www.microsoft.com/en-us/servicesagreement/">Terms of Use</a>
   </footer>
+
   <script src="../js/copy.js"></script>
 </body>
 

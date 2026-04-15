@@ -2,3 +2,4 @@
 **/dist/
 **/tsconfig.tsbuildinfo
 /client/wwwroot/js/
+/client/wwwroot/public/tests/

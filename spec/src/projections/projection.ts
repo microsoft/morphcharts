@@ -17,7 +17,7 @@ export abstract class Projection implements IMapProjection {
     }
 
     // The projection’s scale factor
-    // The default scale is projection-specific
+    // The default scale is 1
     public scale: number;
 
     // The translation offset determines the coordinates of the projection’s center
@@ -68,6 +68,7 @@ export abstract class Projection implements IMapProjection {
         projection.scale = json.scale || 1;
         projection.translate = json.translate || [0, 0];
         projection.center = json.center || [0, 0];
+        projection.center[0] = Core.Angles.wrapAngleDegrees(projection.center[0]);
         return projection;
     }
 }
@@ -79,7 +80,8 @@ export class Equirectangular extends Projection {
     }
 
     public project(longitude: number, latitude: number): Core.Vector2 {
-        // Subtract center, scale and traslate
+        longitude = Core.Angles.wrapAngleDegrees(longitude);
+        // Subtract center, scale and translate
         const x = this.translate[0] + this.scale * (longitude - this.center[0]);
         const y = this.translate[1] + this.scale * (latitude - this.center[1]);
         return [x, y];
@@ -100,8 +102,8 @@ export class Orthographic extends Projection {
         super();
 
         // Defaults
-        this._centralMeridian = this._centralMeridian || 0;
-        this._standardLatitude = this._standardLatitude || 0;
+        this._centralMeridian = 0;
+        this._standardLatitude = 0;
     }
 
     public static fromJSON(group: Group, json: any): Orthographic {
@@ -110,7 +112,7 @@ export class Orthographic extends Projection {
 
         // Rotate
         if (json.rotate) {
-            // [lambda, phi, gamma]
+            // [lambda, phi] (gamma not yet supported)
             if (json.rotate.length == 2) {
                 projection._centralMeridian = json.rotate[0];
                 projection._standardLatitude = json.rotate[1];
@@ -120,6 +122,7 @@ export class Orthographic extends Projection {
     }
 
     private _project(longitude: number, latitude: number): Core.Vector2 {
+        longitude = Core.Angles.wrapAngleDegrees(longitude);
         // lambda (λ) is the longitude
         // lambda0 (λ0) is the central meridian
         // phi (φ) is the latitude
@@ -147,7 +150,7 @@ export class Orthographic extends Projection {
     public project(longitude: number, latitude: number): Core.Vector2 {
         const xy = this._project(longitude, latitude);
         if (xy) {
-            // Scale and traslate
+            // Scale and translate
             xy[0] = this.translate[0] + this.scale * xy[0];
             xy[1] = this.translate[1] + this.scale * xy[1];
         }
@@ -155,7 +158,20 @@ export class Orthographic extends Projection {
     }
 
     public unproject(x: number, y: number): Core.Vector2 {
-        throw new Error("not implemented");
+        // Reverse scale and translate
+        x = (x - this.translate[0]) / this.scale;
+        y = (y - this.translate[1]) / this.scale;
+
+        const lambda0 = -Math.PI * this._centralMeridian / 180;
+        const phi0 = -Math.PI * this._standardLatitude / 180;
+        const rho = Math.sqrt(x * x + y * y);
+        if (rho === 0) { return [this._centralMeridian, this._standardLatitude]; }
+        const c = Math.asin(rho);
+        const sinC = Math.sin(c);
+        const cosC = Math.cos(c);
+        const latitude = Math.asin(cosC * Math.sin(phi0) + y * sinC * Math.cos(phi0) / rho);
+        const longitude = lambda0 + Math.atan2(x * sinC, rho * Math.cos(phi0) * cosC - y * Math.sin(phi0) * sinC);
+        return [longitude * 180 / Math.PI, latitude * 180 / Math.PI];
     }
 }
 
@@ -169,10 +185,11 @@ export class Mercator extends Projection {
      * Project from latitude and longitude
      * @param longitude Longitude, degrees [-180,180]
      * @param latitude Latitude, degrees [-90, 90]
-     * @param xy Projected x [-1,1] (increasing left to right), projected y [-1,1] (increasing bottom to top)
+     * @returns Projected [x, y], x [-1,1] (increasing left to right), y [-1,1] (increasing bottom to top)
      */
     private _project(longitude: number, latitude: number): Core.Vector2 {
-        // TODO: Deal with crossing international dateline
+        longitude = Core.Angles.wrapAngleDegrees(longitude);
+        // TODO: Handle features that span the international dateline (e.g. geometries with points at both +170° and -170°)
         const x = longitude / 180;
         latitude = Math.max(Math.min(latitude, this._maxLatitude), this._minLatitude);
         latitude = Math.PI * latitude / 180;
@@ -186,13 +203,12 @@ export class Mercator extends Projection {
      * Unproject to latitude and longitude
      * @param x Projected x [-1,1] (increasing left to right)
      * @param y Projected y [-1,1] (increasing bottom to top)
-     * @param lonLat Longitude, degrees [-180,180], latitude, degrees [-90, 90]
+     * @returns [longitude, latitude] in degrees
      */
     private _unproject(x: number, y: number): Core.Vector2 {
         const longitude = x * 180;
         y *= Math.PI;
-        let latitude = Math.PI / 2 - 2 * Math.atan(Math.exp(-y));
-        latitude = Math.PI * latitude / 180;
+        const latitude = (Math.PI / 2 - 2 * Math.atan(Math.exp(-y))) * 180 / Math.PI;
         return [longitude, latitude];
     }
 
@@ -212,14 +228,21 @@ export class Mercator extends Projection {
         xy[0] -= this._projectedCenter[0];
         xy[1] -= this._projectedCenter[1];
 
-        // Scale and traslate
+        // Scale and translate
         xy[0] = this.translate[0] + this.scale * xy[0];
         xy[1] = this.translate[1] + this.scale * xy[1];
         return xy;
     }
 
     public unproject(x: number, y: number): Core.Vector2 {
-        // TODO: Center, scale, translate
+        // Reverse translate and scale
+        x = (x - this.translate[0]) / this.scale;
+        y = (y - this.translate[1]) / this.scale;
+
+        // Add center
+        x += this._projectedCenter[0];
+        y += this._projectedCenter[1];
+
         return this._unproject(x, y);
     }
 }
@@ -227,14 +250,13 @@ export class Mercator extends Projection {
 export class CylindricalEqualArea extends Projection {
     private _standardLatitude: number;
     private _centralMeridian: number;
-    private _stretchFactor: number;
 
     private _project(longitude: number, latitude: number): Core.Vector2 {
+        longitude = Core.Angles.wrapAngleDegrees(longitude);
         // lambda (λ) is the longitude
         // lambda0 (λ0) is the central meridian
         // phi (φ) is the latitude
         // phi0 (φ0) is the standard latitude
-        // S is the stretch factor
         // x is the horizontal coordinate of the projected location on the map
         // y is the vertical coordinate of the projected location on the map
 
@@ -251,9 +273,8 @@ export class CylindricalEqualArea extends Projection {
         super();
 
         // Defaults
-        this._centralMeridian = this._centralMeridian || 0;
-        this._standardLatitude = this._standardLatitude || 0;
-        this._stretchFactor = this._stretchFactor || 1;
+        this._centralMeridian = 0;
+        this._standardLatitude = 0;
     }
 
     public static fromJSON(group: Group, json: any): CylindricalEqualArea {
@@ -261,12 +282,12 @@ export class CylindricalEqualArea extends Projection {
         Projection._fromJSON(projection, json);
 
         if (json.rotate) {
-            // [lambda, phi, gamma]
-            if (json.rotate.length == 1) {
+            // [lambda, phi] (gamma not yet supported)
+            if (json.rotate.length >= 1) {
                 projection._centralMeridian = json.rotate[0];
-                if (json.parallels.length > 1) {
-                    projection._standardLatitude = json.rotate[1];
-                }
+            }
+            if (json.rotate.length >= 2) {
+                projection._standardLatitude = json.rotate[1];
             }
         }
 
@@ -282,7 +303,7 @@ export class CylindricalEqualArea extends Projection {
             xy[0] -= this._projectedCenter[0];
             xy[1] -= this._projectedCenter[1];
 
-            // Scale and traslate
+            // Scale and translate
             xy[0] = this.translate[0] + this.scale * xy[0];
             xy[1] = this.translate[1] + this.scale * xy[1];
         }
@@ -290,7 +311,20 @@ export class CylindricalEqualArea extends Projection {
     }
 
     public unproject(x: number, y: number): Core.Vector2 {
-        throw new Error("not implemented");
+        // Reverse translate and scale
+        x = (x - this.translate[0]) / this.scale;
+        y = (y - this.translate[1]) / this.scale;
+
+        // Add center
+        x += this._projectedCenter[0];
+        y += this._projectedCenter[1];
+
+        // Reverse projection
+        const phi0 = Math.PI * this._standardLatitude / 180;
+        const lambda0 = Math.PI * this._centralMeridian / 180;
+        const latitude = Math.asin(y * Math.cos(phi0));
+        const longitude = x / Math.cos(phi0) + lambda0;
+        return [longitude * 180 / Math.PI, latitude * 180 / Math.PI];
     }
 }
 
@@ -304,9 +338,10 @@ export class Albers extends Projection {
      * Project from latitude and longitude
      * @param longitude Longitude, degrees [-180,180]
      * @param latitude Latitude, degrees [-90, 90]
-     * @param xy Projected x [-1,1] (increasing left to right), projected y [-1,1] (increasing bottom to top)
+     * @returns Projected [x, y]
      */
     private _project(longitude: number, latitude: number): Core.Vector2 {
+        longitude = Core.Angles.wrapAngleDegrees(longitude);
         const phi1 = Math.PI * this._standardParallel1 / 180;
         const phi2 = Math.PI * this._standardParallel2 / 180;
         const lat0 = Math.PI * this._latitudeOfOrigin / 180;
@@ -326,9 +361,9 @@ export class Albers extends Projection {
 
     /**
      * Unproject to latitude and longitude
-     * @param x Projected x [-1,1] (increasing left to right)
-     * @param y Projected y [-1,1] (increasing bottom to top)
-     * @param lonLat Longitude, degrees [-180,180], latitude, degrees [-90, 90]
+     * @param x Projected x
+     * @param y Projected y
+     * @returns [longitude, latitude] in degrees
      */
     private _unproject(x: number, y: number): Core.Vector2 {
         const phi1 = Math.PI * this._standardParallel1 / 180;
@@ -370,6 +405,9 @@ export class Albers extends Projection {
                 }
             }
         }
+
+        // Project center
+        projection._projectedCenter = projection._project(projection.center[0], projection.center[1]);
         return projection;
     }
 
@@ -377,15 +415,26 @@ export class Albers extends Projection {
     public project(longitude: number, latitude: number): Core.Vector2 {
         const xy = this._project(longitude, latitude);
         if (xy) {
-            // Scale
-            xy[0] *= this.scale;
-            xy[1] *= this.scale;
+            // Subtract center
+            xy[0] -= this._projectedCenter[0];
+            xy[1] -= this._projectedCenter[1];
+
+            // Scale and translate
+            xy[0] = this.translate[0] + this.scale * xy[0];
+            xy[1] = this.translate[1] + this.scale * xy[1];
         }
         return xy;
     }
 
     public unproject(x: number, y: number): Core.Vector2 {
-        // TODO: Scale
+        // Reverse translate and scale
+        x = (x - this.translate[0]) / this.scale;
+        y = (y - this.translate[1]) / this.scale;
+
+        // Add center
+        x += this._projectedCenter[0];
+        y += this._projectedCenter[1];
+
         return this._unproject(x, y);
     }
 }

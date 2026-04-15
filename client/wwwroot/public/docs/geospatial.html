@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MorphCharts — Geospatial Data</title>
+  <link rel="stylesheet" href="../css/common.css">
+</head>
+
+<body>
+  <header>
+    <a href="../index.html">Home</a>
+    <a href="../client.html">Try Online</a>
+    <a href="../gallery.html">Gallery</a>
+    <a href="./index.html">Docs</a>
+    <a href="https://github.com/microsoft/morphcharts">GitHub</a>
+  </header>
+
+  <h1>Geospatial Data</h1>
+
+  <p>
+    When working with geospatial data, it is generally desirable to include a map in the background to provide
+    geographic context. One way to do this is to use a map image as a background texture.
+  </p>
+
+  <figure>
+    <img src="../gallery/ustornados1_raytrace_1920x1080.jpg" alt="US Tornados Mercator hex bin example">
+    <figcaption>Figure 1. US Tornados Mercator hex bin example.</figcaption>
+  </figure>
+
+  <p>
+    Imagery courtesy of the <a
+      href="https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer">U.S. Geological Survey
+      National Map</a>. Tornado data courtesy of the <a href="https://www.spc.noaa.gov/wcm/#data">NOAA Storm Prediction
+      Center</a>.
+  </p>
+
+  <pre><code id="hexBinSpec"></code></pre>
+  <div class="listing-caption">Listing 1. US Tornados Mercator hex bin example</div>
+
+  <p><a href="../client.html?plot=ustornados1">View in Online Editor</a></p>
+
+  <h2 id="step-by-step">Step-by-Step</h2>
+
+  <p>
+    This section walks through the key parts of the spec in Listing 1.
+  </p>
+
+  <h3 id="projection">Projection</h3>
+
+  <p>
+    A <a href="https://en.wikipedia.org/wiki/Mercator_projection">Mercator projection</a> is defined to convert
+    longitude and latitude in degrees to projected <code>x</code> and <code>y</code> coordinates in the
+    <code>[-1, 1]</code> range:
+  </p>
+
+  <pre><code>"projections": [
+  {
+    "name": "projection",
+    "type": "mercator"
+  }
+]</code></pre>
+
+  <p>
+    The projection supports optional <code>center</code>, <code>scale</code> and <code>translate</code>
+    properties.
+    In this example, the projection is left at its default center of <code>[0,0]</code> and scale of <code>1</code>.
+    The projected coordinates are instead subsequently adjusted using formula transforms to center the map and fill the
+    viewport.
+  </p>
+
+  <h3 id="background-image">Background Image</h3>
+
+  <p>
+    A map image in a Mercator projection is loaded and its corner coordinates (longitude/latitude) are projected to
+    Mercator coordinates using the <code>geopoint</code> transform and the <code>projection</code>.
+    A pair of <code>extent</code> transforms captures these projected extents, which are used in two subsequent formula
+    transforms to center the coordinates at the midpoint of each axis.
+    A second pair of <code>extent</code> transforms captures these centered extents so they can be used to define a
+    <code>scale</code>.
+  </p>
+
+  <pre><code>"images": [
+  {"name": "map", "url": "img/..."}
+],
+
+"data": [
+  {
+    "name": "image",
+    "values": [
+      { "lon": -129.375, "lat": 21.943046 },
+      { "lon": -61.875, "lat": 52.48278 }
+    ],
+    "transform": [
+      {"type": "geopoint", "projection": "projection", "fields": ["lon", "lat"], "as": ["xc", "zc"]},
+      {"type": "extent", "field": "xc", "signal": "imageExtentX"},
+      {"type": "extent", "field": "zc", "signal": "imageExtentZ"},
+      {"type": "formula", "expr": "datum.xc-(imageExtentX[0]+imageExtentX[1])/2", "as": "xc"},
+      {"type": "formula", "expr": "datum.zc-(imageExtentZ[0]+imageExtentZ[1])/2", "as": "zc"}, 
+      {"type": "extent", "field": "xc", "signal": "imageCenteredX"},
+      {"type": "extent", "field": "zc", "signal": "imageCenteredZ"}
+    ]
+  }
+]</code></pre>
+
+  <h3 id="tornado-data">Tornado Data</h3>
+
+  <p>
+    The tornado data is loaded from a CSV file.
+    Each row contains a longitude and latitude, which are projected using a <code>geopoint</code> transform.
+    A pair of <code>formula</code> transforms centers the projected coordinates by subtracting the mid-point of the
+    image extent.
+    The image plane is defined as the <code>xz</code> plane (<code>x</code> corresponds to longitude, <code>z</code>
+    corresponds to latitude).
+    The <code>z</code> coordinate is flipped for right-hand <a href="coordinates.html">coordinates</a>, such
+    that an increase in latitude corresponds to a decrease in the <code>z</code> coordinate.
+    The <code>hexbin</code> transform divides the image extent into a hex grid and assigns each data row to a hex cell,
+    outputting the cell bounds as <code>x0</code>, <code>x1</code>, <code>z0</code>, and <code>z1</code>.
+    By using the image extent, we ensure the hex bins are sized consistently, regardless of the data extent.
+  </p>
+
+  <pre><code>{
+  "name": "table",
+  "url": "data/ustornados_1950-2024.csv",
+  "transform": [
+    {"type": "geopoint", "projection": "projection", "fields": ["slon", "slat"], "as": ["xc", "zc"] },
+    {"type": "formula", "expr": "datum.xc-(imageExtentX[0]+imageExtentX[1])/2", "as": "xc"},
+    {"type": "formula", "expr": "(imageExtentZ[0]+imageExtentZ[1])/2-datum.zc", "as": "zc"},
+    {
+      "type": "hexbin",
+      "fields": ["xc", "zc"],
+      "extent": {"signal": "[[imageCenteredX[0],imageCenteredZ[0]],[imageCenteredX[1],imageCenteredZ[1]]]"},
+      "maxbins": {"signal": "maxbins"},
+      "as": ["x0", "x1", "z0", "z1"]
+    }
+  ]
+}</code></pre>
+
+  <h3 id="aggregation">Aggregation</h3>
+
+  <p>
+    The hex-binned data is aggregated to count the number of rows in each hex cell:
+  </p>
+
+  <pre><code>{
+  "name": "aggregate",
+  "source": "table",
+  "transform": [
+    {
+      "type": "aggregate",
+      "groupby": ["x0", "x1", "z0", "z1"],
+      "ops": ["count"],
+      "as": ["count"]
+    }
+  ]
+}</code></pre>
+
+  <h3 id="scales">Scales</h3>
+
+  <p>
+    A single linear scale maps the larger of the two projected, centered image extents to fill the plot dimensions
+    (<code>width</code>), ensuring uniform scaling across both <code>x</code> and <code>z</code> axes.
+    If a default camera is used, the plot will be sized to fit the image, so the longest dimension will fill the
+    vertical viewport.
+    Since the data has been centered using the image extent mid-point, the scale domain is symmetric around zero.
+    A second scale maps the count to the <code>y</code> axis (<code>height</code>):
+  </p>
+
+  <pre><code>"scales": [
+  {
+    "name": "xzscale",
+    "type": "linear",
+    "domain": {"signal": "imageCenteredX[1]>imageCenteredZ[1]?imageCenteredX:imageCenteredZ"},
+    "range": "width"
+  },
+  {
+    "name": "yscale",
+    "type": "linear",
+    "domain": {"data": "aggregate", "field": "count"},
+    "range": "height"
+  }
+]</code></pre>
+
+  <h3 id="marks">Marks</h3>
+
+  <p>
+    The map image is rendered as a textured rectangle in the <code>xz</code> plane, positioned using the image extents
+    through the <code>xzscale</code>.
+    The <code>z</code> texture coordinate is flipped for right-hand <a href="coordinates.html">coordinates</a>:
+  </p>
+
+  <pre><code>{
+  "type": "rect",
+  "from": {"data": "image"},
+  "geometry": "xzrect",
+  "encode": {
+    "enter": {
+      "x":  {"scale": "xzscale", "signal": "imageCenteredX[0]"},
+      "x2": {"scale": "xzscale", "signal": "imageCenteredX[1]"},
+      "z":  {"scale": "xzscale", "signal": "imageCenteredZ[0]"},
+      "z2": {"scale": "xzscale", "signal": "imageCenteredZ[1]"},
+      "fill": {"image": "map", "texScale": {"z": {"value": -1}}}
+    }
+  }
+}</code></pre>
+
+  <p>
+    The aggregated count for each hex cell is rendered as a single hexagonal prism, positioned using the hex cell
+    bounds and scaled vertically by count. A rounding radius is set at 2% of the hex cell size:
+  </p>
+
+  <pre><code>{
+  "type": "rect",
+  "geometry": "hexprismsdf",
+  "material": "metal",
+  "from": {"data": "aggregate"},
+  "encode": {
+    "enter": {
+      "x": {"scale": "xzscale", "field": "x0", "offset": {"signal": "0.025*width/maxbins"}},
+      "x2": {"scale": "xzscale", "field": "x1", "offset": {"signal": "-0.025*width/maxbins"}},
+      "y": {"value": 10},
+      "y2": {"scale": "yscale", "field": "count", "offset": 10},
+      "z": {"scale": "xzscale", "field": "z0", "offset": {"signal": "0.025*width/maxbins"}},
+      "z2": {"scale": "xzscale", "field": "z1", "offset": {"signal": "-0.025*width/maxbins"}},
+      "rounding": {"signal": "0.02*width/maxbins"},
+    }
+  }
+}</code></pre>
+
+  <p>
+    Text labels showing the count are positioned on top of each hex prism, rotated to face upward:
+  </p>
+
+  <pre><code>{
+  "type": "text",
+  "from": {"data": "aggregate"},
+  "encode": {
+    "enter": {
+      "x": {"scale": "xzscale", "signal": "(datum.x0+datum.x1)/2"},
+      "y": {"scale": "yscale", "field": "count", "offset": 10.01},
+      "z": {"scale": "xzscale", "signal": "(datum.z0+datum.z1)/2"},
+      "text": {"field": "count"},
+      "angleX": {"value": 90}
+    }
+  }
+}</code></pre>
+
+  <nav class="page-nav">
+    <span></span>
+    <span></span>
+  </nav>
+
+  <footer>
+    <span>© 2025 Microsoft</span>
+    <a href="https://go.microsoft.com/fwlink/?LinkId=521839">Privacy &amp; Cookies</a>
+    <a href="https://go.microsoft.com/fwlink/?linkid=2259814">Consumer Health Privacy</a>
+    <a href="https://www.microsoft.com/trademarks">Trademarks</a>
+    <a href="https://www.microsoft.com/en-us/servicesagreement/">Terms of Use</a>
+  </footer>
+
+  <script src="../js/copy.js"></script>
+  <script>
+    fetch('../samples/ustornados1.json')
+      .then(r => r.text())
+      .then(text => { document.getElementById('hexBinSpec').textContent = text; });
+  </script>
+</body>
+
+</html>

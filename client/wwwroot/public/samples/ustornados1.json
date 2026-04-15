@@ -1,0 +1,225 @@
+{
+  "title": "US Tornados",
+  "description": "US Tornados Hex Bin Mercator",
+
+  "width": 640,
+  "height": 160,
+  "depth": 640,
+
+  "camera": {
+    "altitude": 45,
+    "distance": 1.25,
+    "focusDistance": 1.25,
+    "aperture": 2,
+    "worldTarget": [320, 0, 320]
+  },
+
+  "ambient": "#222",
+  "background": "white",
+
+  "lights": [
+    {
+      "type": "rect",
+      "size": 0.5,
+      "distance": 1,
+      "altitude": 45,
+      "azimuth": -45,
+      "brightness": 10
+    },
+    {
+      "type": "rect",
+      "size": 0.5,
+      "distance": 1,
+      "altitude": 45,
+      "azimuth": 45,
+      "brightness": 2
+    },
+    {
+      "type": "rect",
+      "size": 0.5,
+      "distance": 1,
+      "altitude": 45,
+      "azimuth": -135,
+      "brightness": 2
+    }
+  ],
+
+  "signals": [
+    {"name": "maxbins", "value": 64}
+  ],
+  
+  "projections": [
+    {
+      "name": "projection",
+      "type": "mercator"
+    }
+  ], 
+
+  "images": [
+    {"name": "map", "url": "img/-129.375,21.943046 -61.875,52.48278 6.jpg"}
+  ],
+
+  "data": [
+    {
+      "name": "image",
+      "values": [
+        { "lon": -129.375, "lat": 21.943046 },
+        { "lon": -61.875, "lat": 52.48278 }
+      ],
+      "transform": [
+        {"type": "geopoint", "projection": "projection", "fields": ["lon", "lat"], "as": ["xc", "zc"]},
+        {"type": "extent", "field": "xc", "signal": "imageExtentX"},
+        {"type": "extent", "field": "zc", "signal": "imageExtentZ"},
+        {"type": "formula", "expr": "datum.xc-(imageExtentX[0]+imageExtentX[1])/2", "as": "xc"},
+        {"type": "formula", "expr": "datum.zc-(imageExtentZ[0]+imageExtentZ[1])/2", "as": "zc"}, 
+        {"type": "extent", "field": "xc", "signal": "imageCenteredX"},
+        {"type": "extent", "field": "zc", "signal": "imageCenteredZ"}
+      ]
+    },
+    {
+      "name": "table",
+      "url": "data/ustornados_1950-2024.csv",
+      "transform": [
+        {"type": "geopoint", "projection": "projection", "fields": ["slon", "slat"], "as": ["xc", "zc"] },
+        {"type": "formula", "expr": "datum.xc-(imageExtentX[0]+imageExtentX[1])/2", "as": "xc"},
+        {"type": "formula", "expr": "(imageExtentZ[0]+imageExtentZ[1])/2-datum.zc", "as": "zc"},
+        {
+          "type": "hexbin",
+          "fields": ["xc", "zc"],
+          "extent": {"signal": "[[imageCenteredX[0],imageCenteredZ[0]],[imageCenteredX[1],imageCenteredZ[1]]]"},
+          "maxbins": {"signal": "maxbins"},
+          "as": ["x0", "x1", "z0", "z1"]
+        }
+      ]
+    }, 
+    {
+      "name": "aggregate",
+      "source": "table",
+      "transform": [
+        {
+          "type": "aggregate",
+          "groupby": ["x0", "x1", "z0", "z1"],
+          "ops": ["count"],
+          "as": ["count"]
+        }
+      ]
+    }
+  ],
+
+  "scales": [
+    {
+      "name": "xzscale",
+      "type": "linear",
+      "domain": {"signal": "imageCenteredX[1]>imageCenteredZ[1]?imageCenteredX:imageCenteredZ"},
+      "range": "width"
+    },
+    {
+      "name": "yscale",
+      "type": "linear",
+      "domain": {"data": "aggregate", "field": "count"},
+      "range": "height"
+    }
+  ],
+
+  "marks": [
+    {
+      "type": "rect",
+      "geometry": "xzrect",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "zc": {"signal": "depth/2"},
+          "width": {"signal": "width*2"},
+          "depth": {"signal": "depth*2"},
+          "fill": {"value": "gray"}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "encode": {
+        "enter": {
+          "x":  {"scale": "xzscale", "signal": "imageCenteredX[0]"},
+          "x2": {"scale": "xzscale", "signal": "imageCenteredX[1]"},
+          "z":  {"scale": "xzscale", "signal": "imageCenteredZ[0]"},
+          "z2": {"scale": "xzscale", "signal": "imageCenteredZ[1]"},
+          "y": {"value": 0.2},
+          "y2":  {"value": 9.98},
+          "fill": {"value": "white"}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "from": {"data": "image"},
+      "geometry": "xzrect",
+      "encode": {
+        "enter": {
+          "x":  {"scale": "xzscale", "signal": "imageCenteredX[0]"},
+          "x2": {"scale": "xzscale", "signal": "imageCenteredX[1]"},
+          "z":  {"scale": "xzscale", "signal": "imageCenteredZ[0]"},
+          "z2": {"scale": "xzscale", "signal": "imageCenteredZ[1]"},
+          "y": {"value": 9.99},
+          "fill": {"image": "map", "texScale": {"z": {"value": -1}}}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "hexprismsdf",
+      "material": "metal",
+      "from": {"data": "aggregate"},
+      "encode": {
+        "enter": {
+          "x": {"scale": "xzscale", "field": "x0", "offset": {"signal": "0.025*width/maxbins"}},
+          "x2": {"scale": "xzscale", "field": "x1", "offset": {"signal": "-0.025*width/maxbins"}},
+          "y": {"value": 10},
+          "y2": {"scale": "yscale", "field": "count", "offset": 10},
+          "z": {"scale": "xzscale", "field": "z0", "offset": {"signal": "0.025*width/maxbins"}},
+          "z2": {"scale": "xzscale", "field": "z1", "offset": {"signal": "-0.025*width/maxbins"}},
+          "rounding": {"signal": "0.02*width/maxbins"},
+          "fill": {"value": "copper"},
+          "fuzz": {"value": 0.2}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": {"data": "aggregate"},
+      "encode": {
+        "enter": {
+          "x": {"scale": "xzscale", "signal": "(datum.x0+datum.x1)/2"},
+          "y": {"scale": "yscale", "field": "count", "offset": 10.01},
+          "z": {"scale": "xzscale", "signal": "(datum.z0+datum.z1)/2"},
+          "text": {"field": "count"},
+          "align": {"value": "center"},
+          "baseline": {"value": "middle"},
+          "fontSize": {"value": 4},
+          "fontWeight": {"value": 600},
+          "fill": {"value": "white"},
+          "stroke": {"value": "black"},
+          "strokeWidth": {"value": 0.3},
+          "angleX": {"value": 90}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {"scale": "xzscale", "signal": "imageCenteredX[0]", "offset": 8},
+          "y": {"value": 10.01},
+          "z": {"scale": "xzscale", "signal": "imageCenteredZ[1]", "offset": -8},
+          "text": {"value": "US Tornados 1950-2024"},
+          "align": {"value": "left"},
+          "baseline": {"value": "bottom"},
+          "fontSize": {"value": 12},
+          "fill": {"value": "lightgray"},
+          "stroke": {"value": "black"},
+          "strokeWidth": {"value": 0.3},
+          "angleX": {"value": 90}
+        }
+      }
+    }
+  ]
+}

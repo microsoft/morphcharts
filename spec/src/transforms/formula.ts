@@ -17,17 +17,33 @@ export class Formula extends Transform {
         const expr = this._transformJSON.expr;
         const as = this._transformJSON.as;
         const expression = new Expression().parseExpression(expr, group, dataset);
+
+        // Check if column already exists
+        const existingIndex = dataset.getColumnIndex(as);
         let isNumeric = true;
-        for (let i = 0; i < dataset.length; i++) {
-            const row = dataset.rows[i];
-            const result = expression(group, dataset, i);
-            if (isNaN(result)) { isNumeric = false; }
-            row.push(result.toString());
+
+        if (existingIndex >= 0) {
+            // Overwrite existing column
+            for (let i = 0; i < dataset.length; i++) {
+                const result = expression(group, dataset, i);
+                if (isNaN(result)) { isNumeric = false; }
+                dataset.rows[i][existingIndex] = result.toString();
+            }
+            // Update column type and invalidate caches
+            dataset.columnTypes[existingIndex] = isNumeric ? Core.Data.ColumnType.float : Core.Data.ColumnType.string;
+            dataset.all.invalidateColumn(existingIndex);
+        }
+        else {
+            // Append new column
+            for (let i = 0; i < dataset.length; i++) {
+                const result = expression(group, dataset, i);
+                if (isNaN(result)) { isNumeric = false; }
+                dataset.rows[i].push(result.toString());
+            }
+            dataset.headings.push(as);
+            dataset.columnTypes.push(isNumeric ? Core.Data.ColumnType.float : Core.Data.ColumnType.string);
         }
 
-        // Add headings, columnTypes
-        dataset.headings.push(as);
-        dataset.columnTypes.push(isNumeric ? Core.Data.ColumnType.float : Core.Data.ColumnType.string);
         console.log(`formula ${expr} ${dataset.length} rows ${Core.Time.formatDuration(performance.now() - start)}`);
         return dataset;
     }
