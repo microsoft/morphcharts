@@ -18,6 +18,17 @@ export class Angles {
     }
 
     /**
+     * Wrap angle to [-180,180]
+     * @param angle angle, degrees
+     * @returns wrapped angle
+     */
+    public static wrapAngleDegrees(angle: number): number {
+        while (angle > 180) { angle -= 360; }
+        while (angle < -180) { angle += 360; }
+        return angle;
+    }
+
+    /**
      * Convert spherical to cartesian coordinate (polar axis is y-axis)
      * @param r radius
      * @param theta polar angle, degrees [-90,90]

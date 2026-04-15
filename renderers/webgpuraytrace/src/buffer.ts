@@ -187,9 +187,10 @@ export class BufferVisual extends Core.BufferVisual implements Core.IBufferVisua
                         break;
                     // TODO: hexprism
                     case "hexprismsdf":
+                        const hexRadius = size[2] > 0 ? size[2] * 0.5 : size[0] / Core.Constants.ROOT_THREE;
                         const hexPrismSsdfOptions: Core.IHittableHexPrismSdfOptions = {
                             center: position,
-                            radius: size[0] * 0.5,
+                            radius: hexRadius,
                             height: size[1],
                             rounding: rounding,
                             segmentColor: segment,

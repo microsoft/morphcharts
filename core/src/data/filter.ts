@@ -49,6 +49,21 @@ export class Filter {
         this._orderedValues = [];
     }
 
+    public invalidateColumn(column: number): void {
+        this._numericValues[column] = undefined;
+        this._stringValues[column] = undefined;
+        this._minValues[column] = undefined;
+        this._maxValues[column] = undefined;
+        this._minValuesDiscrete[column] = undefined;
+        this._maxValuesDiscrete[column] = undefined;
+        this._distinctStrings[column] = undefined;
+        this._distinctStringValues[column] = undefined;
+        this._hasMinMaxValues[column] = false;
+        this._hasMinMaxValuesDiscrete[column] = false;
+        this._orderedIds[column] = undefined;
+        this._orderedValues[column] = undefined;
+    }
+
     public minValue(column: number, isDiscrete: boolean) {
         this._createMinMaxValues(column, isDiscrete); // Ensure generated
         return isDiscrete ? this._minValuesDiscrete[column] : this._minValues[column];

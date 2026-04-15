@@ -279,7 +279,7 @@ export class Dataset extends Core.Data.Dataset {
                                 dataset = new Transforms.Grid(transformJSON).transform();
                                 break;
                             case "hexbin":
-                                dataset = new Transforms.Hexbin(transformJSON).transform(dataset);
+                                dataset = new Transforms.Hexbin(transformJSON).transform(group, dataset);
                                 break;
                             case "identifier":
                                 dataset = new Transforms.Identifier(transformJSON).transform(dataset, readonly);
