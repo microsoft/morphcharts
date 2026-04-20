@@ -243,7 +243,7 @@ export class Text extends Mark {
         }
         else if (signal) {
             for (let i = 0; i < dataset.length; i++) {
-                label = signal.update(this, dataset, i);
+                label = signal.update(group, dataset, i);
                 if (lineBreak) { labelLines = label.split(lineBreak); }
                 else { labelLines = [label]; }
                 glyphCount += label.length;

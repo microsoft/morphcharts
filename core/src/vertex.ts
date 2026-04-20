@@ -226,9 +226,9 @@ export class UnitVertex {
     //
     // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     // |   128    |   129    |   130    |   131    |   132    |   133    |   134    |   135    |   136    |   137    |   138    |   139    |   140    |   141    |   142    |   143    |
-    // | mat type |   fuzz   |   gloss  | tex type |         fill        |         fill        |         fill        |          |          |              refractive index             |
+    // | mat type |   fuzz   |   gloss  | tex type |         fill        |         fill        |         fill        | fuz type |          |              refractive index             |
     // |          |          |          |          |          r          |          g          |          b          |          |          |                                           |
-    // | UI8 NORM | UI8 NORM | UI8 NORM | UI8 NORM |      UI16 NORM      |      UI16 NORM      |      UI16 NORM      |          |          |                    F32                    |
+    // | UI8 NORM | UI8 NORM | UI8 NORM | UI8 NORM |      UI16 NORM      |      UI16 NORM      |      UI16 NORM      | UI8 NORM |          |                    F32                    |
     // | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 |
     // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     //
@@ -262,6 +262,7 @@ export class UnitVertex {
     public static readonly GLOSS_OFFSET_BYTES = 130;
     public static readonly TEXTURE_TYPE_OFFSET_BYTES = 131;
     public static readonly FILL_OFFSET_BYTES = 132;
+    public static readonly FUZZ_TYPE_OFFSET_BYTES = 138;
     public static readonly REFRACTIVE_INDEX_OFFSET_BYTES = 140;
     public static readonly DENSITY_OFFSET_BYTES = 144;
     public static readonly STROKE_OFFSET_BYTES = 148;
@@ -490,6 +491,7 @@ export class UnitVertex {
     public static getMaterial(bufferView: DataView, index: number, material: Material) {
         material.type = this.getMaterialType(bufferView, index);
         material.fuzz = this.getFuzz(bufferView, index);
+        material.fuzzType = this.getFuzzType(bufferView, index);
         material.density = this.getDensity(bufferView, index);
         material.refractiveIndex = this.getRefractiveIndex(bufferView, index);
         material.gloss = this.getMatGloss(bufferView, index);
@@ -499,6 +501,7 @@ export class UnitVertex {
     public static setMaterial(bufferView: DataView, index: number, material: Material) {
         this.setMaterialType(bufferView, index, material.type);
         this.setFuzz(bufferView, index, material.fuzz);
+        this.setFuzzType(bufferView, index, material.fuzzType);
         this.setDensity(bufferView, index, material.density);
         this.setRefractiveIndex(bufferView, index, material.refractiveIndex);
         this.setGloss(bufferView, index, material.gloss);
@@ -508,6 +511,7 @@ export class UnitVertex {
     public static copyMaterial(fromBufferView: DataView, fromIndex: number, toBufferView: DataView, toIndex: number) {
         this.copyMaterialType(fromBufferView, fromIndex, toBufferView, toIndex);
         this.copyFuzz(fromBufferView, fromIndex, toBufferView, toIndex);
+        this.copyFuzzType(fromBufferView, fromIndex, toBufferView, toIndex);
         this.copyDensity(fromBufferView, fromIndex, toBufferView, toIndex);
         this.copyRefractiveIndex(fromBufferView, fromIndex, toBufferView, toIndex);
         this.copyGloss(fromBufferView, fromIndex, toBufferView, toIndex);
@@ -533,6 +537,16 @@ export class UnitVertex {
     }
     public static copyTextureType(fromBufferView: DataView, fromIndex: number, toBufferView: DataView, toIndex: number) {
         toBufferView.setUint8(UnitVertex.SIZE_BYTES * toIndex + this.TEXTURE_TYPE_OFFSET_BYTES, fromBufferView.getUint8(UnitVertex.SIZE_BYTES * fromIndex + this.TEXTURE_TYPE_OFFSET_BYTES));
+    }
+
+    public static getFuzzType(bufferView: DataView, index: number): number {
+        return bufferView.getUint8(UnitVertex.SIZE_BYTES * index + this.FUZZ_TYPE_OFFSET_BYTES);
+    }
+    public static setFuzzType(bufferView: DataView, index: number, value: number) {
+        bufferView.setUint8(UnitVertex.SIZE_BYTES * index + this.FUZZ_TYPE_OFFSET_BYTES, value);
+    }
+    public static copyFuzzType(fromBufferView: DataView, fromIndex: number, toBufferView: DataView, toIndex: number) {
+        toBufferView.setUint8(UnitVertex.SIZE_BYTES * toIndex + this.FUZZ_TYPE_OFFSET_BYTES, fromBufferView.getUint8(UnitVertex.SIZE_BYTES * fromIndex + this.FUZZ_TYPE_OFFSET_BYTES));
     }
 
     public static getFill(bufferView: DataView, index: number, value: Vector3) {

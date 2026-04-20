@@ -22,7 +22,11 @@
   <p>
     When working with geospatial data, it is generally desirable to include a map in the background to provide
     geographic context. One way to do this is to use a map image as a background texture.
+    Data can be rendered as a <a href="#planar-projection">planar</a> or <a href="#spherical-projection">spherical</a>
+    projection.
   </p>
+
+  <h2 id="planar-projection">Planar Projection</h2>
 
   <figure>
     <img src="../gallery/ustornados1_raytrace_1920x1080.jpg" alt="US Tornados Mercator hex bin example">
@@ -40,12 +44,6 @@
   <div class="listing-caption">Listing 1. US Tornados Mercator hex bin example</div>
 
   <p><a href="../client.html?plot=ustornados1">View in Online Editor</a></p>
-
-  <h2 id="step-by-step">Step-by-Step</h2>
-
-  <p>
-    This section walks through the key parts of the spec in Listing 1.
-  </p>
 
   <h3 id="projection">Projection</h3>
 
@@ -104,10 +102,10 @@
   }
 ]</code></pre>
 
-  <h3 id="tornado-data">Tornado Data</h3>
+  <h3 id="data">Data</h3>
 
   <p>
-    The tornado data is loaded from a CSV file.
+    The data is loaded from a CSV file.
     Each row contains a longitude and latitude, which are projected using a <code>geopoint</code> transform.
     A pair of <code>formula</code> transforms centers the projected coordinates by subtracting the mid-point of the
     image extent.
@@ -192,7 +190,6 @@
 
   <pre><code>{
   "type": "rect",
-  "from": {"data": "image"},
   "geometry": "xzrect",
   "encode": {
     "enter": {
@@ -217,12 +214,12 @@
   "from": {"data": "aggregate"},
   "encode": {
     "enter": {
-      "x": {"scale": "xzscale", "field": "x0", "offset": {"signal": "0.025*width/maxbins"}},
-      "x2": {"scale": "xzscale", "field": "x1", "offset": {"signal": "-0.025*width/maxbins"}},
+      "x": {"scale": "xzscale", "field": "x0", "offset": {"signal": "0.04*width/maxbins"}},
+      "x2": {"scale": "xzscale", "field": "x1", "offset": {"signal": "-0.04*width/maxbins"}},
       "y": {"value": 10},
       "y2": {"scale": "yscale", "field": "count", "offset": 10},
-      "z": {"scale": "xzscale", "field": "z0", "offset": {"signal": "0.025*width/maxbins"}},
-      "z2": {"scale": "xzscale", "field": "z1", "offset": {"signal": "-0.025*width/maxbins"}},
+      "z": {"scale": "xzscale", "field": "z0", "offset": {"signal": "0.04*width/maxbins"}},
+      "z2": {"scale": "xzscale", "field": "z1", "offset": {"signal": "-0.04*width/maxbins"}},
       "rounding": {"signal": "0.02*width/maxbins"},
     }
   }
@@ -246,6 +243,83 @@
   }
 }</code></pre>
 
+  <h2 id="spherical-projection">Spherical Projection</h2>
+
+  <figure>
+    <img src="../gallery/earthquakes1_raytrace_1920x1080.jpg" alt="Earthquakes globe example">
+    <figcaption>Figure 2. Earthquakes globe example.</figcaption>
+  </figure>
+
+  <p>
+    Blue Marble imagery courtesy of <a href="https://science.nasa.gov/earth/earth-observatory/">NASA Earth
+      Observatory</a>. Earthquake data courtesy of <a href="https://earthquake.usgs.gov">U.S. Geological Survey,
+      Earthquake Hazards Program</a>.
+  </p>
+
+  <pre><code id="globeSpec"></code></pre>
+  <div class="listing-caption">Listing 2. Earthquakes globe example</div>
+
+  <p><a href="../client.html?plot=earthquakes1">View in Online Editor</a></p>
+
+  <h3 id="globe-data">Data</h3>
+
+  <p>
+    The earthquake data contains longitude, latitude, depth (km), and magnitude for each event.
+    The depth is normalized to the Earth's average radius, scaled by <code>altitudeScaling</code>, and added to the unit
+    sphere radius to position the epicentre above the globe surface.
+    The <code>geopoint3d</code> transform converts longitude, latitude, and altitude to spherical coordinates.
+    Size is calculated by scaling <code>magnitude</code> exponentially, such that each magnitude step doubles the size.
+    The minimum magnitude in the dataset is 5.
+  </p>
+
+  <pre><code>"transform": [
+  {"type": "formula", "expr": "1+altitudeScaling*datum.depth/6371", "as": "altitude"},
+  {"type": "geopoint3d", "fields": ["longitude", "latitude", "altitude"], "as": ["x", "y", "z"]},
+  {"type": "formula", "expr": "pow(2,datum.mag-5)", "as": "r"}
+]</code></pre>
+
+  <h3 id="globe-marks">Marks</h3>
+
+  <p>
+    The globe is rendered as a sphere with a land/ocean mask as the fill texture:
+  </p>
+
+  <pre><code>{
+  "type": "rect",
+  "geometry": "sphere",
+  "material": "metal",
+  "encode": {
+    "enter": {
+      "xc": {"signal": "width/2"},
+      "zc": {"signal": "depth/2"},
+      "yc": {"signal": "height/2"},
+      "width": {"signal": "globeRadius*2"},
+      "fuzz": {"value": 1},
+      "fill": {"image": "map"}
+    }
+  }
+}</code></pre>
+
+  <p>
+    Each earthquake is rendered as a sphere positioned using <code>x</code>, <code>y</code> and <code>z</code>,
+    sized by <code>r</code>, scaled by <code>globeRadius</code>, and offset by the globe position:
+  </p>
+
+  <pre><code>{
+  "type": "rect",
+  "geometry": "sphere",
+  "from": {"data": "table"},
+  "encode": {
+    "enter": {
+      "xc": {"field": "x", "mult": {"signal": "globeRadius"}, "offset": {"signal": "width/2"}},
+      "zc": {"field": "z", "mult": {"signal": "globeRadius"}, "offset": {"signal": "depth/2"}},
+      "yc": {"field": "y", "mult": {"signal": "globeRadius"}, "offset": {"signal": "height/2"}},
+      "width": {"signal": "datum.r"},
+      "fill": {"scale": "fill", "field": "mag"}
+    }
+  }
+}</code></pre>
+
   <nav class="page-nav">
     <a href="./lighting.html">Previous</a>
     <a href="./prerequisites.html">Next</a>
@@ -264,6 +338,9 @@
     fetch('../samples/ustornados1.json')
       .then(r => r.text())
       .then(text => { document.getElementById('hexBinSpec').textContent = text; });
+    fetch('../samples/earthquakes1.json')
+      .then(r => r.text())
+      .then(text => { document.getElementById('globeSpec').textContent = text; });
   </script>
 </body>
 

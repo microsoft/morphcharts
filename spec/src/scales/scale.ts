@@ -4,6 +4,11 @@
 import * as Core from "core";
 import { Dataset } from "../dataset.js";
 
+export interface TickInfo {
+    value: number | string;
+    label: string;
+}
+
 export abstract class Scale {
     public type: string;
     public name: string;
@@ -12,6 +17,10 @@ export abstract class Scale {
     public reverse: boolean;
 
     public abstract map(value: number | string): number;
+    public abstract tickValues(count: number, format?: Intl.NumberFormat | Intl.DateTimeFormat): TickInfo[];
+
+    public tickOffset(bandPosition: number): number { return 0; }
+    public defaultTickCount(): number { return 1; }
 
     constructor() {
         this.domain = new ScaleDomain();

@@ -3,7 +3,7 @@
 
 import * as Core from "core";
 import { Group } from "../marks/group.js";
-import { DomainSort, Scale } from "./scale.js";
+import { DomainSort, Scale, TickInfo } from "./scale.js";
 import { Expression } from "../expression.js";
 
 export class Band extends Scale {
@@ -59,6 +59,44 @@ export class Band extends Scale {
         // bandwidth = step - (paddingInner * step)
         // bandwidth = step * (1 - paddingInner)
         return step * (1 - this.paddingInner);
+    }
+
+    public tickValues(count: number, format?: Intl.NumberFormat | Intl.DateTimeFormat): TickInfo[] {
+        const ticks: TickInfo[] = [];
+        const dataset = this.domain.data;
+        if (dataset) {
+            const columnIndex = dataset.getColumnIndex(this.domain.field);
+            if (columnIndex !== -1) {
+                const distinctStrings = dataset.all.distinctStrings(columnIndex);
+                const tickCount = count != undefined ? count : distinctStrings.length;
+                const columnType = dataset.getColumnType(columnIndex);
+                for (let i = 0; i < tickCount && i < distinctStrings.length; i++) {
+                    const value = distinctStrings[i];
+                    let label = value;
+                    if (format) {
+                        switch (columnType) {
+                            case Core.Data.ColumnType.float:
+                                label = format.format(parseFloat(value));
+                                break;
+                            case Core.Data.ColumnType.integer:
+                            case Core.Data.ColumnType.date:
+                                label = format.format(parseInt(value));
+                                break;
+                        }
+                    }
+                    ticks.push({ value, label });
+                }
+            }
+        }
+        return ticks;
+    }
+
+    public tickOffset(bandPosition: number): number {
+        return this.bandwidth() * bandPosition;
+    }
+
+    public defaultTickCount(): number {
+        return Math.abs(this.domain.max - this.domain.min) + 1;
     }
 
     public static fromJSON(group: Group, scaleJSON: any): Band {

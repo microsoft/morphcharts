@@ -5,7 +5,6 @@ import * as Core from "core";
 import { Group } from "./marks/group.js";
 import { IScene, Plot } from "./plot.js";
 import { Scale } from "./scales/scale.js";
-import { Band } from "./scales/band.js";
 
 // RH coordinates (+z from screen to eye, -z from eye to screen)
 //    +y
@@ -266,8 +265,6 @@ export class Axis {
         let gridColorsArray: Core.ColorRGB[] = [];
 
         const scale = this.scale;
-        const min = scale.domain.min;
-        const max = scale.domain.max;
 
         // Label color
         let labelFill: Core.ColorRGB;
@@ -509,694 +506,67 @@ export class Axis {
         }
 
         let label: string;
-        let tickCount: number;
         let labelPositionX: number, labelPositionY: number, labelPositionZ: number;
         const gridWidth = this.gridWidth || 1;
         const gridWidthX = this.gridWidthX || gridWidth;
         const gridWidthY = this.gridWidthY || gridWidth;
         const gridWidthZ = this.gridWidthZ || gridWidth;
-        switch (scale.type) {
-            case "band":
-            case "point": // Bandwidth = 0. TODO: Deal with difference in padding
-                // All band scales should be treated as strings
-                tickCount = this.tickCount == undefined ? max - min + 1 : this.tickCount;
-                if (tickCount > 0) {
-                    const dataset = scale.domain.data;
-                    // TODO: Provide a function in the scale to get the base value
-                    const field = scale.domain.field;
-                    const columnIndex = dataset.getColumnIndex(field);
-                    const distinctStrings = dataset.all.distinctStrings(columnIndex);
-                    for (let i = 0; i < tickCount; i++) {
-                        // Base value
-                        let value = distinctStrings[i];
 
-                        // Scale
-                        const bandwidth = scale.type == "band" ? (scale as Band).bandwidth() : 0;
-                        const scaledLabelValue = scale.map(value) + bandwidth * this.bandLabelPosition;
-                        const scaledGridValue = scale.map(value) + bandwidth * this.bandGridPosition;
-                        let grid = false;
-                        switch (this.edgeId) {
-                            // x
-                            case 0:
-                                labelPositionX = group.x + scaledLabelValue;
-                                labelPositionY = group.y + group.height;
-                                labelPositionZ = group.z + group.depth;
-                                if (this.grid || this.gridY) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + scaledGridValue);
-                                    gridPositionsYArray.push(group.y + group.height / 2);
-                                    gridPositionsZArray.push(group.z + group.depth);
-                                    gridSizesXArray.push(gridWidthX);
-                                    gridSizesYArray.push(group.height);
-                                    gridSizesZArray.push(gridWidthZ);
-                                }
-                                else if (this.gridZ) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + scaledGridValue);
-                                    gridPositionsYArray.push(group.y + group.height);
-                                    gridPositionsZArray.push(group.z + group.depth / 2);
-                                    gridSizesXArray.push(gridWidthX);
-                                    gridSizesYArray.push(gridWidthY);
-                                    gridSizesZArray.push(group.depth);
-                                }
-                                break;
-                            case 2:
-                                labelPositionX = group.x + scaledLabelValue;
-                                labelPositionY = group.y + group.height;
-                                labelPositionZ = group.z;
-                                if (this.grid || this.gridY) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + scaledGridValue);
-                                    gridPositionsYArray.push(group.y + group.height / 2);
-                                    gridPositionsZArray.push(group.z);
-                                    gridSizesXArray.push(gridWidthX);
-                                    gridSizesYArray.push(group.height);
-                                    gridSizesZArray.push(gridWidthZ);
-                                }
-                                else if (this.gridZ) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + scaledGridValue);
-                                    gridPositionsYArray.push(group.y + group.height);
-                                    gridPositionsZArray.push(group.z + group.depth / 2);
-                                    gridSizesXArray.push(gridWidthX);
-                                    gridSizesYArray.push(gridWidthY);
-                                    gridSizesZArray.push(group.depth);
-                                }
-                                break;
-                            case 4:
-                                labelPositionX = group.x + scaledLabelValue;
-                                labelPositionY = group.y;
-                                labelPositionZ = group.z + group.depth;
-                                if (this.grid || this.gridY) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + scaledGridValue);
-                                    gridPositionsYArray.push(group.y + group.height / 2);
-                                    gridPositionsZArray.push(group.z + group.depth);
-                                    gridSizesXArray.push(gridWidthX);
-                                    gridSizesYArray.push(group.height);
-                                    gridSizesZArray.push(gridWidthZ);
-                                }
-                                else if (this.gridZ) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + scaledGridValue);
-                                    gridPositionsYArray.push(group.y);
-                                    gridPositionsZArray.push(group.z + group.depth / 2);
-                                    gridSizesXArray.push(gridWidthX);
-                                    gridSizesYArray.push(gridWidthY);
-                                    gridSizesZArray.push(group.depth);
-                                }
-                                break;
-                            case 6:
-                                labelPositionX = group.x + scaledLabelValue;
-                                labelPositionY = group.y;
-                                labelPositionZ = group.z;
-                                if (this.grid || this.gridY) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + scaledGridValue);
-                                    gridPositionsYArray.push(group.y + group.height / 2);
-                                    gridPositionsZArray.push(group.z);
-                                    gridSizesXArray.push(gridWidthX);
-                                    gridSizesYArray.push(group.height);
-                                    gridSizesZArray.push(gridWidthZ);
-                                }
-                                else if (this.gridZ) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + scaledGridValue);
-                                    gridPositionsYArray.push(group.y);
-                                    gridPositionsZArray.push(group.z + group.depth / 2);
-                                    gridSizesXArray.push(gridWidthX);
-                                    gridSizesYArray.push(gridWidthY);
-                                    gridSizesZArray.push(group.depth);
-                                }
-                                break;
-                            // y
-                            case 8:
-                                labelPositionX = group.x + group.width;
-                                labelPositionY = group.y + scaledLabelValue;
-                                labelPositionZ = group.z + group.depth;
-                                if (this.grid || this.gridX) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + group.width / 2);
-                                    gridPositionsYArray.push(group.y + scaledGridValue);
-                                    gridPositionsZArray.push(group.z + group.depth);
-                                    gridSizesXArray.push(group.width);
-                                    gridSizesYArray.push(gridWidthY);
-                                    gridSizesZArray.push(gridWidthZ);
-                                }
-                                else if (this.gridZ) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + group.width);
-                                    gridPositionsYArray.push(group.y + scaledGridValue);
-                                    gridPositionsZArray.push(group.z + group.depth / 2);
-                                    gridSizesXArray.push(gridWidthX);
-                                    gridSizesYArray.push(gridWidthY);
-                                    gridSizesZArray.push(group.depth);
-                                }
-                                break;
-                            case 9:
-                                labelPositionX = group.x + group.width;
-                                labelPositionY = group.y + scaledLabelValue;
-                                labelPositionZ = group.z;
-                                if (this.grid || this.gridX) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + group.width / 2);
-                                    gridPositionsYArray.push(group.y + scaledGridValue);
-                                    gridPositionsZArray.push(group.z);
-                                    gridSizesXArray.push(group.width);
-                                    gridSizesYArray.push(gridWidthY);
-                                    gridSizesZArray.push(gridWidthZ);
-                                }
-                                else if (this.gridZ) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + group.width);
-                                    gridPositionsYArray.push(group.y + scaledGridValue);
-                                    gridPositionsZArray.push(group.z + group.depth / 2);
-                                    gridSizesXArray.push(gridWidthX);
-                                    gridSizesYArray.push(gridWidthY);
-                                    gridSizesZArray.push(group.depth);
-                                }
-                                break;
-                            case 10:
-                                labelPositionX = group.x;
-                                labelPositionY = group.y + scaledLabelValue;
-                                labelPositionZ = group.z;
-                                if (this.grid || this.gridX) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + group.width / 2);
-                                    gridPositionsYArray.push(group.y + scaledGridValue);
-                                    gridPositionsZArray.push(group.z);
-                                    gridSizesXArray.push(group.width);
-                                    gridSizesYArray.push(gridWidthY);
-                                    gridSizesZArray.push(gridWidthZ);
-                                }
-                                else if (this.gridZ) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x);
-                                    gridPositionsYArray.push(group.y + scaledGridValue);
-                                    gridPositionsZArray.push(group.z + group.depth / 2);
-                                    gridSizesXArray.push(gridWidthX);
-                                    gridSizesYArray.push(gridWidthY);
-                                    gridSizesZArray.push(group.depth);
-                                }
-                                break;
-                            case 11:
-                                labelPositionX = group.x;
-                                labelPositionY = group.y + scaledLabelValue;
-                                labelPositionZ = group.z + group.depth;
-                                if (this.grid || this.gridX) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + group.width / 2);
-                                    gridPositionsYArray.push(group.y + scaledGridValue);
-                                    gridPositionsZArray.push(group.z + group.depth);
-                                    gridSizesXArray.push(group.width);
-                                    gridSizesYArray.push(gridWidthY);
-                                    gridSizesZArray.push(gridWidthZ);
-                                }
-                                else if (this.gridZ) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x);
-                                    gridPositionsYArray.push(group.y + scaledGridValue);
-                                    gridPositionsZArray.push(group.z + group.depth / 2);
-                                    gridSizesXArray.push(gridWidthX);
-                                    gridSizesYArray.push(gridWidthY);
-                                    gridSizesZArray.push(group.depth);
-                                }
-                                break;
-                            // z
-                            case 1:
-                                labelPositionX = group.x + group.width;
-                                labelPositionY = group.y + group.height;
-                                labelPositionZ = group.z + scaledLabelValue;
-                                if (this.grid || this.gridX) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + group.width / 2);
-                                    gridPositionsYArray.push(group.y + group.height);
-                                    gridPositionsZArray.push(group.z + scaledGridValue);
-                                    gridSizesXArray.push(group.width);
-                                    gridSizesYArray.push(gridWidthY);
-                                    gridSizesZArray.push(gridWidthZ);
-                                }
-                                else if (this.gridY) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + group.width);
-                                    gridPositionsYArray.push(group.y + group.height / 2);
-                                    gridPositionsZArray.push(group.z + scaledGridValue);
-                                    gridSizesXArray.push(gridWidthX);
-                                    gridSizesYArray.push(group.height);
-                                    gridSizesZArray.push(gridWidthZ);
-                                }
-                                break;
-                            case 3:
-                                labelPositionX = group.x;
-                                labelPositionY = group.y + group.height;
-                                labelPositionZ = group.z + scaledLabelValue;
-                                if (this.grid || this.gridX) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + group.width / 2);
-                                    gridPositionsYArray.push(group.y + group.height);
-                                    gridPositionsZArray.push(group.z + scaledGridValue);
-                                    gridSizesXArray.push(group.width);
-                                    gridSizesYArray.push(gridWidthY);
-                                    gridSizesZArray.push(gridWidthZ);
-                                }
-                                else if (this.gridY) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x);
-                                    gridPositionsYArray.push(group.y + group.height / 2);
-                                    gridPositionsZArray.push(group.z + scaledGridValue);
-                                    gridSizesXArray.push(gridWidthX);
-                                    gridSizesYArray.push(group.height);
-                                    gridSizesZArray.push(gridWidthZ);
-                                }
-                                break;
-                            case 5:
-                                labelPositionX = group.x + group.width;
-                                labelPositionY = group.y;
-                                labelPositionZ = group.z + scaledLabelValue;
-                                if (this.grid || this.gridX) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + group.width / 2);
-                                    gridPositionsYArray.push(group.y);
-                                    gridPositionsZArray.push(group.z + scaledGridValue);
-                                    gridSizesXArray.push(group.width);
-                                    gridSizesYArray.push(gridWidthY);
-                                    gridSizesZArray.push(gridWidthZ);
-                                }
-                                else if (this.gridY) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + group.width);
-                                    gridPositionsYArray.push(group.y + group.height / 2);
-                                    gridPositionsZArray.push(group.z + scaledGridValue);
-                                    gridSizesXArray.push(gridWidthX);
-                                    gridSizesYArray.push(group.height);
-                                    gridSizesZArray.push(gridWidthZ);
-                                }
-                                break;
-                            case 7:
-                                labelPositionX = group.x;
-                                labelPositionY = group.y;
-                                labelPositionZ = group.z + scaledLabelValue;
-                                if (this.grid || this.gridX) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + group.width / 2);
-                                    gridPositionsYArray.push(group.y);
-                                    gridPositionsZArray.push(group.z + scaledGridValue);
-                                    gridSizesXArray.push(group.width);
-                                    gridSizesYArray.push(gridWidthY);
-                                    gridSizesZArray.push(gridWidthZ);
-                                }
-                                else if (this.gridY) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x);
-                                    gridPositionsYArray.push(group.y + group.height / 2);
-                                    gridPositionsZArray.push(group.z + scaledGridValue);
-                                    gridSizesXArray.push(gridWidthX);
-                                    gridSizesYArray.push(group.height);
-                                    gridSizesZArray.push(gridWidthZ);
-                                }
-                                break;
-                        }
-                        if (grid) {
-                            gridColorsArray.push(gridColor);
-                        }
+        // Tick generation — delegated to the scale
+        const tickCount = this.tickCount == undefined ? scale.defaultTickCount() : this.tickCount;
+        if (tickCount > 0) {
+            const ticks = scale.tickValues(tickCount, labelFormat);
+            for (let i = 0; i < ticks.length; i++) {
+                const tick = ticks[i];
+                const scaledValue = scale.map(tick.value);
+                const scaledLabelValue = scaledValue + scale.tickOffset(this.bandLabelPosition);
+                const scaledGridValue = scaledValue + scale.tickOffset(this.bandGridPosition);
+                let grid = false;
 
-                        // Offsets
-                        labelPositionX += labelOffsetX;
-                        labelPositionY += labelOffsetY;
-                        labelPositionZ += labelOffsetZ;
+                this._positionTick(this.edgeId, group, scaledLabelValue, scaledGridValue,
+                    gridWidthX, gridWidthY, gridWidthZ,
+                    pos => { labelPositionX = pos.lx; labelPositionY = pos.ly; labelPositionZ = pos.lz; },
+                    (gx, gy, gz, sx, sy, sz) => {
+                        grid = true;
+                        gridPositionsXArray.push(gx);
+                        gridPositionsYArray.push(gy);
+                        gridPositionsZArray.push(gz);
+                        gridSizesXArray.push(sx);
+                        gridSizesYArray.push(sy);
+                        gridSizesZArray.push(sz);
+                    });
 
-                        // Arrays
-                        if (labels) {
-                            if (dataset) {
-                                const columnIndex = dataset.getColumnIndex(scale.domain.field);
-                                label = distinctStrings[i];
-                                if (labelFormat) {
-                                    const columType = dataset.getColumnType(columnIndex);
-                                    switch (columType) {
-                                        case Core.Data.ColumnType.float:
-                                            label = labelFormat.format(parseFloat(label));
-                                            break;
-                                        case Core.Data.ColumnType.integer:
-                                        case Core.Data.ColumnType.date:
-                                            label = labelFormat.format(parseInt(label));
-                                            break;
-                                    }
-                                }
-                            }
-                            else {
-                                label = i.toString(); // Formatting?
-                            }
-                            glyphCount += label.length;
-                            labelsArray.push([label]);
-                            labelPositionsXArray.push(labelPositionX);
-                            labelPositionsYArray.push(labelPositionY);
-                            labelPositionsZArray.push(labelPositionZ);
-                            labelFontsArray.push(labelFont);
-                            labelScalesArray.push(labelFontSize * scaling);
-                            labelWeightsArray.push(labelFontWeight);
-                            labelRotationsArray.push(labelRotation[0]);
-                            labelRotationsArray.push(labelRotation[1]);
-                            labelRotationsArray.push(labelRotation[2]);
-                            labelRotationsArray.push(labelRotation[3]);
-                            labelHorizontalAlignmentsArray.push(horizontalAlignment);
-                            labelVerticalAlignmentsArray.push(verticalAlignment);
-                            labelFillArray.push(labelFill);
-                            labelStrokeArray.push(labelStroke);
-                            labelStrokeWidthArray.push(labelStrokeWidth * scaling);
-                        }
-                    }
+                if (grid) {
+                    gridColorsArray.push(gridColor);
                 }
-                break;
-            case "linear":
-                tickCount = this.tickCount == undefined ? 1 : this.tickCount;
-                if (tickCount > 0) {
-                    for (let i = 0; i <= tickCount; i++) {
-                        const baseValue = min + i * (max - min) / tickCount;
-                        const scaledValue = scale.map(baseValue);
-                        let grid = false;
-                        switch (this.edgeId) {
-                            // x
-                            case 0:
-                                labelPositionX = group.x + scaledValue;
-                                labelPositionY = group.y + group.height;
-                                labelPositionZ = group.z + group.depth;
-                                if (this.grid || this.gridY) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + scaledValue);
-                                    gridPositionsYArray.push(group.y + group.height / 2);
-                                    gridPositionsZArray.push(group.z + group.depth);
-                                    gridSizesXArray.push(gridWidthX);
-                                    gridSizesYArray.push(group.height);
-                                    gridSizesZArray.push(gridWidthZ);
-                                }
-                                else if (this.gridZ) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + scaledValue);
-                                    gridPositionsYArray.push(group.y + group.height);
-                                    gridPositionsZArray.push(group.z + group.depth / 2);
-                                    gridSizesXArray.push(gridWidthX);
-                                    gridSizesYArray.push(gridWidthY);
-                                    gridSizesZArray.push(group.depth);
-                                }
-                                break;
-                            case 2:
-                                labelPositionX = group.x + scaledValue;
-                                labelPositionY = group.y + group.height;
-                                labelPositionZ = group.z;
-                                if (this.grid || this.gridY) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + scaledValue);
-                                    gridPositionsYArray.push(group.y + group.height / 2);
-                                    gridPositionsZArray.push(group.z);
-                                    gridSizesXArray.push(gridWidthX);
-                                    gridSizesYArray.push(group.height);
-                                    gridSizesZArray.push(gridWidthZ);
-                                }
-                                else if (this.gridZ) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + scaledValue);
-                                    gridPositionsYArray.push(group.y + group.height);
-                                    gridPositionsZArray.push(group.z + group.depth / 2);
-                                    gridSizesXArray.push(gridWidthX);
-                                    gridSizesYArray.push(gridWidthY);
-                                    gridSizesZArray.push(group.depth);
-                                }
-                                break;
-                            case 4:
-                                labelPositionX = group.x + scaledValue;
-                                labelPositionY = group.y;
-                                labelPositionZ = group.z + group.depth;
-                                if (this.grid || this.gridY) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + scaledValue);
-                                    gridPositionsYArray.push(group.y + group.height / 2);
-                                    gridPositionsZArray.push(group.z + group.depth);
-                                    gridSizesXArray.push(gridWidthX);
-                                    gridSizesYArray.push(group.height);
-                                    gridSizesZArray.push(gridWidthZ);
-                                }
-                                else if (this.gridZ) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + scaledValue);
-                                    gridPositionsYArray.push(group.y);
-                                    gridPositionsZArray.push(group.z + group.depth / 2);
-                                    gridSizesXArray.push(gridWidthX);
-                                    gridSizesYArray.push(gridWidthY);
-                                    gridSizesZArray.push(group.depth);
-                                }
-                                break;
-                            case 6:
-                                labelPositionX = group.x + scaledValue;
-                                labelPositionY = group.y;
-                                labelPositionZ = group.z;
-                                if (this.grid || this.gridY) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + scaledValue);
-                                    gridPositionsYArray.push(group.y + group.height / 2);
-                                    gridPositionsZArray.push(group.z);
-                                    gridSizesXArray.push(gridWidthX);
-                                    gridSizesYArray.push(group.height);
-                                    gridSizesZArray.push(gridWidthZ);
-                                }
-                                else if (this.gridZ) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + scaledValue);
-                                    gridPositionsYArray.push(group.y);
-                                    gridPositionsZArray.push(group.z + group.depth / 2);
-                                    gridSizesXArray.push(gridWidthX);
-                                    gridSizesYArray.push(gridWidthY);
-                                    gridSizesZArray.push(group.depth);
-                                }
-                                break;
-                            // y
-                            case 8:
-                                labelPositionX = group.x + group.width;
-                                labelPositionY = group.y + scaledValue;
-                                labelPositionZ = group.z + group.depth;
-                                if (this.grid || this.gridX) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + group.width / 2);
-                                    gridPositionsYArray.push(group.y + scaledValue);
-                                    gridPositionsZArray.push(group.z + group.depth);
-                                    gridSizesXArray.push(group.width);
-                                    gridSizesYArray.push(gridWidthY);
-                                    gridSizesZArray.push(gridWidthZ);
-                                }
-                                else if (this.gridZ) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + group.width);
-                                    gridPositionsYArray.push(group.y + scaledValue);
-                                    gridPositionsZArray.push(group.z + group.depth / 2);
-                                    gridSizesXArray.push(gridWidthX);
-                                    gridSizesYArray.push(gridWidthY);
-                                    gridSizesZArray.push(group.depth);
-                                }
-                                break;
-                            case 9:
-                                labelPositionX = group.x + group.width;
-                                labelPositionY = group.y + scaledValue;
-                                labelPositionZ = group.z;
-                                if (this.grid || this.gridX) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + group.width / 2);
-                                    gridPositionsYArray.push(group.y + scaledValue);
-                                    gridPositionsZArray.push(group.z);
-                                    gridSizesXArray.push(group.width);
-                                    gridSizesYArray.push(gridWidthY);
-                                    gridSizesZArray.push(gridWidthZ);
-                                }
-                                else if (this.gridZ) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + group.width);
-                                    gridPositionsYArray.push(group.y + scaledValue);
-                                    gridPositionsZArray.push(group.z + group.depth / 2);
-                                    gridSizesXArray.push(gridWidthX);
-                                    gridSizesYArray.push(gridWidthY);
-                                    gridSizesZArray.push(group.depth);
-                                }
-                                break;
-                            case 10:
-                                labelPositionX = group.x;
-                                labelPositionY = group.y + scaledValue;
-                                labelPositionZ = group.z;
-                                if (this.grid || this.gridX) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + group.width / 2);
-                                    gridPositionsYArray.push(group.y + scaledValue);
-                                    gridPositionsZArray.push(group.z);
-                                    gridSizesXArray.push(group.width);
-                                    gridSizesYArray.push(gridWidthY);
-                                    gridSizesZArray.push(gridWidthZ);
-                                }
-                                else if (this.gridZ) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x);
-                                    gridPositionsYArray.push(group.y + scaledValue);
-                                    gridPositionsZArray.push(group.z + group.depth / 2);
-                                    gridSizesXArray.push(gridWidthX);
-                                    gridSizesYArray.push(gridWidthY);
-                                    gridSizesZArray.push(group.depth);
-                                }
-                                break;
-                            case 11:
-                                labelPositionX = group.x;
-                                labelPositionY = group.y + scaledValue;
-                                labelPositionZ = group.z + group.depth;
-                                if (this.grid || this.gridX) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + group.width / 2);
-                                    gridPositionsYArray.push(group.y + scaledValue);
-                                    gridPositionsZArray.push(group.z + group.depth);
-                                    gridSizesXArray.push(group.width);
-                                    gridSizesYArray.push(gridWidthY);
-                                    gridSizesZArray.push(gridWidthZ);
-                                }
-                                else if (this.gridZ) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x);
-                                    gridPositionsYArray.push(group.y + scaledValue);
-                                    gridPositionsZArray.push(group.z + group.depth / 2);
-                                    gridSizesXArray.push(gridWidthX);
-                                    gridSizesYArray.push(gridWidthY);
-                                    gridSizesZArray.push(group.depth);
-                                }
-                                break;
-                            // z
-                            case 1:
-                                labelPositionX = group.x + group.width;
-                                labelPositionY = group.y + group.height;
-                                labelPositionZ = group.z + scaledValue;
-                                if (this.grid || this.gridX) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + group.width / 2);
-                                    gridPositionsYArray.push(group.y + group.height);
-                                    gridPositionsZArray.push(group.z + scaledValue);
-                                    gridSizesXArray.push(group.width);
-                                    gridSizesYArray.push(gridWidthY);
-                                    gridSizesZArray.push(gridWidthZ);
-                                }
-                                else if (this.gridY) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + group.width);
-                                    gridPositionsYArray.push(group.y + group.height / 2);
-                                    gridPositionsZArray.push(group.z + scaledValue);
-                                    gridSizesXArray.push(gridWidthX);
-                                    gridSizesYArray.push(group.height);
-                                    gridSizesZArray.push(gridWidthZ);
-                                }
-                                break;
-                            case 3:
-                                labelPositionX = group.x;
-                                labelPositionY = group.y + group.height;
-                                labelPositionZ = group.z + scaledValue;
-                                if (this.grid || this.gridX) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + group.width / 2);
-                                    gridPositionsYArray.push(group.y + group.height);
-                                    gridPositionsZArray.push(group.z + scaledValue);
-                                    gridSizesXArray.push(group.width);
-                                    gridSizesYArray.push(gridWidthY);
-                                    gridSizesZArray.push(gridWidthZ);
-                                }
-                                else if (this.gridY) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x);
-                                    gridPositionsYArray.push(group.y + group.height / 2);
-                                    gridPositionsZArray.push(group.z + scaledValue);
-                                    gridSizesXArray.push(gridWidthX);
-                                    gridSizesYArray.push(group.height);
-                                    gridSizesZArray.push(gridWidthZ);
-                                }
-                                break;
-                            case 5:
-                                labelPositionX = group.x + group.width;
-                                labelPositionY = group.y;
-                                labelPositionZ = group.z + scaledValue;
-                                if (this.grid || this.gridX) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + group.width / 2);
-                                    gridPositionsYArray.push(group.y);
-                                    gridPositionsZArray.push(group.z + scaledValue);
-                                    gridSizesXArray.push(group.width);
-                                    gridSizesYArray.push(gridWidthY);
-                                    gridSizesZArray.push(gridWidthZ);
-                                }
-                                else if (this.gridY) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + group.width);
-                                    gridPositionsYArray.push(group.y + group.height / 2);
-                                    gridPositionsZArray.push(group.z + scaledValue);
-                                    gridSizesXArray.push(gridWidthX);
-                                    gridSizesYArray.push(group.height);
-                                    gridSizesZArray.push(gridWidthZ);
-                                }
-                                break;
-                            case 7:
-                                labelPositionX = group.x;
-                                labelPositionY = group.y;
-                                labelPositionZ = group.z + scaledValue;
-                                if (this.grid || this.gridX) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x + group.width / 2);
-                                    gridPositionsYArray.push(group.y);
-                                    gridPositionsZArray.push(group.z + scaledValue);
-                                    gridSizesXArray.push(group.width);
-                                    gridSizesYArray.push(gridWidthY);
-                                    gridSizesZArray.push(gridWidthZ);
-                                }
-                                else if (this.gridY) {
-                                    grid = true;
-                                    gridPositionsXArray.push(group.x);
-                                    gridPositionsYArray.push(group.y + group.height / 2);
-                                    gridPositionsZArray.push(group.z + scaledValue);
-                                    gridSizesXArray.push(gridWidthX);
-                                    gridSizesYArray.push(group.height);
-                                    gridSizesZArray.push(gridWidthZ);
-                                }
-                                break;
-                        }
-                        if (grid) {
-                            gridColorsArray.push(gridColor);
-                        }
 
-                        // Offsets
-                        labelPositionX += labelOffsetX;
-                        labelPositionY += labelOffsetY;
-                        labelPositionZ += labelOffsetZ;
+                // Offsets
+                labelPositionX += labelOffsetX;
+                labelPositionY += labelOffsetY;
+                labelPositionZ += labelOffsetZ;
 
-                        // Arrays
-                        if (labels) {
-                            // label = (min + i * (max - min) / tickCount).toString();
-                            if (labelFormat) { label = labelFormat.format((min + i * (max - min) / tickCount)); }
-                            else { label = (min + i * (max - min) / tickCount).toString(); }
-                            glyphCount += label.length;
-                            labelsArray.push([label]);
-                            labelPositionsXArray.push(labelPositionX);
-                            labelPositionsYArray.push(labelPositionY);
-                            labelPositionsZArray.push(labelPositionZ);
-                            labelFontsArray.push(labelFont);
-                            labelScalesArray.push(labelFontSize * scaling);
-                            labelWeightsArray.push(labelFontWeight);
-                            labelRotationsArray.push(labelRotation[0]);
-                            labelRotationsArray.push(labelRotation[1]);
-                            labelRotationsArray.push(labelRotation[2]);
-                            labelRotationsArray.push(labelRotation[3]);
-                            labelHorizontalAlignmentsArray.push(horizontalAlignment);
-                            labelVerticalAlignmentsArray.push(verticalAlignment);
-                            labelFillArray.push(labelFill);
-                            labelStrokeArray.push(labelStroke);
-                            labelStrokeWidthArray.push(labelStrokeWidth * scaling);
-                        }
-                    }
+                // Arrays
+                if (labels) {
+                    label = tick.label;
+                    glyphCount += label.length;
+                    labelsArray.push([label]);
+                    labelPositionsXArray.push(labelPositionX);
+                    labelPositionsYArray.push(labelPositionY);
+                    labelPositionsZArray.push(labelPositionZ);
+                    labelFontsArray.push(labelFont);
+                    labelScalesArray.push(labelFontSize * scaling);
+                    labelWeightsArray.push(labelFontWeight);
+                    labelRotationsArray.push(labelRotation[0]);
+                    labelRotationsArray.push(labelRotation[1]);
+                    labelRotationsArray.push(labelRotation[2]);
+                    labelRotationsArray.push(labelRotation[3]);
+                    labelHorizontalAlignmentsArray.push(horizontalAlignment);
+                    labelVerticalAlignmentsArray.push(verticalAlignment);
+                    labelFillArray.push(labelFill);
+                    labelStrokeArray.push(labelStroke);
+                    labelStrokeWidthArray.push(labelStrokeWidth * scaling);
                 }
-                break;
-            case "log":
-                break;
-            case "time":
-                break;
-            default:
-                console.log(`Unknown scale type ${scale.type} `);
-                break;
+            }
         }
 
         // Title
@@ -1267,71 +637,10 @@ export class Axis {
             // Title position
             // TODO: TitleAnchor
             const midRange = (scale.range.min + scale.range.max) / 2;
-            switch (this.edgeId) {
-                // x
-                case 0:
-                    labelPositionX = group.x + midRange;
-                    labelPositionY = group.y + group.height;
-                    labelPositionZ = group.z + group.depth;
-                    break;
-                case 2:
-                    labelPositionX = group.x + midRange;
-                    labelPositionY = group.y + group.height;
-                    labelPositionZ = group.z;
-                    break;
-                case 4:
-                    labelPositionX = group.x + midRange;
-                    labelPositionY = group.y;
-                    labelPositionZ = group.z + group.depth;
-                    break;
-                case 6:
-                    labelPositionX = group.x + midRange;
-                    labelPositionY = group.y;
-                    labelPositionZ = group.z;
-                    break;
-                // y
-                case 8:
-                    labelPositionX = group.x + group.width;
-                    labelPositionY = group.y + midRange;
-                    labelPositionZ = group.z + group.depth;
-                    break;
-                case 9:
-                    labelPositionX = group.x + group.width;
-                    labelPositionY = group.y + midRange;
-                    labelPositionZ = group.z;
-                    break;
-                case 10:
-                    labelPositionX = group.x;
-                    labelPositionY = group.y + midRange;
-                    labelPositionZ = group.z;
-                    break;
-                case 11:
-                    labelPositionX = group.x;
-                    labelPositionY = group.y + midRange;
-                    labelPositionZ = group.z + group.depth;
-                    break;
-                // z
-                case 1:
-                    labelPositionX = group.x + group.width;
-                    labelPositionY = group.y + group.height;
-                    labelPositionZ = group.z + midRange;
-                    break;
-                case 3:
-                    labelPositionX = group.x;
-                    labelPositionY = group.y + group.height;
-                    labelPositionZ = group.z + midRange;
-                    break;
-                case 5:
-                    labelPositionX = group.x + group.width;
-                    labelPositionY = group.y;
-                    labelPositionZ = group.z + midRange;
-                    break;
-                case 7:
-                    labelPositionX = group.x;
-                    labelPositionY = group.y;
-                    labelPositionZ = group.z + midRange;
-                    break;
-            }
+            this._positionTick(this.edgeId, group, midRange, midRange,
+                0, 0, 0,
+                pos => { labelPositionX = pos.lx; labelPositionY = pos.ly; labelPositionZ = pos.lz; },
+                () => { /* no grid for title */ });
             labelPositionX += labelOffsetX;
             labelPositionY += labelOffsetY;
             labelPositionZ += labelOffsetZ;
@@ -1458,6 +767,111 @@ export class Axis {
 
             // Add to scene
             scene.buffers.push(buffer);
+        }
+    }
+
+    // Edge positioning helper
+    // Maps a scaled value to 3D label/grid positions based on the edge ID
+    // Eliminates the 12-case switch that was duplicated for each scale type
+    private _positionTick(
+        edgeId: number,
+        group: Group,
+        scaledLabelValue: number,
+        scaledGridValue: number,
+        gridWidthX: number,
+        gridWidthY: number,
+        gridWidthZ: number,
+        setLabel: (pos: { lx: number; ly: number; lz: number }) => void,
+        pushGrid: (gx: number, gy: number, gz: number, sx: number, sy: number, sz: number) => void
+    ): void {
+        // Edge layout: which cube corner and which axis
+        //
+        //      .-------2-------.
+        //     /|              /|
+        //    3 |             1 |
+        //   /  10           /  9
+        //  .-------0-------.   |
+        //  |   |           |   |
+        //  |   .-------6---|---.
+        // 11  /            8  /
+        //  | 7             | 5
+        //  |/              |/
+        //  '-------4-------'
+        //
+        // X edges: 0,2,4,6   Y edges: 8,9,10,11   Z edges: 1,3,5,7
+
+        const w = group.width;
+        const h = group.height;
+        const d = group.depth;
+
+        // Fixed positions for each edge (the two axes that aren't the scaled axis)
+        // Format: [fixedA, fixedB] where A/B are the non-scaled axes
+        switch (edgeId) {
+            // X edges: scaled value → X
+            case 0:
+                setLabel({ lx: group.x + scaledLabelValue, ly: group.y + h, lz: group.z + d });
+                if (this.grid || this.gridY) { pushGrid(group.x + scaledGridValue, group.y + h / 2, group.z + d, gridWidthX, h, gridWidthZ); }
+                else if (this.gridZ) { pushGrid(group.x + scaledGridValue, group.y + h, group.z + d / 2, gridWidthX, gridWidthY, d); }
+                break;
+            case 2:
+                setLabel({ lx: group.x + scaledLabelValue, ly: group.y + h, lz: group.z });
+                if (this.grid || this.gridY) { pushGrid(group.x + scaledGridValue, group.y + h / 2, group.z, gridWidthX, h, gridWidthZ); }
+                else if (this.gridZ) { pushGrid(group.x + scaledGridValue, group.y + h, group.z + d / 2, gridWidthX, gridWidthY, d); }
+                break;
+            case 4:
+                setLabel({ lx: group.x + scaledLabelValue, ly: group.y, lz: group.z + d });
+                if (this.grid || this.gridY) { pushGrid(group.x + scaledGridValue, group.y + h / 2, group.z + d, gridWidthX, h, gridWidthZ); }
+                else if (this.gridZ) { pushGrid(group.x + scaledGridValue, group.y, group.z + d / 2, gridWidthX, gridWidthY, d); }
+                break;
+            case 6:
+                setLabel({ lx: group.x + scaledLabelValue, ly: group.y, lz: group.z });
+                if (this.grid || this.gridY) { pushGrid(group.x + scaledGridValue, group.y + h / 2, group.z, gridWidthX, h, gridWidthZ); }
+                else if (this.gridZ) { pushGrid(group.x + scaledGridValue, group.y, group.z + d / 2, gridWidthX, gridWidthY, d); }
+                break;
+
+            // Y edges: scaled value → Y
+            case 8:
+                setLabel({ lx: group.x + w, ly: group.y + scaledLabelValue, lz: group.z + d });
+                if (this.grid || this.gridX) { pushGrid(group.x + w / 2, group.y + scaledGridValue, group.z + d, w, gridWidthY, gridWidthZ); }
+                else if (this.gridZ) { pushGrid(group.x + w, group.y + scaledGridValue, group.z + d / 2, gridWidthX, gridWidthY, d); }
+                break;
+            case 9:
+                setLabel({ lx: group.x + w, ly: group.y + scaledLabelValue, lz: group.z });
+                if (this.grid || this.gridX) { pushGrid(group.x + w / 2, group.y + scaledGridValue, group.z, w, gridWidthY, gridWidthZ); }
+                else if (this.gridZ) { pushGrid(group.x + w, group.y + scaledGridValue, group.z + d / 2, gridWidthX, gridWidthY, d); }
+                break;
+            case 10:
+                setLabel({ lx: group.x, ly: group.y + scaledLabelValue, lz: group.z });
+                if (this.grid || this.gridX) { pushGrid(group.x + w / 2, group.y + scaledGridValue, group.z, w, gridWidthY, gridWidthZ); }
+                else if (this.gridZ) { pushGrid(group.x, group.y + scaledGridValue, group.z + d / 2, gridWidthX, gridWidthY, d); }
+                break;
+            case 11:
+                setLabel({ lx: group.x, ly: group.y + scaledLabelValue, lz: group.z + d });
+                if (this.grid || this.gridX) { pushGrid(group.x + w / 2, group.y + scaledGridValue, group.z + d, w, gridWidthY, gridWidthZ); }
+                else if (this.gridZ) { pushGrid(group.x, group.y + scaledGridValue, group.z + d / 2, gridWidthX, gridWidthY, d); }
+                break;
+
+            // Z edges: scaled value → Z
+            case 1:
+                setLabel({ lx: group.x + w, ly: group.y + h, lz: group.z + scaledLabelValue });
+                if (this.grid || this.gridX) { pushGrid(group.x + w / 2, group.y + h, group.z + scaledGridValue, w, gridWidthY, gridWidthZ); }
+                else if (this.gridY) { pushGrid(group.x + w, group.y + h / 2, group.z + scaledGridValue, gridWidthX, h, gridWidthZ); }
+                break;
+            case 3:
+                setLabel({ lx: group.x, ly: group.y + h, lz: group.z + scaledLabelValue });
+                if (this.grid || this.gridX) { pushGrid(group.x + w / 2, group.y + h, group.z + scaledGridValue, w, gridWidthY, gridWidthZ); }
+                else if (this.gridY) { pushGrid(group.x, group.y + h / 2, group.z + scaledGridValue, gridWidthX, h, gridWidthZ); }
+                break;
+            case 5:
+                setLabel({ lx: group.x + w, ly: group.y, lz: group.z + scaledLabelValue });
+                if (this.grid || this.gridX) { pushGrid(group.x + w / 2, group.y, group.z + scaledGridValue, w, gridWidthY, gridWidthZ); }
+                else if (this.gridY) { pushGrid(group.x + w, group.y + h / 2, group.z + scaledGridValue, gridWidthX, h, gridWidthZ); }
+                break;
+            case 7:
+                setLabel({ lx: group.x, ly: group.y, lz: group.z + scaledLabelValue });
+                if (this.grid || this.gridX) { pushGrid(group.x + w / 2, group.y, group.z + scaledGridValue, w, gridWidthY, gridWidthZ); }
+                else if (this.gridY) { pushGrid(group.x, group.y + h / 2, group.z + scaledGridValue, gridWidthX, h, gridWidthZ); }
+                break;
         }
     }
 }

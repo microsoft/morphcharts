@@ -6,17 +6,23 @@ import { Color } from "../color.js";
 import { Group } from "../marks/group.js";
 import { Scale, TickInfo } from "./scale.js";
 
-export class Linear extends Scale {
+export class Pow extends Scale {
     public zero: boolean;
-    public clamp: boolean; // If true, clamp the output value to the range
+    public clamp: boolean;
+    public exponent: number;
 
     constructor() {
         super();
-        this.type = "linear";
+        this.type = "pow";
 
         // Defaults
-        this.zero = true; // Default to zero for linear scales
-        this.clamp = false; // Default to no clamping
+        this.zero = true;
+        this.clamp = false;
+        this.exponent = 1;
+    }
+
+    protected _transform(value: number): number {
+        return Math.sign(value) * Math.pow(Math.abs(value), this.exponent);
     }
 
     public map(value: number): number {
@@ -25,14 +31,22 @@ export class Linear extends Scale {
         const clamp = this.clamp;
         const reverse = this.reverse;
 
+        // Transform domain bounds and value
+        const tMin = this._transform(domain.min);
+        const tMax = this._transform(domain.max);
+        const tValue = this._transform(value);
+        const tSpan = tMax - tMin;
+        if (tSpan === 0) { return range.min; }
+        const normalized = (tValue - tMin) / tSpan;
+
         // Map value to range
         if (clamp) {
-            if (reverse) { return Math.min(Math.max(range.max + (range.min - range.max) * (value - domain.min) / (domain.max - domain.min), range.min), range.max); }
-            else { return Math.min(Math.max(range.min + (range.max - range.min) * (value - domain.min) / (domain.max - domain.min), range.min), range.max); }
+            if (reverse) { return Math.min(Math.max(range.max + (range.min - range.max) * normalized, range.min), range.max); }
+            else { return Math.min(Math.max(range.min + (range.max - range.min) * normalized, range.min), range.max); }
         }
         else {
-            if (reverse) { return range.max + (range.min - range.max) * (value - domain.min) / (domain.max - domain.min); }
-            else { return range.min + (range.max - range.min) * (value - domain.min) / (domain.max - domain.min); }
+            if (reverse) { return range.max + (range.min - range.max) * normalized; }
+            else { return range.min + (range.max - range.min) * normalized; }
         }
     }
 
@@ -48,30 +62,37 @@ export class Linear extends Scale {
         return ticks;
     }
 
-    public static fromJSON(group: Group, scaleJSON: any): Linear {
-        const linear = new Linear();
-        linear._fromJSON(scaleJSON); // Call the base class method to set name, domain, range, reverse, round
+    public static fromJSON(group: Group, scaleJSON: any): Pow {
+        const pow = new Pow();
+        pow._fromJSON(scaleJSON);
 
         // Optional fields
-        if (scaleJSON.zero != undefined) { linear.zero = scaleJSON.zero; }
-        if (scaleJSON.clamp != undefined) { linear.clamp = scaleJSON.clamp; }
+        if (scaleJSON.zero != undefined) { pow.zero = scaleJSON.zero; }
+        if (scaleJSON.clamp != undefined) { pow.clamp = scaleJSON.clamp; }
+        if (scaleJSON.exponent != undefined) {
+            if (typeof scaleJSON.exponent == "number") { pow.exponent = scaleJSON.exponent; }
+            else if (typeof scaleJSON.exponent == "object" && scaleJSON.exponent.signal) {
+                pow.exponent = group.parseSignalValue(scaleJSON.exponent.signal);
+            }
+        }
+        if (!isFinite(pow.exponent)) { throw new Error("pow scale exponent must be a finite number"); }
 
         // Domain
-        const domain = linear.domain;
+        const domain = pow.domain;
         if (Array.isArray(scaleJSON.domain) && scaleJSON.domain.length == 2) {
             // Min
             if (typeof scaleJSON.domain[0] == "number") { domain.min = scaleJSON.domain[0]; }
             else if (typeof (scaleJSON.domain[0]) == "object" && scaleJSON.domain[0].signal) {
                 domain.min = group.parseSignalValue(scaleJSON.domain[0].signal);
             }
-            else { throw new Error("linear scale domain min signal must be a number"); }
+            else { throw new Error("pow scale domain min must be a number"); }
 
             // Max
             if (typeof scaleJSON.domain[1] == "number") { domain.max = scaleJSON.domain[1]; }
             else if (typeof (scaleJSON.domain[1]) == "object" && scaleJSON.domain[1].signal) {
                 domain.max = group.parseSignalValue(scaleJSON.domain[1].signal);
             }
-            else { throw new Error("linear scale domain max signal must be a number"); }
+            else { throw new Error("pow scale domain max must be a number"); }
         }
         else if (typeof scaleJSON.domain == "object" && scaleJSON.domain.signal) {
             const signalValue = group.parseSignalValue(scaleJSON.domain.signal);
@@ -79,31 +100,31 @@ export class Linear extends Scale {
                 domain.min = signalValue[0];
                 domain.max = signalValue[1];
             }
-            else { throw new Error("linear scale domain signal must be an array of two numbers"); }
+            else { throw new Error("pow scale domain signal must be an array of two numbers"); }
         }
         else if (typeof scaleJSON.domain == "object" && scaleJSON.domain.data) {
             // Data reference
             const data = scaleJSON.domain.data;
             const dataset = group.getDataset(data);
-            if (!dataset) { throw new Error(`linear scale dataset ${data} not found`); }
+            if (!dataset) { throw new Error(`pow scale dataset ${data} not found`); }
             const field = scaleJSON.domain.field;
-            if (!field) { throw new Error("linear scale domain field not specified"); }
+            if (!field) { throw new Error("pow scale domain field not specified"); }
             domain.data = dataset;
             domain.field = field;
             const columnIndex = dataset.getColumnIndex(field);
-            if (columnIndex == -1) { throw new Error(`linear scale field ${field} not found`); }
+            if (columnIndex == -1) { throw new Error(`pow scale field ${field} not found`); }
 
             // Min, max
-            const isDiscrete = false; // Linear scales are always continuous
+            const isDiscrete = false;
             if (scaleJSON.domainMin != undefined) { domain.min = scaleJSON.domainMin; }
-            else { domain.min = linear.zero ? Math.min(0, dataset.all.minValue(columnIndex, isDiscrete)) : dataset.all.minValue(columnIndex, isDiscrete); }
+            else { domain.min = pow.zero ? Math.min(0, dataset.all.minValue(columnIndex, isDiscrete)) : dataset.all.minValue(columnIndex, isDiscrete); }
             if (scaleJSON.domainMax != undefined) { domain.max = scaleJSON.domainMax; }
-            else { domain.max = linear.zero ? Math.max(0, dataset.all.maxValue(columnIndex, isDiscrete)) : dataset.all.maxValue(columnIndex, isDiscrete); }
+            else { domain.max = pow.zero ? Math.max(0, dataset.all.maxValue(columnIndex, isDiscrete)) : dataset.all.maxValue(columnIndex, isDiscrete); }
         }
         else { console.log(`unknown domain type ${scaleJSON.domain}`); }
 
         // Zero
-        if (linear.zero) {
+        if (pow.zero) {
             domain.min = Math.min(0, domain.min);
             domain.max = Math.max(0, domain.max);
         }
@@ -121,7 +142,7 @@ export class Linear extends Scale {
 
         // TODO: Move to ScaleRange.fromJSON
         // Range
-        const range = linear.range;
+        const range = pow.range;
         let rangeJSON = scaleJSON.range
         // Check config
         if (typeof rangeJSON == "string") {
@@ -201,13 +222,13 @@ export class Linear extends Scale {
                 // Check for valid name
                 const palette = Core.Palettes[range.scheme];
                 if (palette) {
-                    // Linear scales always interpolate continuously across the palette
+                    // Continuous scales always interpolate across the palette
                     range.min = 0;
                     range.max = 1;
                 }
             }
         }
         else { console.log(`unknown range type ${rangeJSON}`); }
-        return linear;
+        return pow;
     }
 }

@@ -3,7 +3,7 @@
 
 import * as Core from "core";
 import { Group } from "../marks/group.js";
-import { DomainSort, Scale } from "./scale.js";
+import { DomainSort, Scale, TickInfo } from "./scale.js";
 import { Color } from "../color.js";
 
 export class Ordinal extends Scale {
@@ -27,6 +27,22 @@ export class Ordinal extends Scale {
         // Map value to range
         if (this.reverse) { return Math.max(this.range.max - columnValue, 0); }
         else { return Math.min(this.range.min + columnValue, this.range.max); }
+    }
+
+    public tickValues(count: number, format?: Intl.NumberFormat | Intl.DateTimeFormat): TickInfo[] {
+        const ticks: TickInfo[] = [];
+        const dataset = this.domain.data;
+        if (dataset) {
+            const columnIndex = dataset.getColumnIndex(this.domain.field);
+            if (columnIndex !== -1) {
+                const distinctStrings = dataset.all.distinctStrings(columnIndex);
+                const tickCount = count != undefined ? count : distinctStrings.length;
+                for (let i = 0; i < tickCount && i < distinctStrings.length; i++) {
+                    ticks.push({ value: distinctStrings[i], label: distinctStrings[i] });
+                }
+            }
+        }
+        return ticks;
     }
 
     public static fromJSON(group: Group, scaleJSON: any): Ordinal {
