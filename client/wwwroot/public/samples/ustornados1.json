@@ -143,8 +143,8 @@
           "x2": {"scale": "xzscale", "signal": "imageCenteredX[1]"},
           "z":  {"scale": "xzscale", "signal": "imageCenteredZ[0]"},
           "z2": {"scale": "xzscale", "signal": "imageCenteredZ[1]"},
-          "y": {"value": 0.2},
-          "y2":  {"value": 9.98},
+          "y": {"value": 0.1},
+          "y2":  {"value": 9.8},
           "fill": {"value": "white"}
         }
       }
@@ -159,7 +159,7 @@
           "x2": {"scale": "xzscale", "signal": "imageCenteredX[1]"},
           "z":  {"scale": "xzscale", "signal": "imageCenteredZ[0]"},
           "z2": {"scale": "xzscale", "signal": "imageCenteredZ[1]"},
-          "y": {"value": 9.99},
+          "y": {"value": 9.9},
           "fill": {"image": "map", "texScale": {"z": {"value": -1}}}
         }
       }
@@ -171,15 +171,15 @@
       "from": {"data": "aggregate"},
       "encode": {
         "enter": {
-          "x": {"scale": "xzscale", "field": "x0", "offset": {"signal": "0.025*width/maxbins"}},
-          "x2": {"scale": "xzscale", "field": "x1", "offset": {"signal": "-0.025*width/maxbins"}},
+          "x": {"scale": "xzscale", "field": "x0", "offset": {"signal": "0.04*width/maxbins"}},
+          "x2": {"scale": "xzscale", "field": "x1", "offset": {"signal": "-0.04*width/maxbins"}},
           "y": {"value": 10},
           "y2": {"scale": "yscale", "field": "count", "offset": 10},
-          "z": {"scale": "xzscale", "field": "z0", "offset": {"signal": "0.025*width/maxbins"}},
-          "z2": {"scale": "xzscale", "field": "z1", "offset": {"signal": "-0.025*width/maxbins"}},
+          "z": {"scale": "xzscale", "field": "z0", "offset": {"signal": "0.04*width/maxbins"}},
+          "z2": {"scale": "xzscale", "field": "z1", "offset": {"signal": "-0.04*width/maxbins"}},
           "rounding": {"signal": "0.02*width/maxbins"},
-          "fill": {"value": "copper"},
-          "fuzz": {"value": 0.2}
+          "fill": {"value": "#c84"},
+          "fuzz": {"value": 0.3}
         }
       }
     },
@@ -208,7 +208,7 @@
       "encode": {
         "enter": {
           "x": {"scale": "xzscale", "signal": "imageCenteredX[0]", "offset": 8},
-          "y": {"value": 10.01},
+          "y": {"value": 10},
           "z": {"scale": "xzscale", "signal": "imageCenteredZ[1]", "offset": -8},
           "text": {"value": "US Tornados 1950-2024"},
           "align": {"value": "left"},

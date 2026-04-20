@@ -6,17 +6,21 @@ import { Color } from "../color.js";
 import { Group } from "../marks/group.js";
 import { Scale, TickInfo } from "./scale.js";
 
-export class Linear extends Scale {
-    public zero: boolean;
-    public clamp: boolean; // If true, clamp the output value to the range
+export class Log extends Scale {
+    public clamp: boolean;
+    public base: number;
 
     constructor() {
         super();
-        this.type = "linear";
+        this.type = "log";
 
         // Defaults
-        this.zero = true; // Default to zero for linear scales
-        this.clamp = false; // Default to no clamping
+        this.clamp = false;
+        this.base = 10;
+    }
+
+    private _logBase(value: number): number {
+        return Math.log(value) / Math.log(this.base);
     }
 
     public map(value: number): number {
@@ -25,14 +29,24 @@ export class Linear extends Scale {
         const clamp = this.clamp;
         const reverse = this.reverse;
 
+        // Guard against non-positive values
+        if (value <= 0) { value = domain.min; }
+
+        const logMin = this._logBase(domain.min);
+        const logMax = this._logBase(domain.max);
+        const logValue = this._logBase(value);
+        const logSpan = logMax - logMin;
+        if (logSpan === 0) { return range.min; }
+        const normalized = (logValue - logMin) / logSpan;
+
         // Map value to range
         if (clamp) {
-            if (reverse) { return Math.min(Math.max(range.max + (range.min - range.max) * (value - domain.min) / (domain.max - domain.min), range.min), range.max); }
-            else { return Math.min(Math.max(range.min + (range.max - range.min) * (value - domain.min) / (domain.max - domain.min), range.min), range.max); }
+            if (reverse) { return Math.min(Math.max(range.max + (range.min - range.max) * normalized, range.min), range.max); }
+            else { return Math.min(Math.max(range.min + (range.max - range.min) * normalized, range.min), range.max); }
         }
         else {
-            if (reverse) { return range.max + (range.min - range.max) * (value - domain.min) / (domain.max - domain.min); }
-            else { return range.min + (range.max - range.min) * (value - domain.min) / (domain.max - domain.min); }
+            if (reverse) { return range.max + (range.min - range.max) * normalized; }
+            else { return range.min + (range.max - range.min) * normalized; }
         }
     }
 
@@ -40,38 +54,68 @@ export class Linear extends Scale {
         const ticks: TickInfo[] = [];
         const min = this.domain.min;
         const max = this.domain.max;
-        for (let i = 0; i <= count; i++) {
-            const value = min + i * (max - min) / count;
-            const label = format ? format.format(value) : value.toString();
-            ticks.push({ value, label });
+
+        // Generate ticks at powers of the base within the domain
+        const logMin = Math.floor(this._logBase(min));
+        const logMax = Math.ceil(this._logBase(max));
+        for (let p = logMin; p <= logMax; p++) {
+            const value = Math.pow(this.base, p);
+            if (value >= min && value <= max) {
+                const label = format ? format.format(value) : value.toString();
+                ticks.push({ value, label });
+            }
         }
+
+        // Fallback: if no powers of base fall in domain, use evenly-spaced in log space
+        if (ticks.length === 0) {
+            for (let i = 0; i <= count; i++) {
+                const logValue = this._logBase(min) + i * (this._logBase(max) - this._logBase(min)) / count;
+                const value = Math.pow(this.base, logValue);
+                const label = format ? format.format(value) : value.toString();
+                ticks.push({ value, label });
+            }
+        }
+
         return ticks;
     }
 
-    public static fromJSON(group: Group, scaleJSON: any): Linear {
-        const linear = new Linear();
-        linear._fromJSON(scaleJSON); // Call the base class method to set name, domain, range, reverse, round
+    public defaultTickCount(): number {
+        // Number of powers of base in domain (at least 1)
+        const logMin = Math.floor(this._logBase(this.domain.min));
+        const logMax = Math.ceil(this._logBase(this.domain.max));
+        return Math.max(1, logMax - logMin);
+    }
+
+    public static fromJSON(group: Group, scaleJSON: any): Log {
+        const log = new Log();
+        log._fromJSON(scaleJSON);
 
         // Optional fields
-        if (scaleJSON.zero != undefined) { linear.zero = scaleJSON.zero; }
-        if (scaleJSON.clamp != undefined) { linear.clamp = scaleJSON.clamp; }
+        if (scaleJSON.clamp != undefined) { log.clamp = scaleJSON.clamp; }
+        if (scaleJSON.base != undefined) {
+            if (typeof scaleJSON.base == "number") { log.base = scaleJSON.base; }
+            else if (typeof scaleJSON.base == "object" && scaleJSON.base.signal) {
+                log.base = group.parseSignalValue(scaleJSON.base.signal);
+            }
+        }
+        if (!isFinite(log.base) || log.base <= 0 || log.base === 1) { throw new Error("log scale base must be a positive finite number other than 1"); }
 
         // Domain
-        const domain = linear.domain;
+        const domain = log.domain;
         if (Array.isArray(scaleJSON.domain) && scaleJSON.domain.length == 2) {
             // Min
             if (typeof scaleJSON.domain[0] == "number") { domain.min = scaleJSON.domain[0]; }
             else if (typeof (scaleJSON.domain[0]) == "object" && scaleJSON.domain[0].signal) {
                 domain.min = group.parseSignalValue(scaleJSON.domain[0].signal);
             }
-            else { throw new Error("linear scale domain min signal must be a number"); }
+            else { throw new Error("log scale domain min must be a number"); }
 
             // Max
             if (typeof scaleJSON.domain[1] == "number") { domain.max = scaleJSON.domain[1]; }
             else if (typeof (scaleJSON.domain[1]) == "object" && scaleJSON.domain[1].signal) {
                 domain.max = group.parseSignalValue(scaleJSON.domain[1].signal);
             }
-            else { throw new Error("linear scale domain max signal must be a number"); }
+            else { throw new Error("log scale domain max must be a number"); }
         }
         else if (typeof scaleJSON.domain == "object" && scaleJSON.domain.signal) {
             const signalValue = group.parseSignalValue(scaleJSON.domain.signal);
@@ -79,49 +123,39 @@ export class Linear extends Scale {
                 domain.min = signalValue[0];
                 domain.max = signalValue[1];
             }
-            else { throw new Error("linear scale domain signal must be an array of two numbers"); }
+            else { throw new Error("log scale domain signal must be an array of two numbers"); }
         }
         else if (typeof scaleJSON.domain == "object" && scaleJSON.domain.data) {
             // Data reference
             const data = scaleJSON.domain.data;
             const dataset = group.getDataset(data);
-            if (!dataset) { throw new Error(`linear scale dataset ${data} not found`); }
+            if (!dataset) { throw new Error(`log scale dataset ${data} not found`); }
             const field = scaleJSON.domain.field;
-            if (!field) { throw new Error("linear scale domain field not specified"); }
+            if (!field) { throw new Error("log scale domain field not specified"); }
             domain.data = dataset;
             domain.field = field;
             const columnIndex = dataset.getColumnIndex(field);
-            if (columnIndex == -1) { throw new Error(`linear scale field ${field} not found`); }
+            if (columnIndex == -1) { throw new Error(`log scale field ${field} not found`); }
 
             // Min, max
-            const isDiscrete = false; // Linear scales are always continuous
+            const isDiscrete = false;
             if (scaleJSON.domainMin != undefined) { domain.min = scaleJSON.domainMin; }
-            else { domain.min = linear.zero ? Math.min(0, dataset.all.minValue(columnIndex, isDiscrete)) : dataset.all.minValue(columnIndex, isDiscrete); }
+            else { domain.min = dataset.all.minValue(columnIndex, isDiscrete); }
             if (scaleJSON.domainMax != undefined) { domain.max = scaleJSON.domainMax; }
-            else { domain.max = linear.zero ? Math.max(0, dataset.all.maxValue(columnIndex, isDiscrete)) : dataset.all.maxValue(columnIndex, isDiscrete); }
+            else { domain.max = dataset.all.maxValue(columnIndex, isDiscrete); }
         }
         else { console.log(`unknown domain type ${scaleJSON.domain}`); }
 
-        // Zero
-        if (linear.zero) {
-            domain.min = Math.min(0, domain.min);
-            domain.max = Math.max(0, domain.max);
+        // Enforce positive domain for log scale
+        if (domain.min <= 0) {
+            console.warn(`log scale domain min (${domain.min}) must be positive, clamping to 1e-6`);
+            domain.min = 1e-6;
         }
-
-        // Override domain min/max with "nice" values
-        if (scaleJSON.nice) {
-            const span = domain.max - domain.min;
-            if (span > 0) {
-                const maxTicks = 10;
-                const niceScale = Core.Math.niceScale(domain.min, domain.max, maxTicks);
-                domain.min = niceScale.niceMin;
-                domain.max = niceScale.niceMax;
-            }
-        }
+        if (domain.max <= 0) { throw new Error("log scale domain max must be positive"); }
 
         // TODO: Move to ScaleRange.fromJSON
         // Range
-        const range = linear.range;
+        const range = log.range;
         let rangeJSON = scaleJSON.range
         // Check config
         if (typeof rangeJSON == "string") {
@@ -201,13 +235,13 @@ export class Linear extends Scale {
                 // Check for valid name
                 const palette = Core.Palettes[range.scheme];
                 if (palette) {
-                    // Linear scales always interpolate continuously across the palette
+                    // Continuous scales always interpolate across the palette
                     range.min = 0;
                     range.max = 1;
                 }
             }
         }
         else { console.log(`unknown range type ${rangeJSON}`); }
-        return linear;
+        return log;
     }
 }

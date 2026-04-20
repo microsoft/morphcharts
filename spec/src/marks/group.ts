@@ -17,6 +17,9 @@ import { Color } from "../color.js";
 import { Scale } from "../scales/scale.js";
 import { Band } from "../scales/band.js";
 import { Linear } from "../scales/linear.js";
+import { Pow } from "../scales/pow.js";
+import { Sqrt } from "../scales/sqrt.js";
+import { Log } from "../scales/log.js";
 import { Point } from "../scales/point.js";
 import { Expression } from "../expression.js";
 import { Ordinal } from "../scales/ordinal.js";
@@ -110,6 +113,9 @@ export class Group extends Mark {
                     switch (scale.type) {
                         // Continuous scales, interpolate across color array
                         case "linear":
+                        case "pow":
+                        case "sqrt":
+                        case "log":
                             return Core.Palette.sample(range.colors, value, true);
                         // Discrete/discretizing scales
                         default:
@@ -130,6 +136,9 @@ export class Group extends Mark {
                         switch (scale.type) {
                             // Continuous scales, interpolate
                             case "linear":
+                            case "pow":
+                            case "sqrt":
+                            case "log":
                                 return Core.Palette.sample(palette.colors, value, true);
                             // Discrete scales
                             default:
@@ -700,6 +709,15 @@ export class Group extends Mark {
                             default:
                                 // Default to linear scale
                                 scale = Linear.fromJSON(mark, scaleJSON);
+                                break;
+                            case "pow":
+                                scale = Pow.fromJSON(mark, scaleJSON);
+                                break;
+                            case "sqrt":
+                                scale = Sqrt.fromJSON(mark, scaleJSON);
+                                break;
+                            case "log":
+                                scale = Log.fromJSON(mark, scaleJSON);
                                 break;
                             case "band":
                                 scale = Band.fromJSON(mark, scaleJSON);

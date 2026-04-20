@@ -131,7 +131,7 @@ struct Hittable {                  // -------------------------
     sdfBuffer: f32,                //          160*     4     4
     sdfHalo: f32,                  //          164      4     4
     textureTypeId: f32,            //          168      4     4
-    _padding: f32,                 // padding  172      4     4
+    fuzzTypeId: f32,               //          172      4     4
     parameter0: f32,               //          176*     4     4
     parameter1: f32,               //          180      4     4
     parameter2: f32,               //          184      4     4
@@ -1486,7 +1486,8 @@ fn scatterLambertian(ray: ptr<function, Ray>, hitRecord: ptr<function, HitRecord
 }
 
 fn scatterMetal(ray: ptr<function, Ray>, hitRecord: ptr<function, HitRecord>, attenuation: ptr<function, vec3<f32>>, seed: ptr<function, u32>) -> bool {
-    let fuzz = hittableBuffer.hittables[(*hitRecord).id].materialFuzz;
+    let hittable = hittableBuffer.hittables[(*hitRecord).id];
+    let fuzz = materialMapValue(hitRecord, hittable.materialFuzz, hittable.fuzzTypeId);
     (*ray).direction = normalize(reflect((*ray).direction, (*hitRecord).normal) + fuzz * randomUnitVector(seed));
 
     (*ray).origin = (*hitRecord).position + (*ray).direction * 0.0001f; // Offset to avoid self-intersection
@@ -1499,8 +1500,8 @@ fn scatterMetal(ray: ptr<function, Ray>, hitRecord: ptr<function, HitRecord>, at
 
 fn scatterDielectric(ray: ptr<function, Ray>, hitRecord: ptr<function, HitRecord>, attenuation: ptr<function, vec3<f32>>, seed: ptr<function, u32>) -> bool {
     let hittable = hittableBuffer.hittables[hitRecord.id];
+    let fuzz = materialMapValue(hitRecord, hittable.materialFuzz, hittable.fuzzTypeId);
     let refractiveIndex = hittable.materialRefractiveIndex;
-    // TODO: If still inside another material, use its refractive index
     let refractionRatio = select(refractiveIndex, 1f / refractiveIndex, (*hitRecord).frontFace);
     let cosTheta = min(dot(-(*ray).direction, (*hitRecord).normal), 1f);
     let sinTheta = sqrt(1f - cosTheta * cosTheta);
@@ -1511,7 +1512,7 @@ fn scatterDielectric(ray: ptr<function, Ray>, hitRecord: ptr<function, HitRecord
     else {
         (*ray).direction = refraction((*ray).direction, (*hitRecord).normal, refractionRatio);
     }
-    (*ray).direction = normalize((*ray).direction + hittable.materialFuzz * randomUnitVector(seed));
+    (*ray).direction = normalize((*ray).direction + fuzz * randomUnitVector(seed));
     (*ray).origin = (*hitRecord).position + (*ray).direction * 0.0001f; // Offset to avoid self-intersection
     (*attenuation) = vec3<f32>(1f, 1f, 1f);
 
@@ -1526,7 +1527,7 @@ fn scatterDielectric(ray: ptr<function, Ray>, hitRecord: ptr<function, HitRecord
 fn scatterGlossy(ray: ptr<function, Ray>, hitRecord: ptr<function, HitRecord>, attenuation: ptr<function, vec3<f32>>, seed: ptr<function, u32>) -> bool {
     // Specular
     let hittable = hittableBuffer.hittables[(*hitRecord).id];
-    let fuzz = hittable.materialFuzz;
+    let fuzz = materialMapValue(hitRecord, hittable.materialFuzz, hittable.fuzzTypeId);
     let refractiveIndex = hittable.materialRefractiveIndex;
     let gloss = hittable.materialGloss;
     let refractionRatio = select(refractiveIndex, 1f / refractiveIndex, (*hitRecord).frontFace);
@@ -1590,6 +1591,15 @@ fn textureValue(hitRecord: ptr<function, HitRecord>) -> vec3<f32> {
     }
 }
 
+// Sample fuzz or gloss from texture, using luminance as the value
+fn materialMapValue(hitRecord: ptr<function, HitRecord>, constantValue: f32, typeId: f32) -> f32 {
+    if (typeId > 0f) {
+        let sample = textureSampleLevel(backgroundTexture, linearSampler, (*hitRecord).uv, 0f).rgb;
+        return dot(sample, vec3<f32>(0.299f, 0.587f, 0.114f)); // Luminance
+    }
+    return constantValue;
+}
+
 fn rayColor(ray: ptr<function, Ray>, seed: ptr<function, u32>) -> vec3<f32> {
     let maxDepth = 8u; // TODO: Pass as uniform
     var depth = 0u;
@@ -1635,7 +1645,7 @@ fn rayColor(ray: ptr<function, Ray>, seed: ptr<function, u32>) -> vec3<f32> {
                 case 4u: {
                     // Diffuse light
                     scatter = false;
-                    emitted = hittableBuffer.hittables[hitRecord.id].materialColor1;
+                    emitted = textureValue(&hitRecord);
                 }
                 default: {
                     scatter = false;

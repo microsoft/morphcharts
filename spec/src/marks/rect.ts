@@ -433,14 +433,15 @@ export class Rect extends Mark {
                 }
             }
 
-            // Tex Coords
+            // Tex Coords — use first available from fill or fuzz
             // TODO: Support multi-face texture coordinates
-            if (fill.texCoords) {
+            const texCoordsSource = fill.texCoords || (this.encode.fuzz && this.encode.fuzz.texCoords);
+            if (texCoordsSource) {
                 let texCoordsX, texCoordsY, texCoordsX2, texCoordsY2: Float32Array;
-                if (fill.texCoords.x) { texCoordsX = group.values(fill.texCoords.x, dataset); }
-                if (fill.texCoords.y) { texCoordsY = group.values(fill.texCoords.y, dataset); }
-                if (fill.texCoords.x2) { texCoordsX2 = group.values(fill.texCoords.x2, dataset); }
-                if (fill.texCoords.y2) { texCoordsY2 = group.values(fill.texCoords.y2, dataset); }
+                if (texCoordsSource.x) { texCoordsX = group.values(texCoordsSource.x, dataset); }
+                if (texCoordsSource.y) { texCoordsY = group.values(texCoordsSource.y, dataset); }
+                if (texCoordsSource.x2) { texCoordsX2 = group.values(texCoordsSource.x2, dataset); }
+                if (texCoordsSource.y2) { texCoordsY2 = group.values(texCoordsSource.y2, dataset); }
                 texCoords = new Float32Array(dataset.length * 4);
                 for (let i = 0; i < dataset.length; i++) {
                     texCoords[i * 4] = texCoordsX ? texCoordsX[i] : 0;
@@ -450,16 +451,15 @@ export class Rect extends Mark {
                 }
             }
 
-            // Texture scale
+            // Texture scale — use first available from fill or fuzz
             // TODO: Support multi-face texture scaling
-            // For now, support 2 pairs of UV scale and offset, one for sides and one for top/bottom
-            if (fill.texScale) {
+            const texScaleSource = fill.texScale || (this.encode.fuzz && this.encode.fuzz.texScale);
+            if (texScaleSource) {
                 let texScalesX, texScalesY, texScalesZ, texScalesW: Float32Array;
-                // TODO: Support signal values
-                if (fill.texScale.x) { texScalesX = group.values(fill.texScale.x, dataset); }
-                if (fill.texScale.y) { texScalesY = group.values(fill.texScale.y, dataset); }
-                if (fill.texScale.z) { texScalesZ = group.values(fill.texScale.z, dataset); }
-                if (fill.texScale.w) { texScalesW = group.values(fill.texScale.w, dataset); }
+                if (texScaleSource.x) { texScalesX = group.values(texScaleSource.x, dataset); }
+                if (texScaleSource.y) { texScalesY = group.values(texScaleSource.y, dataset); }
+                if (texScaleSource.z) { texScalesZ = group.values(texScaleSource.z, dataset); }
+                if (texScaleSource.w) { texScalesW = group.values(texScaleSource.w, dataset); }
                 texScales = new Float32Array(dataset.length * 4);
                 for (let i = 0; i < dataset.length; i++) {
                     texScales[i * 4] = texScalesX ? texScalesX[i] : 1;
@@ -469,13 +469,14 @@ export class Rect extends Mark {
                 }
             }
 
-            // Texture offset
-            if (fill.texOffset) {
+            // Texture offset — use first available from fill or fuzz
+            const texOffsetSource = fill.texOffset || (this.encode.fuzz && this.encode.fuzz.texOffset);
+            if (texOffsetSource) {
                 let texOffsetsX, texOffsetsY, texOffsetsZ, texOffsetsW: Float32Array;
-                if (fill.texOffset.x) { texOffsetsX = group.values(fill.texOffset.x, dataset); }
-                if (fill.texOffset.y) { texOffsetsY = group.values(fill.texOffset.y, dataset); }
-                if (fill.texOffset.z) { texOffsetsZ = group.values(fill.texOffset.z, dataset); }
-                if (fill.texOffset.w) { texOffsetsW = group.values(fill.texOffset.w, dataset); }
+                if (texOffsetSource.x) { texOffsetsX = group.values(texOffsetSource.x, dataset); }
+                if (texOffsetSource.y) { texOffsetsY = group.values(texOffsetSource.y, dataset); }
+                if (texOffsetSource.z) { texOffsetsZ = group.values(texOffsetSource.z, dataset); }
+                if (texOffsetSource.w) { texOffsetsW = group.values(texOffsetSource.w, dataset); }
                 texOffsets = new Float32Array(dataset.length * 4);
                 for (let i = 0; i < dataset.length; i++) {
                     texOffsets[i * 4] = texOffsetsX ? texOffsetsX[i] : 0;
@@ -485,7 +486,13 @@ export class Rect extends Mark {
                 }
             }
         }
-        if (this.encode.fuzz) { fuzzes = group.values(this.encode.fuzz, dataset); }
+        let fuzzImageType: Core.TextureType = Core.TextureType.solidColor;
+        if (this.encode.fuzz) {
+            if (this.encode.fuzz.image) {
+                fuzzImageType = Core.TextureType.image;
+            }
+            else { fuzzes = group.values(this.encode.fuzz, dataset); }
+        }
         if (this.encode.gloss) { glosses = group.values(this.encode.gloss, dataset); }
         if (this.encode.refractiveIndex) { refractiveIndices = group.values(this.encode.refractiveIndex, dataset); }
         if (this.encode.density) { densities = group.values(this.encode.density, dataset); }
@@ -495,6 +502,7 @@ export class Rect extends Mark {
             materials[i].type = materialType;
             materials[i].fill = fillColors ? fillColors[i] || Plot.FILL_COLOR : Plot.FILL_COLOR;
             materials[i].fuzz = fuzzes ? fuzzes[i] : Plot.MATERIAL_FUZZ;
+            materials[i].fuzzType = fuzzImageType;
             materials[i].gloss = glosses ? glosses[i] : Plot.MATERIAL_GLOSS;
             materials[i].refractiveIndex = refractiveIndices ? refractiveIndices[i] : Plot.MATERIAL_REFRACTIVE_INDEX;
             materials[i].density = densities ? densities[i] : Plot.MATERIAL_DENSITY;

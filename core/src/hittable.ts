@@ -462,9 +462,9 @@ export class HittableXyGlyph extends Hittable {
 //
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // |   160    |   161    |   162    |   163    |   164    |   165    |   166    |   167    |   168    |   169    |   170    |   171    |   172    |   173    |   174    |   175    |
-// |                sdf buffer                 |                 sdf halo                  |               texture type                |                                           |
+// |                sdf buffer                 |                 sdf halo                  |               texture type                |                 fuzz type                          |
 // |                                           |                                           |                                           |                                           |
-// |                    F32                    |                    F32                    |                    F32                    |                                           |
+// |                    F32                    |                    F32                    |                    F32                    |                    F32                    |
 // | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 |
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //
@@ -509,6 +509,7 @@ export class HittableBufferData extends Float32Array {
     public readonly SDF_BUFFER_OFFSET = 160 / 4;
     public readonly SDF_HALO_OFFSET = 164 / 4;
     public readonly TEXTURE_TYPE_OFFSET = 168 / 4;
+    public readonly FUZZ_TYPE_OFFSET = 172 / 4;
     public readonly PARAM_OFFSET = 176 / 4;
     public readonly MATERIAL_COLOR2_OFFSET = 192 / 4;
 
@@ -583,6 +584,7 @@ export class HittableBufferData extends Float32Array {
     public setMaterial(index: number, material: Material) {
         this.setMaterialType(index, material.type);
         this.setMaterialFuzz(index, material.fuzz);
+        this.setFuzzType(index, material.fuzzType);
         this.setMaterialGloss(index, material.gloss);
         this.setMaterialDensity(index, material.density);
         this.setMaterialRefractiveIndex(index, material.refractiveIndex);
@@ -655,6 +657,13 @@ export class HittableBufferData extends Float32Array {
     }
     public setTextureType(index: number, value: number) {
         this[HittableBufferData.SIZE * index + this.TEXTURE_TYPE_OFFSET] = value;
+    }
+
+    public getFuzzType(index: number) {
+        return this[HittableBufferData.SIZE * index + this.FUZZ_TYPE_OFFSET];
+    }
+    public setFuzzType(index: number, value: number) {
+        this[HittableBufferData.SIZE * index + this.FUZZ_TYPE_OFFSET] = value;
     }
 
     public getSegmentColor(index: number, value: ColorRGBA) {

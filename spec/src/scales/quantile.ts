@@ -4,7 +4,7 @@
 import * as Core from "core";
 import { Color } from "../color.js";
 import { Group } from "../marks/group.js";
-import { Scale } from "./scale.js";
+import { Scale, TickInfo } from "./scale.js";
 
 export class Quantile extends Scale {
     public binIds: Uint32Array; // Lookup of quantile values by distinct string value
@@ -30,6 +30,22 @@ export class Quantile extends Scale {
 
         // Prevent exceptions
         return 0;
+    }
+
+    public tickValues(count: number, format?: Intl.NumberFormat | Intl.DateTimeFormat): TickInfo[] {
+        const ticks: TickInfo[] = [];
+        const dataset = this.domain.data;
+        if (dataset) {
+            const columnIndex = dataset.getColumnIndex(this.domain.field);
+            if (columnIndex !== -1) {
+                const distinctStrings = dataset.all.distinctStrings(columnIndex);
+                const tickCount = count != undefined ? count : distinctStrings.length;
+                for (let i = 0; i < tickCount && i < distinctStrings.length; i++) {
+                    ticks.push({ value: distinctStrings[i], label: distinctStrings[i] });
+                }
+            }
+        }
+        return ticks;
     }
 
     public static fromJSON(group: Group, scaleJSON: any): Quantile {

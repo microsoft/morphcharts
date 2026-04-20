@@ -1,0 +1,93 @@
+{
+  "title": "Earthquakes",
+  "description": "Earthquakes 2000-2025",
+
+  "width": 640,
+  "depth": 640,
+
+  "camera": {
+    "altitude": 30,
+    "distance": 0.8,
+    "target": [0, 0.01, 0]
+  },
+
+  "signals": [
+    {"name": "altitudeScaling", "value": 4},
+    {"name": "globeRadius", "value": 90},
+    {"name": "height", "update": "globeRadius*2"}
+  ],
+
+  "ambient": "white",
+  
+  "images": [
+    {"name": "map", "url": "img/ocean_mask_5400x2700.png"}
+  ],
+
+  "data": [
+    {
+      "name": "table",
+      "url": "data/earthquakes_2000-2025.csv",
+      "transform": [
+        {"type": "formula", "expr": "1+altitudeScaling*datum.depth/6371", "as": "altitude"},
+        {"type": "geopoint3d", "fields": ["longitude", "latitude", "altitude"], "as": ["x", "y", "z"]},
+        {"type": "formula", "expr": "pow(2,datum.mag-5)", "as": "r"}
+      ]
+    }
+  ],
+
+  "scales": [
+    {
+      "name": "fill",
+      "type": "linear",
+      "domain": {"data": "table", "field": "mag"},
+      "range": {"scheme": "yelloworangebrown"},
+      "zero": false,
+      "reverse": true
+    }
+  ],
+
+  "marks": [
+    {
+      "type": "rect",
+      "geometry": "sphere",
+      "material": "metal",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "zc": {"signal": "depth/2"},
+          "yc": {"signal": "height/2"},
+          "width": {"signal": "globeRadius*2"},
+          "fuzz": {"value": 1},
+          "fill": {"image": "map"}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "sphere",
+      "from": {"data": "table"},
+      "encode": {
+        "enter": {
+          "xc": {"field": "x", "mult": {"signal": "globeRadius"}, "offset": {"signal": "width/2"}},
+          "zc": {"field": "z", "mult": {"signal": "globeRadius"}, "offset": {"signal": "depth/2"}},
+          "yc": {"field": "y", "mult": {"signal": "globeRadius"}, "offset": {"signal": "height/2"}},
+          "width": {"signal": "datum.r"},
+          "fill": {"scale": "fill", "field": "mag"}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "xzrect",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "zc": {"signal": "depth/2"},
+          "width": {"signal": "width*2"},
+          "depth": {"signal": "depth*2"},
+          "fill": {"value": "white"}
+        }
+      }
+    }
+  ]
+}

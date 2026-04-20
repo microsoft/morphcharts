@@ -3,7 +3,7 @@
 
 import * as Core from "core";
 import { Group } from "../marks/group.js";
-import { DomainSort, Scale } from "./scale.js";
+import { DomainSort, Scale, TickInfo } from "./scale.js";
 
 // TODO: Refactor to share base class with Band scale
 export class Point extends Scale {
@@ -46,6 +46,40 @@ export class Point extends Scale {
         // Map value to range
         if (this.reverse) { return this.range.min + padding + (this.domain.max - columnValue + this.domain.min) * step; }
         else { return this.range.min + padding + (columnValue - this.domain.min) * step; }
+    }
+
+    public tickValues(count: number, format?: Intl.NumberFormat | Intl.DateTimeFormat): TickInfo[] {
+        const ticks: TickInfo[] = [];
+        const dataset = this.domain.data;
+        if (dataset) {
+            const columnIndex = dataset.getColumnIndex(this.domain.field);
+            if (columnIndex !== -1) {
+                const distinctStrings = dataset.all.distinctStrings(columnIndex);
+                const tickCount = count != undefined ? count : distinctStrings.length;
+                const columnType = dataset.getColumnType(columnIndex);
+                for (let i = 0; i < tickCount && i < distinctStrings.length; i++) {
+                    const value = distinctStrings[i];
+                    let label = value;
+                    if (format) {
+                        switch (columnType) {
+                            case Core.Data.ColumnType.float:
+                                label = format.format(parseFloat(value));
+                                break;
+                            case Core.Data.ColumnType.integer:
+                            case Core.Data.ColumnType.date:
+                                label = format.format(parseInt(value));
+                                break;
+                        }
+                    }
+                    ticks.push({ value, label });
+                }
+            }
+        }
+        return ticks;
+    }
+
+    public defaultTickCount(): number {
+        return Math.abs(this.domain.max - this.domain.min) + 1;
     }
 
     public static fromJSON(group: Group, scaleJSON: any): Point {
