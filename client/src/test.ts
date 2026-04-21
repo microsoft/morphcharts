@@ -223,7 +223,7 @@ class TestRunner {
                     img.src = this._canvas.toDataURL("image/png");
                     img.title = name;
                     const a = document.createElement('a');
-                    a.href = `client.html?plot=${name}`;
+                    a.href = `client.html?plot=${encodeURIComponent(name)}`;
                     a.target = '_blank';
                     a.appendChild(img);
                     this._outputContainer.appendChild(a);
