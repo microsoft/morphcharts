@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script type="module" src="./js/test.js"></script>
+    <style>
+        html, body { background-color: whitesmoke; font-family: sans-serif; }
+        canvas { display: none; }
+    </style>
+</head>
+
+<body>
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: flex; flex-direction: row; gap: 4px;">
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <div>Specs</div>
+                <textarea id="specList" rows="20" cols="40" style="resize: none" spellcheck="false">adjacencymatrix1
+ambientlight1
+area1
+area2
+area3
+bar1
+bar10
+bar11
+bar12
+bar2
+bar3
+bar4
+bar5
+bar6
+bar7
+bar8
+bar9
+circlepack1
+circlepack2
+coordinates1
+donut1
+donut2
+donut3
+earthquakes1
+histogram1
+histogram2
+line1
+line2
+line3
+line4
+line5
+messystack1
+nodelink1
+populationpyramid1
+primitives1
+primitives2
+primitives3
+primitives4
+sunburst1
+sunburst2
+treemap1
+treemap2
+treemap3
+treemap4
+treemap5
+treemap6
+treemap7
+treemap8
+ustornados1</textarea>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <div>Log</div>
+                <textarea id="logTextarea" rows="20" cols="100" style="resize: none" spellcheck="false" readonly></textarea>
+            </div>
+        </div>
+        <div style="display: flex; flex-direction: row; gap: 4px;">
+            <label style="width: 104px; text-align: right;">Test</label>
+            <div style="display: flex; flex-direction: row; gap: 8px;">
+                <div><input type="radio" name="testMode" id="testRender" value="render" checked /><label for="testRender">Render</label></div>
+                <div><input type="radio" name="testMode" id="testBenchmark" value="benchmark" /><label for="testBenchmark">Benchmark</label></div>
+            </div>
+        </div>
+        <div style="display: flex; flex-direction: row; gap: 4px;">
+            <label style="width: 104px; text-align: right;">Render mode</label>
+            <div style="display: flex; flex-direction: row; gap: 8px;">
+                <div><input type="radio" name="renderMode" id="modeRaytrace" value="raytrace" checked /><label for="modeRaytrace">Raytrace</label></div>
+                <div><input type="radio" name="renderMode" id="modeColor" value="color" /><label for="modeColor">Color</label></div>
+                <div><input type="radio" name="renderMode" id="modeNormal" value="normal" /><label for="modeNormal">Normal</label></div>
+                <div><input type="radio" name="renderMode" id="modeEdge" value="edge" /><label for="modeEdge">Edge</label></div>
+                <div><input type="radio" name="renderMode" id="modeSegment" value="segment" /><label for="modeSegment">Segment</label></div>
+                <div><input type="radio" name="renderMode" id="modeDepth" value="depth" /><label for="modeDepth">Depth</label></div>
+            </div>
+        </div>
+        <div style="display: flex; flex-direction: row; gap: 4px;">
+            <label style="width: 104px; text-align: right;">Frames</label>
+            <input style="width: 48px;" type="text" id="framesText" value="100" />
+        </div>
+        <div id="warmupRow" style="display: none; flex-direction: row; gap: 4px;">
+            <label style="width: 104px; text-align: right;">Warmup</label>
+            <input style="width: 48px;" type="text" id="warmupText" value="10" />
+        </div>
+        <div style="display: flex; flex-direction: row; gap: 4px;">
+            <label style="width: 104px; text-align: right;">Size</label>
+            <div>
+                <input style="width: 48px;" type="text" id="widthText" value="640" />x<input style="width: 48px;" type="text" id="heightText" value="360" />px
+            </div>
+        </div>
+        <div>
+            <input type="button" id="startStopButton" value="Start" disabled />
+            <input type="checkbox" id="batchCheckbox" /><label for="batchCheckbox">Batch</label>
+            <span id="saveSpan"><input type="checkbox" id="saveCheckbox" /><label for="saveCheckbox">Save</label></span>
+            <span id="copySpan" style="display: none;"><input type="button" id="copyButton" value="Copy" disabled /></span>
+        </div>
+        <div id="outputContainer" style="display: flex; flex-direction: row; gap: 4px; flex-wrap: wrap;"></div>
+    </div>
+    <canvas id="canvas"></canvas>
+</body>
+
+</html>

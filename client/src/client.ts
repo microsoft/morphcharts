@@ -13,10 +13,7 @@ import { Editor } from "./editor.js";
 import { Data } from "./data.js";
 import { Debug } from "./debug.js";
 
-window.onload = () => {
-    const client = new Main();
-    (window as any).benchmarkAsync = (config: string | Record<string, unknown>) => client.benchmarkAsync(config);
-};
+window.onload = () => { new Main(); };
 
 export class Main {
     private _canvas: HTMLCanvasElement;
@@ -828,104 +825,6 @@ export class Main {
             this._showError(error);
             this._stop();
         }
-    }
-
-    /**
-     * Run a batch of benchmarks from a JSON config file or an inline config object.
-     * Config format:
-     * {
-     *   "frames": 500, "warmupFrames": 10, "width": 1280, "height": 720, "renderMode": "raytrace",
-     *   "saveImage": false, "yieldInterval": 0,
-     *   "tests": [
-     *     { "plot": "bar1.json" },
-     *     { "plot": "treemap1.json", "renderMode": "color", "width": 1920, "height": 1080 }
-     *   ]
-     * }
-     * Top-level values are defaults; per-test values override them.
-     * "plot" can be a filename (resolved to samples/), a relative path, or an absolute URL (subject to CORS).
-     * Call from console:
-     *   await benchmarkAsync("tests/perf.json")
-     *   await benchmarkAsync({ frames: 100, renderMode: "raytrace", tests: [{ plot: "bar1.json" }] })
-     */
-    public async benchmarkAsync(config: string | Record<string, unknown>): Promise<void> {
-        // Stop any running render loop
-        this._stop();
-
-        // Wait for GPU initialization
-        await this._initializePromise;
-
-        // Load config
-        const cfg = typeof config === "string"
-            ? await fetch(config).then(r => r.json())
-            : config;
-        const tests = cfg.tests as any[];
-        if (!tests || tests.length === 0) { console.log("no tests defined in config"); return; }
-
-        const results: any[] = [];
-
-        for (let i = 0; i < tests.length; i++) {
-            const test = tests[i];
-            const plotPath = test.plot as string;
-            const frames = test.frames ?? cfg.frames ?? 500;
-            const warmupFrames = test.warmupFrames ?? cfg.warmupFrames ?? 10;
-            const width = test.width ?? cfg.width ?? this._renderer.width;
-            const height = test.height ?? cfg.height ?? this._renderer.height;
-            const renderMode = test.renderMode ?? cfg.renderMode ?? this._renderer.renderMode;
-            const saveImage = test.saveImage ?? cfg.saveImage ?? false;
-            const yieldInterval = test.yieldInterval ?? cfg.yieldInterval ?? 0;
-
-            console.log(`\nbenchmark [${i + 1}/${tests.length}] ${plotPath} ${width}x${height} ${renderMode}${saveImage ? " +save" : ""}`);
-
-            // Load plot spec (bare filename resolves to samples/; paths and URLs pass through as-is)
-            try {
-                const specPath = plotPath.includes("/") ? plotPath : `samples/${plotPath}`;
-                const specText = await fetch(specPath).then(r => r.text());
-                const plotJSON = JSON.parse(specText);
-
-                // Resize
-                this._resize(width, height);
-
-                // Render mode
-                this._renderer.renderMode = renderMode;
-
-                // Create plot and scene
-                const plot = await Spec.Plot.fromJSONAsync(plotJSON, { datasets: this._data.datasets, images: this._data.images });
-                const scene = await plot.createSceneAsync();
-
-                // Initialize scene (loads into renderer + resets camera)
-                this._renderer.loadScene(scene);
-                this._camera.copyFrom(scene.camera);
-                this._renderer.copyCamera(this._camera);
-
-                // Trigger world creation
-                await this._renderer.updateAsync(0);
-
-                // Run benchmark
-                const result = await this._renderer.benchmarkAsync({ frames, warmupFrames, yieldInterval });
-                results.push({ plot: plotPath, ...result });
-
-                // Save image
-                if (saveImage) {
-                    // Render one more frame to ensure canvas has fresh content
-                    await this._renderer.renderAsync(0);
-                    const filename = `${plotPath.replace(".json", "")}_${renderMode}_${width}x${height}_${frames}spp`;
-                    await new Promise<void>((resolve) => {
-                        this._canvas.toBlob((blob: Blob) => {
-                            this._capture(blob, filename);
-                            resolve();
-                        }, "image/png");
-                    });
-                }
-            }
-            catch (error) {
-                console.log(`error: ${error}`);
-                results.push({ plot: plotPath, error: String(error) });
-            }
-        }
-
-        // Summary
-        console.log("\nbenchmark results");
-        console.table(results);
     }
 
     private _stop(): void {

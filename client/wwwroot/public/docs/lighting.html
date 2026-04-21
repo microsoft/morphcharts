@@ -68,7 +68,7 @@
     <figcaption>Figure 1. Ambient light example.</figcaption>
   </figure>
 
-  <p><a href="../client.html?plot=../demos/ambientlight1.json">Try Online</a></p>
+  <p><a href="../client.html?plot=ambientlight1">Try Online</a></p>
 
   <p>
     To try the other light types, copy the light definition(s) from the examples below and modify the above
@@ -644,7 +644,7 @@
 
   <script src="../js/copy.js"></script>
   <script>
-    fetch('../demos/ambientlight1.json')
+    fetch('../samples/ambientlight1.json')
       .then(r => r.text())
       .then(text => { document.getElementById('ambientSpec').textContent = text; });
   </script>
