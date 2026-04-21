@@ -17,9 +17,8 @@
       "name": "raw2",
       "source": "raw", 
       "transform": [
-        {"type": "formula", "expr": "datum.parent==''?datum.id:datum.parent", "as": "parent2"},
-        {"type": "formula", "expr": "datum.size==''?0:datum.size", "as": "size2"},
-        {"type": "collect", "fields": ["id","name","parent2","size2"], "as": ["id","name","parent","size"]}
+        {"type": "formula", "expr": "datum.parent==''?datum.id:datum.parent", "as": "parent"},
+        {"type": "formula", "expr": "datum.size==''?0:datum.size", "as": "size"}
       ]
     },
     {

@@ -15,8 +15,7 @@
     "dist-server": "npm run dev-server",
     "dist-all": "npm run dist-libs && npm run dist-client && npm run dist-server",
     "start-client": "vite",
-    "start-server": "node ./server/dist/app.js",
-    "test-config": "node ./scripts/generate-test-config.js"
+    "start-server": "node ./server/dist/app.js"
   },
   "devDependencies": {
     "typescript": "^5.8.2",

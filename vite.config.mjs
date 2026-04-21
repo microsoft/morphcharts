@@ -14,7 +14,8 @@ export default defineConfig({
         rollupOptions: {
             input: {
                 client: './client/wwwroot/client.html',
-                gallery: './client/wwwroot/gallery.html'
+                gallery: './client/wwwroot/gallery.html',
+                test: './client/wwwroot/test.html'
             }
         }
     },
