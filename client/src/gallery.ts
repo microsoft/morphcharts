@@ -57,7 +57,7 @@ async function renderDetail(content: HTMLDivElement, categories: ISampleCategory
     detailDescription.innerText = plot.description;
     detailImage.src = `${imageFolder}/${plot.image}`;
     detailImage.alt = plot.title;
-    detailTryLink.href = `client.html?plot=${plotName}`;
+    detailTryLink.href = `client.html?plot=${encodeURIComponent(plotName)}`;
 
     if (plot.notes) {
         detailNotes.innerHTML = plot.notes;
