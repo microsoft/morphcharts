@@ -40,7 +40,7 @@ export class BufferVisual extends Core.BufferVisual implements Core.IBufferVisua
                 const material = new Core.Material();
                 Core.UnitVertex.getMaterial(buffer.dataView, i, material);
 
-                // Inverse gamma
+                // Inverse gamma (sRGB → linear)
                 material.fill = [
                     Math.pow(material.fill[0], 2.2),
                     Math.pow(material.fill[1], 2.2),
@@ -52,12 +52,20 @@ export class BufferVisual extends Core.BufferVisual implements Core.IBufferVisua
                     Math.pow(material.stroke[2], 2.2),
                 ];
 
-                // Convert glass absorption to attenuation
-                // if (hittable.material.type == Core.MaterialType.glass) {
-                //     hittable.material.fill[0] = hittable.material.fill[0] == 0 ? 0 : -Math.log(hittable.material.fill[0]);
-                //     hittable.material.fill[1] = hittable.material.fill[1] == 0 ? 0 : -Math.log(hittable.material.fill[1]);
-                //     hittable.material.fill[2] = hittable.material.fill[2] == 0 ? 0 : -Math.log(hittable.material.fill[2]);
-                // }
+                // Glass absorption: convert linear fill color to absorption coefficients
+                // absorption = -log(fillColor) / fillDistance, so exp(-absorption * fillDistance) = fillColor
+                if (material.type == Core.MaterialType.glass) {
+                    const EPS = 1e-6;
+                    const fillDistance = material.fillDistance > 0
+                        ? material.fillDistance
+                        : Math.max(size[0], size[1], size[2]) || 1;
+                    material.fill = [
+                        -Math.log(Math.max(material.fill[0], EPS)),
+                        -Math.log(Math.max(material.fill[1], EPS)),
+                        -Math.log(Math.max(material.fill[2], EPS)),
+                    ];
+                    material.density = 1 / fillDistance;
+                }
 
                 // Segment color
                 const segment: Core.ColorRGBA = [0, 0, 0, 0];

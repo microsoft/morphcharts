@@ -7,7 +7,7 @@ import { Transform } from "./transform.js";
 import { Group } from "../marks/group.js";
 
 export class Collect extends Transform {
-    // Adds "fields" property over VEGA collect transform
+    // Adds "fields" property over Vega collect transform
     transform(group: Group, dataset: Dataset): Dataset {
         const start = performance.now();
 

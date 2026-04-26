@@ -244,11 +244,12 @@ export class Arc extends Mark {
                 materialType = Core.MaterialType.light;
                 break;
         }
+        const defaultFill: Core.ColorRGB = materialType == Core.MaterialType.glass ? [1, 1, 1] : Plot.FILL_COLOR;
         const materials: Core.Material[] = new Array(dataset.length);
         for (let i = 0; i < dataset.length; i++) {
             materials[i] = new Core.Material();
             materials[i].type = materialType;
-            materials[i].fill = fillColors ? fillColors[i] || Plot.FILL_COLOR : Plot.FILL_COLOR;
+            materials[i].fill = fillColors ? fillColors[i] || defaultFill : defaultFill;
             materials[i].fuzz = materialFuzzes ? materialFuzzes[i] : Plot.MATERIAL_FUZZ;
             materials[i].gloss = materialGlosses ? materialGlosses[i] : Plot.MATERIAL_GLOSS;
             materials[i].refractiveIndex = materialRefractiveIndices ? materialRefractiveIndices[i] : Plot.MATERIAL_REFRACTIVE_INDEX;

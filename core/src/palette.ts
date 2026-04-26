@@ -2,6 +2,7 @@
 // Licensed under the MIT license. 
 
 import { ColorRGB } from "./color.js";
+import { MathUtils } from "./math.js";
 
 export class Palette {
     /**
@@ -11,6 +12,8 @@ export class Palette {
     * @returns ColorRGB
     */
     public static sample(palette: ColorRGB[], position: number, interpolate: boolean): ColorRGB {
+        // Ensure position is in [0, 1]
+        position = Number.isFinite(position) ? MathUtils.clamp(position, 0, 1) : 0;
         const normalized = position * (palette.length - 1);
         const fromIndex = Math.floor(normalized);
         if (interpolate) {

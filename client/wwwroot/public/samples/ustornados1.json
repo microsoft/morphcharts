@@ -15,33 +15,12 @@
   },
 
   "ambient": "#222",
-  "background": "white",
+  "background": "black",
 
   "lights": [
-    {
-      "type": "rect",
-      "size": 0.5,
-      "distance": 1,
-      "altitude": 45,
-      "azimuth": -45,
-      "brightness": 10
-    },
-    {
-      "type": "rect",
-      "size": 0.5,
-      "distance": 1,
-      "altitude": 45,
-      "azimuth": 45,
-      "brightness": 2
-    },
-    {
-      "type": "rect",
-      "size": 0.5,
-      "distance": 1,
-      "altitude": 45,
-      "azimuth": -135,
-      "brightness": 2
-    }
+    {"type": "rect", "size": 0.5, "distance": 1, "altitude": 45, "azimuth":  -45, "brightness": 8, "color": "lightgoldenrodyellow"},
+    {"type": "rect", "size": 0.5, "distance": 1, "altitude": 45, "azimuth":   45, "brightness": 2, "color": "lightgoldenrodyellow"},
+    {"type": "rect", "size": 0.5, "distance": 1, "altitude": 45, "azimuth": -135, "brightness": 2, "color": "lightgoldenrodyellow"}
   ],
 
   "signals": [
@@ -131,7 +110,7 @@
           "zc": {"signal": "depth/2"},
           "width": {"signal": "width*2"},
           "depth": {"signal": "depth*2"},
-          "fill": {"value": "gray"}
+          "fill": {"value": "darkgray"}
         }
       }
     },

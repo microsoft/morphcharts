@@ -1,0 +1,182 @@
+{
+  "title": "Materials",
+  "description": "Materials",
+
+  "width": 600,
+  "depth": 200,
+  "height": 100,
+
+  "ambient": "lightgoldenrodyellow",
+  "background": "black",
+
+  "lights": [
+    {"type": "rect", "size": 0.5, "distance": 1, "altitude": 45, "azimuth":  -45, "brightness": 8},
+    {"type": "rect", "size": 0.5, "distance": 1, "altitude": 45, "azimuth":   45, "brightness": 2},
+    {"type": "rect", "size": 0.5, "distance": 1, "altitude": 45, "azimuth": -135, "brightness": 2}
+  ],
+
+  "camera": {"altitude": 30, "distance": 1.2, "target": [0, -0.05, 0]},
+
+  "data": [
+    {
+      "name": "table",
+      "values": [
+        {"id": 0, "fuzz": 0.0, "gloss": 1.0, "refractiveIndex": 1.0, "fillDistance":    4},
+        {"id": 1, "fuzz": 0.2, "gloss": 0.8, "refractiveIndex": 1.3, "fillDistance":   16},
+        {"id": 2, "fuzz": 0.4, "gloss": 0.6, "refractiveIndex": 1.6, "fillDistance":   64},
+        {"id": 3, "fuzz": 0.6, "gloss": 0.4, "refractiveIndex": 1.9, "fillDistance":  256},
+        {"id": 4, "fuzz": 0.8, "gloss": 0.2, "refractiveIndex": 2.2, "fillDistance": 1024},
+        {"id": 5, "fuzz": 1.0, "gloss": 0.0, "refractiveIndex": 2.5, "fillDistance": 4096}
+      ],
+      "transform": [
+        {"type": "formula", "expr": "random()*8-4", "as": "angle"}
+      ]
+    }
+  ],
+
+  "scales": [
+    {
+      "name": "x",
+      "type": "band",
+      "domain": {"data": "table", "field": "id"},
+      "range": "width",
+      "padding": 0.1
+    }
+  ],
+
+  "marks": [
+    {
+      "type": "rect",
+      "geometry": "sphere",
+      "material": "metal",
+      "_material": "glossy",
+      "_material": "glass",
+      "from": {"data": "table"},
+      "encode": {
+        "enter": {
+          "xc": {"scale": "x", "field": "id", "band": 0.5},
+          "yc": {"scale": "x", "band": 0.5},
+          "zc": {"signal": "depth/2"},
+          "width": {"scale": "x", "band": 1},
+          "fuzz": {"field": "fuzz"},
+          "_gloss": {"field": "gloss"},
+          "_refractiveIndex": {"field": "refractiveIndex"},
+          "_fillDistance": {"field": "fillDistance"},
+          "fill": {"value": "darkorange"},
+          "_fill": {"value": "crimson"}
+        }
+      } 
+    },
+
+    {
+      "type": "rect",
+      "from": {"data": "table"},
+      "encode": {
+        "enter": {
+          "xc": {"scale": "x", "field": "id", "band": 0.5, "offset": {"signal": "-12.5* sin(PI*30/180)*sin(PI*datum.angle/180)"}},
+          "zc": {"value": 175, "offset": {"signal": "12.5*sin(PI*30/180)*cos(PI*datum.angle/180)"}},
+          "yc": {"value": 12.5, "offset": {"signal": "12.5*(cos(PI*30/180)-1)"}},
+          "angleX": {"value": 30},
+          "angleY": {"field": "angle"},
+          "width": {"value": 50},
+          "height": {"value": 25},
+          "depth": {"value": 0.01},
+          "fill": {"value": "white"}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "from": {"data": "table"},
+      "encode": {
+        "enter": {
+          "xc": {"scale": "x", "field": "id", "band": 0.5, "offset": {"signal": "12.5*sin(PI*30/180)*sin(PI*datum.angle/180)"}},
+          "zc": {"value": 175, "offset": {"signal": "-12.5*sin(PI*30/180)*cos(PI*datum.angle/180)"}},
+          "yc": {"value": 12.5, "offset": {"signal": "12.5*(cos(PI*30/180)-1)"}},
+          "angleX": {"value": -30},
+          "angleY": {"field": "angle"},
+          "width": {"value": 50},
+          "height": {"value": 25},
+          "depth": {"value": 0.01},
+          "fill": {"value": "white"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": {"data": "table"},
+      "encode": {
+        "enter": {
+          "x": {"scale": "x", "field": "id", "band": 0.5, "offset": {"signal": "-12.5*sin(PI*30/180)*sin(PI*datum.angle/180)"}},
+          "z": {"value": 175, "offset": {"signal": "12.5*sin(PI*30/180)*cos(PI*datum.angle/180)"}},
+          "y": {"value": 12.5, "offset": {"signal": "12.5*(cos(PI*30/180)-1)"}},
+          "dz": {"value": 0.01},
+          "angleX": {"value": 30},
+          "angleY": {"field": "angle"},
+          "text": {"signal": "'Fuzz '+datum.fuzz"},
+          "_text": {"signal": "'Gloss '+datum.gloss"},
+          "_text": {"signal": "'RI '+datum.refractiveIndex"},
+          "_text": {"signal": "'Dist '+datum.fillDistance"},
+          "fontSize": {"value": 10},
+          "fill": {"value": "black"}
+        }
+      }
+    },
+
+    {
+      "type": "rect",
+      "geometry": "xzrect",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "yc": {"value": -0.1},
+          "zc": {"signal": "depth/2"},
+          "width": {"signal": "width"},
+          "depth": {"signal": "depth"},
+          "fuzz": {"value": 0.01},
+          "gloss": {"value": 0.5},
+          "fill": {
+            "checker": {
+              "color1": { "value": "black" },
+              "color2": { "value": "gainsboro" }
+            },
+            "texScale": {
+              "x": {"value": 6},
+              "z": {"value": 2}
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "y": {"value": -0.11},
+          "y2": {"value": -10},
+          "zc": {"signal": "depth/2"},
+          "width": {"signal": "width"},
+          "depth": {"signal": "depth"},
+          "height": {"value": 10},
+          "fill": {"value": "white"}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "xzrect",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "yc": {"value": -10.1},
+          "zc": {"signal": "depth/2"},
+          "width": {"signal": "width*4"},
+          "depth": {"signal": "depth*8"},
+          "fill": {"value": "darkgray"}
+        }
+      }
+    }
+  ]
+}

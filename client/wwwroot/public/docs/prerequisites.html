@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>MorphCharts — Prerequisites</title>
+  <title>MorphCharts — Browser Integration</title>
   <link rel="stylesheet" href="../css/common.css">
 </head>
 
@@ -17,38 +17,41 @@
     <a href="https://github.com/microsoft/morphcharts">GitHub</a>
   </header>
 
-  <h1>Prerequisites</h1>
+  <h1>Browser Integration</h1>
+
+  <nav class="page-nav">
+    <a href="./geospatial.html">Previous</a>
+    <a href="./simpleclient.html">Next</a>
+  </nav>
+
   <p>
-    These prerequisites apply when building your own web pages with MorphCharts.
+    This page covers what you need to use MorphCharts in your own web pages.
   </p>
 
   <h2 id="webgpu">WebGPU</h2>
   <p>
-    The WebGPU renderer requires a browser that supports
-    <a href="https://caniuse.com/webgpu">WebGPU</a>. As of early 2026,
-    this includes recent versions of Chrome, Edge, and Firefox.
+    The WebGPU renderer requires a browser that supports <a href="https://caniuse.com/?search=webgpu">WebGPU</a>.
+    As of early 2026, this includes recent versions of Chrome, Edge, and Firefox.
   </p>
 
   <h2 id="secure-context">Secure Context</h2>
   <p>
-    WebGPU requires a <strong>secure context</strong>
-    (<code>https://</code> or <code>localhost</code>), so your page must be
-    served from a local web server — it won't work opened directly as a
-    file.
+    WebGPU requires a secure context (<code>https://</code>, <code>localhost</code>, or
+    <code>file://</code>).
   </p>
 
   <h2 id="local-web-server">Local Web Server</h2>
   <p>
-    The simplest option is to save your page as <code>index.html</code>,
-    then run one of the following from the same directory:
+    Self-contained pages can be opened directly from the file system, however a local web server is required when
+    loading external files. To serve your page from a local server, the simplest option is to save your page as
+    index.html, then run one of the following from the same directory:
   </p>
   <pre><code>npx serve</code></pre>
   <p>
     This requires <a href="https://nodejs.org">Node.js</a>.
   </p>
   <p>
-    Alternatively, if you have
-    <a href="https://www.python.org">Python</a> installed:
+    Alternatively, if you have <a href="https://www.python.org">Python</a> installed:
   </p>
   <pre><code>python -m http.server</code></pre>
   <p>
@@ -100,7 +103,7 @@
   </nav>
 
   <footer>
-    <span>© 2025 Microsoft</span>
+    <span>© 2026 Microsoft</span>
     <a href="https://go.microsoft.com/fwlink/?LinkId=521839">Privacy &amp; Cookies</a>
     <a href="https://go.microsoft.com/fwlink/?linkid=2259814">Consumer Health Privacy</a>
     <a href="https://www.microsoft.com/trademarks">Trademarks</a>

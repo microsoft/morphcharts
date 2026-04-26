@@ -130,10 +130,15 @@ figcaption {
     justify-content: space-between;
 }
 
-/* .doc-index {} */
-
-.doc-index .upcoming {
+.upcoming {
     color: gray;
 }
 
-/* .doc-index a {} */
+ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+ul ul {
+    padding-left: 1em;
+}

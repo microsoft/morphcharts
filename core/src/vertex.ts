@@ -234,9 +234,9 @@ export class UnitVertex {
     //
     // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     // |   144    |   145    |   146    |   147    |   148    |   149    |   150    |   151    |   152    |   153    |   154    |   155    |   156    |   157    |   158    |   159    |
-    // |                  density                  |        stroke       |        stroke       |        stroke       | sdf buff | sdf halo |          |          |          |          |
-    // |                                           |          r          |          g          |          b          |          |          |          |          |          |          |
-    // |                    F32                    |      UI16 NORM      |      UI16 NORM      |      UI16 NORM      |   UI8    |   UI8    |          |          |          |          |
+    // |                  density                  |        stroke       |        stroke       |        stroke       | sdf buff | sdf halo |              fillDistance                  |
+    // |                                           |          r          |          g          |          b          |          |          |                                           |
+    // |                    F32                    |      UI16 NORM      |      UI16 NORM      |      UI16 NORM      |   UI8    |   UI8    |                    F32                    |
     // | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 |
     // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     public static readonly SIZE_BYTES = 160;
@@ -268,6 +268,7 @@ export class UnitVertex {
     public static readonly STROKE_OFFSET_BYTES = 148;
     public static readonly SDF_BUFFER_OFFSET_BYTES = 154;
     public static readonly SDF_HALO_OFFSET_BYTES = 155;
+    public static readonly FILL_DISTANCE_OFFSET_BYTES = 156;
 
     public static getId(bufferView: DataView, index: number): number {
         return bufferView.getFloat32(UnitVertex.SIZE_BYTES * index + this.ID_HOVER_OFFSET_BYTES, true);
@@ -493,6 +494,7 @@ export class UnitVertex {
         material.fuzz = this.getFuzz(bufferView, index);
         material.fuzzType = this.getFuzzType(bufferView, index);
         material.density = this.getDensity(bufferView, index);
+        material.fillDistance = this.getFillDistance(bufferView, index);
         material.refractiveIndex = this.getRefractiveIndex(bufferView, index);
         material.gloss = this.getMatGloss(bufferView, index);
         this.getFill(bufferView, index, material.fill);
@@ -503,6 +505,7 @@ export class UnitVertex {
         this.setFuzz(bufferView, index, material.fuzz);
         this.setFuzzType(bufferView, index, material.fuzzType);
         this.setDensity(bufferView, index, material.density);
+        this.setFillDistance(bufferView, index, material.fillDistance);
         this.setRefractiveIndex(bufferView, index, material.refractiveIndex);
         this.setGloss(bufferView, index, material.gloss);
         this.setFill(bufferView, index, material.fill);
@@ -513,6 +516,7 @@ export class UnitVertex {
         this.copyFuzz(fromBufferView, fromIndex, toBufferView, toIndex);
         this.copyFuzzType(fromBufferView, fromIndex, toBufferView, toIndex);
         this.copyDensity(fromBufferView, fromIndex, toBufferView, toIndex);
+        this.copyFillDistance(fromBufferView, fromIndex, toBufferView, toIndex);
         this.copyRefractiveIndex(fromBufferView, fromIndex, toBufferView, toIndex);
         this.copyGloss(fromBufferView, fromIndex, toBufferView, toIndex);
         this.copyFill(fromBufferView, fromIndex, toBufferView, toIndex);
@@ -628,6 +632,15 @@ export class UnitVertex {
     }
     public static copyDensity(fromBufferView: DataView, fromIndex: number, toBufferView: DataView, toIndex: number) {
         toBufferView.setFloat32(UnitVertex.SIZE_BYTES * toIndex + this.DENSITY_OFFSET_BYTES, fromBufferView.getFloat32(UnitVertex.SIZE_BYTES * fromIndex + this.DENSITY_OFFSET_BYTES, true), true);
+    }
+    public static getFillDistance(bufferView: DataView, index: number): number {
+        return bufferView.getFloat32(UnitVertex.SIZE_BYTES * index + this.FILL_DISTANCE_OFFSET_BYTES, true);
+    }
+    public static setFillDistance(bufferView: DataView, index: number, value: number) {
+        bufferView.setFloat32(UnitVertex.SIZE_BYTES * index + this.FILL_DISTANCE_OFFSET_BYTES, value, true);
+    }
+    public static copyFillDistance(fromBufferView: DataView, fromIndex: number, toBufferView: DataView, toIndex: number) {
+        toBufferView.setFloat32(UnitVertex.SIZE_BYTES * toIndex + this.FILL_DISTANCE_OFFSET_BYTES, fromBufferView.getFloat32(UnitVertex.SIZE_BYTES * fromIndex + this.FILL_DISTANCE_OFFSET_BYTES, true), true);
     }
     public static getRefractiveIndex(bufferView: DataView, index: number): number {
         return bufferView.getFloat32(UnitVertex.SIZE_BYTES * index + this.REFRACTIVE_INDEX_OFFSET_BYTES, true);
