@@ -496,16 +496,20 @@ export class Rect extends Mark {
         if (this.encode.gloss) { glosses = group.values(this.encode.gloss, dataset); }
         if (this.encode.refractiveIndex) { refractiveIndices = group.values(this.encode.refractiveIndex, dataset); }
         if (this.encode.density) { densities = group.values(this.encode.density, dataset); }
+        let fillDistances: Float32Array;
+        if (this.encode.fillDistance) { fillDistances = group.values(this.encode.fillDistance, dataset); }
+        const defaultFill: Core.ColorRGB = materialType == Core.MaterialType.glass ? [1, 1, 1] : Plot.FILL_COLOR;
         const materials: Core.Material[] = new Array(dataset.length);
         for (let i = 0; i < dataset.length; i++) {
             materials[i] = new Core.Material();
             materials[i].type = materialType;
-            materials[i].fill = fillColors ? fillColors[i] || Plot.FILL_COLOR : Plot.FILL_COLOR;
+            materials[i].fill = fillColors ? fillColors[i] || defaultFill : defaultFill;
             materials[i].fuzz = fuzzes ? fuzzes[i] : Plot.MATERIAL_FUZZ;
             materials[i].fuzzType = fuzzImageType;
             materials[i].gloss = glosses ? glosses[i] : Plot.MATERIAL_GLOSS;
             materials[i].refractiveIndex = refractiveIndices ? refractiveIndices[i] : Plot.MATERIAL_REFRACTIVE_INDEX;
             materials[i].density = densities ? densities[i] : Plot.MATERIAL_DENSITY;
+            materials[i].fillDistance = fillDistances ? fillDistances[i] * scaling : 0;
 
             // Checker texture
             materials[i].stroke = fillColors2 ? fillColors2[i] || Plot.STROKE_COLOR : Plot.STROKE_COLOR;
@@ -595,6 +599,7 @@ export class Rect extends Mark {
                         if (encodeJSON.refractiveIndex) { mark.encode.refractiveIndex = MarkEncodingValue.fromJSON(mark, group, encodeJSON.refractiveIndex); }
                         if (encodeJSON.gloss) { mark.encode.gloss = MarkEncodingValue.fromJSON(mark, group, encodeJSON.gloss); }
                         if (encodeJSON.density) { mark.encode.density = MarkEncodingValue.fromJSON(mark, group, encodeJSON.density); }
+                        if (encodeJSON.fillDistance) { mark.encode.fillDistance = MarkEncodingValue.fromJSON(mark, group, encodeJSON.fillDistance); }
 
                         // Segment
                         if (encodeJSON.segmentId) { mark.encode.segmentId = MarkEncodingValue.fromJSON(mark, group, encodeJSON.segmentId); }

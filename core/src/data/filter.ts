@@ -208,28 +208,38 @@ export class Filter {
     }
 
     protected _createMinMaxValues(column: number, isDiscrete: boolean) {
-        if (!this._hasMinMaxValues[column]) {
-            const type = this._columnTypes[column];
-            let min, max;
-            if (type == ColumnType.string || isDiscrete) {
+        if (isDiscrete) {
+            if (!this._hasMinMaxValuesDiscrete[column]) {
                 this._createStringValues(column);
-                min = 0;
-                max = this._distinctStrings[column].length - 1;
+                this._minValuesDiscrete[column] = 0;
+                this._maxValuesDiscrete[column] = this._distinctStrings[column].length - 1;
+                this._hasMinMaxValuesDiscrete[column] = true;
             }
-            else {
-                // Numeric
-                const numericValues = this._createNumericValues(column);
-                min = Number.MAX_VALUE;
-                max = -Number.MAX_VALUE;
-                for (let i = 0; i < this._rows.length; i++) {
-                    const value = numericValues[i];
-                    min = Math.min(min, value);
-                    max = Math.max(max, value);
+        }
+        else {
+            if (!this._hasMinMaxValues[column]) {
+                const type = this._columnTypes[column];
+                let min, max;
+                if (type == ColumnType.string) {
+                    this._createStringValues(column);
+                    min = 0;
+                    max = this._distinctStrings[column].length - 1;
                 }
+                else {
+                    // Numeric
+                    const numericValues = this._createNumericValues(column);
+                    min = Number.MAX_VALUE;
+                    max = -Number.MAX_VALUE;
+                    for (let i = 0; i < this._rows.length; i++) {
+                        const value = numericValues[i];
+                        min = Math.min(min, value);
+                        max = Math.max(max, value);
+                    }
+                }
+                this._minValues[column] = min;
+                this._maxValues[column] = max;
+                this._hasMinMaxValues[column] = true;
             }
-            this._minValues[column] = min;
-            this._maxValues[column] = max;
-            this._hasMinMaxValues[column] = true;
         }
     }
 

@@ -165,6 +165,7 @@ export class MarkEncodings {
     public refractiveIndex: MarkEncodingValue;
     public gloss: MarkEncodingValue;
     public density: MarkEncodingValue;
+    public fillDistance: MarkEncodingValue;
 
     // Segment
     public segmentId: MarkEncodingValue;

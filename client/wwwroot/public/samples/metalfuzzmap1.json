@@ -1,0 +1,55 @@
+{
+  "title": "Metal Fuzz Map",
+  "description": "Metal Fuzz Map",
+
+  "width": 640,
+  "height": 160,
+
+  "ambient": "black",
+  "background": "black",
+  
+  "lights": [
+    {"type": "rect", "size": 0.5, "distance": 1, "altitude": 45, "azimuth":  -45, "brightness": 8},
+    {"type": "rect", "size": 0.5, "distance": 1, "altitude": 45, "azimuth":   45, "brightness": 2},
+    {"type": "rect", "size": 0.5, "distance": 1, "altitude": 45, "azimuth": -135, "brightness": 2}
+  ],
+
+  "images": [{"name": "map", "url": "img/ocean_mask_5400x2700.png"}],
+
+  "camera": {"altitude": 15, "distance": 0.6, "focusDistance": 0.5, "aperture": 5},
+
+  "marks": [
+    {
+      "type": "rect",
+      "geometry": "sphere",
+      "material": "metal",
+      "encode": {
+        "enter": {
+          "xc": {"value": 320},
+          "yc": {"value": 80},
+          "width": {"value": 160},
+          "fuzz": {"image": "map"},
+          "fill": {"value": "darkorange"}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "xzrect",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "xc": {"value": 320},
+          "yc": {"value": -0.1},
+          "width": {"value": 6400},
+          "depth": {"value": 6400},
+          "fuzz": {"value": 0.1},
+          "fill": {
+            "checker": {"color1": { "value": "black" }, "color2": { "value": "white" }},
+            "texScale": {"x":{"value": 50}, "z": {"value":50}}
+          }
+        }
+      }
+    }
+  ]
+}

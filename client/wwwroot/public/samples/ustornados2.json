@@ -1,0 +1,182 @@
+{
+  "title": "US Tornados",
+  "description": "US Tornados Unit Stack by Month, Strength",
+
+  "signals": [
+    { "name": "stackWidth", "value": 10},
+    { "name": "stackDepth", "value": 10},
+    { "name": "width", "update": "12*(stackWidth+1)"},
+    { "name": "depth", "update": "6*(stackDepth+1)"}
+  ],
+
+  "camera": {
+    "altitude": 45,
+    "distance": 2,
+    "target": [0, 0, -0.3]
+  },
+
+  "ambient": "#222",
+  "background": "black",
+  
+  "lights": [
+    {"type": "rect", "size": 0.5, "distance": 1, "altitude": 45, "azimuth":  -45, "brightness": 8, "color": "lightgoldenrodyellow"},
+    {"type": "rect", "size": 0.5, "distance": 1, "altitude": 45, "azimuth":   45, "brightness": 2, "color": "lightgoldenrodyellow"},
+    {"type": "rect", "size": 0.5, "distance": 1, "altitude": 45, "azimuth": -135, "brightness": 2, "color": "lightgoldenrodyellow"}
+  ],
+
+  "data": [
+    {
+      "name": "months",
+      "values": [
+        {"id":  1, "name": "Jan"}, {"id":  2, "name": "Feb"}, {"id":  3, "name": "Mar"},
+        {"id":  4, "name": "Apr"}, {"id":  5, "name": "May"}, {"id":  6, "name": "Jun"},
+        {"id":  7, "name": "Jul"}, {"id":  8, "name": "Aug"}, {"id":  9, "name": "Sep"},
+        {"id": 10, "name": "Oct"}, {"id": 11, "name": "Nov"}, {"id": 12, "name": "Dec"}
+      ]
+    },
+    {
+      "name": "strengths",
+      "transform": [
+        {"type": "sequence", "start": 0, "stop": 6}
+      ]
+    },
+    {
+      "name": "table",
+      "url": "/data/ustornados_1950-2024.csv",
+      "transform": [
+        {"type": "formula", "expr": "0.5+random()*0.25", "as": "fuzz"},
+        {"type": "lookup", "from": "months", "key": "id", "fields": ["mo"], "values": ["name"], "as": ["monthname"]}
+      ]
+    },
+    {
+      "name": "unitstack",
+      "source": "table",
+      "transform": [
+        {
+          "type": "unitstack",
+          "groupby": ["mo", "mag"],
+          "x": 10, 
+          "width": 10,
+          "z": 10,
+          "depth": 10
+        }
+      ]
+    }
+  ],
+
+  "scales": [
+    {
+      "name": "month",
+      "type": "band",
+      "domain": {"data": "months", "field": "name", "sort": {"field": "id", "op": "max"}},
+      "range": {"step": 11}
+    },
+    {
+      "name": "strength",
+      "type": "band",
+      "domain": {"data": "strengths", "field": "data"},
+      "range": "depth",
+      "reverse": false
+    },
+    {
+      "name": "fill",
+      "type": "linear",
+      "domain": {"data": "table", "field": "mag"},
+      "range": {"scheme": "yelloworangebrown"},
+      "zero": false,
+      "reverse": true
+    }
+  ],
+
+  "axes": [
+    {
+      "orient": "bottom",
+      "scale": "month",
+      "labelBaseline": "top",
+      "labelFontSize": 3,
+      "labelOffsetY": 0.01,
+      "labelOffsetZ": 2,
+      "labelFontWeight": 400,
+      "labelAngleX": 90,
+      "labelColor": "black",
+      "bandGridPosition": 1,
+      "bandLabelPosition": 0.5,
+      "title": "Month",
+      "titleAngleX": 90,
+      "titleBaseline": "top",
+      "titleOffsetZ": 6,
+      "titleOffsetY": 0.01,
+      "titleFontSize": 3,
+      "titleFontWeight": 400,
+      "titleColor": "black",
+      "gridZ": true,
+      "gridWidth": 0.05,
+      "gridColor": "black",
+      "domainWidth": 0.05,
+      "domainColor": "black"
+    },
+    {
+      "orient": "left",
+      "orientZ": "bottom",
+      "scale": "strength",
+      "labelAlign": "right",
+      "labelOffsetX": -2,
+      "labelOffsetY": 0.01,
+      "labelFontSize": 3,
+      "labelFontWeight": 400,
+      "labelAngleX": 90,
+      "labelColor": "black",
+      "bandGridPosition": 1,
+      "bandLabelPosition": 0.5,
+      "title": "Strengh",
+      "titleAngleX": 90,
+      "titleAngleZ": 90,
+      "titleBaseline": "top",
+      "titleOffsetX": -6,
+      "titleOffsetY": 0.01,
+      "titleFontSize": 3,
+      "titleFontWeight": 400,
+      "titleColor": "black",
+      "grid": true,
+      "gridWidth": 0.05,
+      "gridColor": "black",
+      "domainWidth": 0.05,
+      "domainColor": "black"
+    }
+  ],
+
+  "marks": [
+    {
+      "type": "rect",
+      "geometry": "xzrect",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "zc": {"signal": "depth/2"},
+          "width": {"signal": "width*4"},
+          "depth": {"signal": "depth*8"},
+          "fill": {"value": "lightgray"}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "boxsdf",
+      "material": "metal",
+      "from": {"data": "unitstack"},
+      "encode": {
+        "enter": {
+          "x": {"field": "x0", "offset": {"scale": "month", "field": "monthname"}},
+          "x2": {"field": "x1", "offset": {"scale": "month", "field": "monthname"}},
+          "y": {"field": "y0"},
+          "y2": {"field": "y1"},
+          "z": {"field": "z0", "offset": {"scale": "strength", "field": "mag"}},
+          "z2": {"field": "z1", "offset": {"scale": "strength", "field": "mag"}},
+          "rounding": {"value": 0.1},
+          "fill": {"scale": "fill", "field": "mag"},
+          "fuzz": {"field": "fuzz"}
+        }
+      }
+    }
+  ]
+}

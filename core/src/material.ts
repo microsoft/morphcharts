@@ -20,6 +20,7 @@ export interface IMaterialOptions {
     refractiveIndex?: number;
     gloss?: number;
     density?: number;
+    fillDistance?: number;
 }
 
 export class Material {
@@ -35,6 +36,8 @@ export class Material {
     public refractiveIndex: number;
     public gloss: number;
     public density: number;
+    /** Reference distance at which the fill color represents the glass transmittance. */
+    public fillDistance: number;
     
     constructor(options?: IMaterialOptions) {
         this.type = options?.type || MaterialType.diffuse;
@@ -45,5 +48,6 @@ export class Material {
         this.refractiveIndex = options?.refractiveIndex || 1.5;
         this.gloss = options?.gloss || 1;
         this.density = options?.density || 1;
+        this.fillDistance = options?.fillDistance || 0;
     }
 }

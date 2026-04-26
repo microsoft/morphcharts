@@ -9,7 +9,7 @@ You can [Try Online](https://microsoft.github.io/morphcharts/client.html), or in
 
 There are 2 principal ways to create charts using this library:
 
-1.  Provide a **JSON specification** based on a subset of the [VEGA](https://github.com/vega/vega) visualization grammar, with extensions to support 3D visualizations
+1.  Provide a **JSON specification** based on a subset of the [Vega](https://github.com/vega/vega) visualization grammar, with extensions to support 3D visualizations
 2.  Use **code** to create visualizations directly, with the `Core` library and a `Renderer`
 
 The JSON specification can define data sources and transformations, scales, axes, and visualizations. Data sources can be defined in the following ways:
@@ -56,7 +56,7 @@ The repo has the following components:
 *   `Client` web site to demonstrate use of the visualization framework
 *   `Renderers` for generating visualizations:
     *   `WebGPURaytrace`, for web browser rendering on the GPU using WebGPU
-*   Visualization grammar `Spec` parser, based on a subset of the [VEGA](https://github.com/vega/vega) specification format, with extensions to support 3D visualizations
+*   Visualization grammar `Spec` parser, based on a subset of the [Vega](https://github.com/vega/vega) specification format, with extensions to support 3D visualizations
 
 ### Installation
 

@@ -19,38 +19,34 @@
 
   <h1>Lighting</h1>
 
-  <h2>Contents</h2>
-
-  <ul>
-    <li><a href="#ambient">Ambient</a> — base illumination</li>
-    <li><a href="#rect-light">Rect Light</a> — rectangular area light</li>
-    <li><a href="#disk-light">Disk Light</a> — circular area light</li>
-    <li><a href="#sphere-light">Sphere Light</a> — spherical area light</li>
-    <li><a href="#directional-light">Directional Light</a> — parallel rays</li>
-    <li><a href="#point-light">Point Light</a> — omnidirectional point source</li>
-    <li><a href="#spot-light">Spot Light</a> — light cone with falloff</li>
-    <li><a href="#projector-light">Projector Light</a> — textured projection</li>
-    <li><a href="#emissive-marks">Emissive Marks</a> — data-driven area lights</li>
-    <li><a href="#standard-lighting">Standard Lighting</a> — standard light setups</li>
-  </ul>
+  <nav class="page-nav">
+    <a href="./coordinates.html">Previous</a>
+    <a href="./materials.html">Next</a>
+  </nav>
 
   <p>
-    MorphCharts supports several light types for illuminating scenes. They can be divided into the following categories:
+    Multiple supports several different light types for illuminating scenes.
   </p>
 
   <ul>
-    <li><a href="#ambient">Ambient</a> — base illumination</li>
-    <li><a href="#area-lights">Area Lights</a> — global illumination</li>
-    <li><a href="#direct-lights">Direct Lights</a> — shadow rays</li>
-    <li><a href="#emissive-marks">Emissive Marks</a> — data-driven area lights</li>
+    <li><a href="#ambient">Ambient</a></li>
+    <li><a href="#common-properties">Common Properties</a></li>
+    <li><a href="#area-lights">Area Lights</a></li>
+    <ul>
+      <li><a href="#rect-light">Rect Light</a></li>
+      <li><a href="#disk-light">Disk Light</a></li>
+      <li><a href="#sphere-light">Sphere Light</a></li>
+    </ul>
+    <li><a href="#direct-lights">Direct Lights</a></li>
+    <ul>
+      <li><a href="#directional-light">Directional Light</a></li>
+      <li><a href="#point-light">Point Light</a></li>
+      <li><a href="#spot-light">Spot Light</a></li>
+      <li><a href="#projector-light">Projector Light</a></li>
+    </ul>
+    <li><a href="#emissive-marks">Emissive Marks</a></li>
+    <li><a href="#standard-lighting">Standard Lighting</a></li>
   </ul>
-
-  <p>
-    <a href="#ambient">Ambient</a> light is defined as a top-level spec property.
-    <a href="#area-lights">Area lights</a> and <a href="#direct-lights">direct lights</a> are defined in the spec's
-    <code>lights</code> array.
-    <a href="#emissive-marks">Emissive marks</a> are regular marks with an emissive material.
-  </p>
 
   <h2 id="ambient">Ambient</h2>
 
@@ -215,14 +211,9 @@
   <h2 id="area-lights">Area Lights</h2>
 
   <p>Area lights emit light from a surface, thereby enabling soft shadows. Area lights are supported in the
-    <code>raytrace</code> render mode.
+    <code>raytrace</code> render mode and offer <a href="https://en.wikipedia.org/wiki/Global_illumination">global
+      illumination</a>.
   </p>
-
-  <ul>
-    <li><a href="#rect-light">Rect Light</a> — rectangular area light</li>
-    <li><a href="#disk-light">Disk Light</a> — circular area light</li>
-    <li><a href="#sphere-light">Sphere Light</a> — spherical area light</li>
-  </ul>
 
   <p>Area lights also support a <code>hidden</code> property:</p>
 
@@ -332,13 +323,6 @@
     reflections or refractions). Direct lights produce hard shadows since they have no area.
   </p>
 
-  <ul>
-    <li><a href="#directional-light">Directional Light</a> — parallel rays</li>
-    <li><a href="#point-light">Point Light</a> — omnidirectional point source</li>
-    <li><a href="#spot-light">Spot Light</a> — light cone with falloff</li>
-    <li><a href="#projector-light">Projector Light</a> — textured projection</li>
-  </ul>
-
   <h3 id="directional-light">Directional Light</h3>
 
   <p>
@@ -364,7 +348,7 @@
   <h3 id="point-light">Point Light</h3>
 
   <p>
-    A point light is an infinitely small point source that emits light in all directions.
+    A point light is an infinitely small point source that emits light in all directions (omnidirectional).
   </p>
 
   <pre><code>  "lights": [
@@ -403,8 +387,7 @@
 
   <p>
     A spot light is a cone-shaped light with configurable angle and falloff. Useful for focused illumination, stage
-    lighting,
-    or highlighting specific areas of a scene.
+    lighting, or highlighting specific areas of a scene.
   </p>
 
   <pre><code>  "lights": [
@@ -469,8 +452,8 @@
   <h3 id="projector-light">Projector Light</h3>
 
   <p>
-    A projector light projects a texture onto the scene, like a slide projector. The texture can be a checkerboard
-    pattern or an image texture.
+    A projector light projects a texture onto the scene, like a slide projector.
+    The texture can be a checkerboard pattern or an image texture.
   </p>
 
   <pre><code>  "lights": [
@@ -549,7 +532,7 @@
   <p>
     In addition to the light types above, any mark can act as an area light by setting its <code>material</code> to
     <code>light</code>. The mark becomes a light-emitting surface, illuminating nearby objects. Emissive marks are
-    supported in <code>raytrace</code> mode.
+    supported in <code>raytrace</code> mode, and enable data-driven area lights.
   </p>
 
   <pre><code>  "marks": [
@@ -594,7 +577,10 @@
     light, and back light arranged in a specific configuration to create balanced and visually appealing illumination.
   </p>
 
-  <pre><code>  "lights": [
+  <pre><code>  "ambient": "black",
+  "background": "black",
+
+  "lights": [
     {
       "type": "rect",
       "size": 0.5,
@@ -631,11 +617,11 @@
 
   <nav class="page-nav">
     <a href="./coordinates.html">Previous</a>
-    <a href="./geospatial.html">Next</a>
+    <a href="./materials.html">Next</a>
   </nav>
 
   <footer>
-    <span>© 2025 Microsoft</span>
+    <span>© 2026 Microsoft</span>
     <a href="https://go.microsoft.com/fwlink/?LinkId=521839">Privacy &amp; Cookies</a>
     <a href="https://go.microsoft.com/fwlink/?linkid=2259814">Consumer Health Privacy</a>
     <a href="https://www.microsoft.com/trademarks">Trademarks</a>

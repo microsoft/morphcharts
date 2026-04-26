@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MorphCharts — Materials</title>
+  <link rel="stylesheet" href="../css/common.css">
+</head>
+
+<body>
+  <header>
+    <a href="../index.html">Home</a>
+    <a href="../client.html">Try Online</a>
+    <a href="../gallery.html">Gallery</a>
+    <a href="./index.html">Docs</a>
+    <a href="https://github.com/microsoft/morphcharts">GitHub</a>
+  </header>
+
+  <h1>Materials</h1>
+
+  <nav class="page-nav">
+    <a href="./lighting.html">Previous</a>
+    <a href="./geospatial.html">Next</a>
+  </nav>
+
+  <p>
+    Materials control how marks interact with light.
+    Each mark can specify a material type and a set of properties that affect its appearance.
+    The material is set at the mark level using the <code>material</code> property, and individual properties are set in
+    the mark's encoding.
+  </p>
+
+  <table>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+    <tr>
+      <td><code>diffuse</code></td>
+      <td>Default material, scatters light equally in all directions.</td>
+    </tr>
+    <tr>
+      <td><code>metal</code></td>
+      <td>Reflects light, with the reflected color tinted by the fill color.</td>
+    </tr>
+    <tr>
+      <td><code>glossy</code></td>
+      <td>Combines diffuse and specular reflection.</td>
+    </tr>
+    <tr>
+      <td><code>glass</code></td>
+      <td>Refracts light.</td>
+    </tr>
+    <tr>
+      <td><code>light</code></td>
+      <td>Emits light from the surface.</td>
+    </tr>
+  </table>
+
+  <h2 id="properties">Common Properties</h2>
+
+  <p>
+    The following properties can be set in a mark's encoding to control the material appearance.
+    All properties are optional.
+  </p>
+
+  <table>
+    <tr>
+      <th>Property</th>
+      <th>Type</th>
+      <th>Default</th>
+      <th>Description</th>
+    </tr>
+    <tr>
+      <td><code>fill</code></td>
+      <td>color</td>
+      <td><code>SteelBlue</code><sup>*</sup></td>
+      <td>The base color of the surface. Can be a color or an image texture.</td>
+    </tr>
+    <tr>
+      <td><code>fuzz</code></td>
+      <td>number</td>
+      <td><code>0</code></td>
+      <td>Surface roughness for metal, glossy, and glass materials.
+        <code>0</code> is a perfect mirror, <code>1</code> is fully matte.
+      </td>
+    </tr>
+    <tr>
+      <td><code>gloss</code></td>
+      <td>number</td>
+      <td><code>1</code></td>
+      <td>Specular reflection intensity for glossy materials.
+        <code>0</code> is fully diffuse, <code>1</code> is perfect specular.
+      </td>
+    </tr>
+    <tr>
+      <td><code>refractiveIndex</code></td>
+      <td>number</td>
+      <td><code>1.5</code></td>
+      <td>Index of refraction for glass and glossy materials.
+        Examples include a vacuum <code>1.0</code>, ice <code>1.31</code>, water <code>1.333</code>, fused quartz
+        <code>1.46</code>, glass <code>1.5-1.6</code>, sapphire <code>1.77</code> and diamond <code>2.42</code>.
+      </td>
+    </tr>
+    <tr>
+      <td><code>fillDistance</code></td>
+      <td>number</td>
+      <td><code>max(w, h, d)</code></td>
+      <td>Distance at which the glass tint matches the fill color.</td>
+    </tr>
+  </table>
+
+  <p>
+    <sup>*</sup>Glass defaults to clear (no tint) when fill is not specified.
+  </p>
+
+  <h2 id="diffuse">Diffuse</h2>
+
+  <p>
+    The default material.
+    Diffuse materials scatter light equally in all directions, producing a matte appearance.
+  </p>
+
+  <h2 id="metal">Metal</h2>
+
+  <p>
+    Metal materials reflect light, with the reflected color tinted by the fill color.
+  </p>
+
+  <pre><code>    {
+      "type": "rect",
+      "geometry": "sphere",
+      "material": "metal",
+      "encode": {
+        "enter": {
+          "width": {"value": 100},
+          "fuzz": {"value": 0},
+          "fill": {"value": "gold"}
+        }
+      } 
+    }</code></pre>
+
+  <p>
+    The <code>fuzz</code> property controls roughness — from a perfect mirror (<code>0</code>) to fully matte
+    (<code>1</code>).
+  </p>
+
+  <figure>
+    <img src="../img/metalfuzz1.jpg" alt="Metallic spheres with varying fuzz">
+    <figcaption>Figure 1. Metallic spheres with varying fuzz.</figcaption>
+  </figure>
+
+  <p><a href="../client.html?plot=materials1">View in Online Editor</a></p>
+
+  <p>
+    The <code>fuzz</code> property can also be driven by an image texture.
+  </p>
+
+  <figure>
+    <img src="../img/metalfuzzmap1.jpg" alt="Metallic sphere with fuzz texture">
+    <figcaption>Figure 2. Metallic sphere with fuzz texture.</figcaption>
+  </figure>
+
+  <p><a href="../client.html?plot=metalfuzzmap1">View in Online Editor</a></p>
+
+  <h2 id="glossy">Glossy</h2>
+
+  <p>
+    Glossy materials combine diffuse and specular reflection, producing a plastic or lacquered appearance.
+  </p>
+
+  <pre><code>    {
+      "type": "rect",
+      "geometry": "sphere",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "width": {"value": 100},
+          "fuzz": {"value": 0},
+          "gloss": {"value": 1}
+        }
+      } 
+    }</code></pre>
+
+  <p>
+    The <code>fuzz</code> property controls roughness.
+  </p>
+
+  <figure>
+    <img src="../img/glossyfuzz1.jpg" alt="Glossy spheres with varying fuzz">
+    <figcaption>Figure 3. Glossy spheres with varying fuzz.</figcaption>
+  </figure>
+
+  <p>
+    The <code>gloss</code> property controls the intensity of specular reflection.
+  </p>
+
+  <figure>
+    <img src="../img/glossygloss1.jpg" alt="Glossy spheres with varying gloss">
+    <figcaption>Figure 4. Glossy spheres with varying gloss.</figcaption>
+  </figure>
+
+  <h2 id="glass">Glass</h2>
+
+  <p>
+    Glass materials refract light passing through them.
+  </p>
+
+  <pre><code>    {
+      "type": "rect",
+      "geometry": "sphere",
+      "material": "glass",
+      "encode": {
+        "enter": {
+          "width": {"value": 100},
+          "refractiveIndex": {"value": 1.5}
+        }
+      } 
+    }</code></pre>
+
+  <p>
+    The <code>refractiveIndex</code> controls how much light bends.
+  </p>
+
+  <figure>
+    <img src="../img/glassrefractiveindex1.jpg" alt="Glass spheres with varying refractive index">
+    <figcaption>Figure 5. Glass spheres with varying refractive index.</figcaption>
+  </figure>
+
+  <p>
+    The appearance of colored glass depends on how far light travels through the material.
+    The <code>fill</code> color represents the tint of the glass as seen when white light passes through a thickness
+    equal to <code>fillDistance</code>.
+    Thinner sections appear lighter, while thicker sections appear darker.
+    To match the <code>fill</code> color along a particular mark dimension, set <code>fillDistance</code> to the size of
+    the mark along that dimension.
+    If <code>fillDistance</code> is not specified, the value is automatically set to the maximum mark dimension.
+  </p>
+
+  <p>
+    Note that <code>fillDistance</code> replaces the deprecated <code>density</code> property (<code>fillDistance</code>
+    equates to the reciprocal of <code>density</code>).
+    If both properties are specified, <code>fillDistance</code> takes precedence.
+  </p>
+
+  <figure>
+    <img src="../img/glassfilldistance1.jpg" alt="Crimson glass spheres with varying fill distance">
+    <figcaption>Figure 6. Crimson glass spheres with varying fill distance. The size of each sphere is approximately 100
+      units.</figcaption>
+  </figure>
+
+  <h2 id="light">Emissive</h2>
+
+  <p>
+    Emissive materials emit light from the surface.
+  </p>
+
+  <pre><code>    {
+      "type": "rect",
+      "geometry": "sphere",
+      "material": "light",
+      "encode": {
+        "enter": {
+          "width": {"value": 100},
+          "fill": {
+            "color": {
+              "h": {"value": 180},
+              "s": {"value": 0.5},
+              "l": {"value": 1}
+            }
+          }
+        }
+      } 
+    }</code></pre>
+
+  <p>
+    The <code>fill</code> color determines the color of the emitted light.
+  </p>
+
+  <figure>
+    <img src="../img/emissivemark1.jpg" alt="Emissive mark example">
+    <figcaption>Figure 7. Emissive mark example.</figcaption>
+  </figure>
+
+  <nav class="page-nav">
+    <a href="./lighting.html">Previous</a>
+    <a href="./geospatial.html">Next</a>
+  </nav>
+
+  <footer>
+    <span>© 2026 Microsoft</span>
+    <a href="https://go.microsoft.com/fwlink/?LinkId=521839">Privacy &amp; Cookies</a>
+    <a href="https://go.microsoft.com/fwlink/?linkid=2259814">Consumer Health Privacy</a>
+    <a href="https://www.microsoft.com/trademarks">Trademarks</a>
+    <a href="https://www.microsoft.com/en-us/servicesagreement/">Terms of Use</a>
+  </footer>
+
+  <script src="../js/copy.js"></script>
+</body>
+
+</html>

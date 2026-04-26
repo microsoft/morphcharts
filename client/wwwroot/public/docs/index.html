@@ -19,24 +19,37 @@
 
   <h1>Documentation</h1>
 
-  <ol class="doc-index">
-    <li><span class="upcoming">Introduction</span></li>
+  <ul>
     <li><a href="./coordinates.html">Coordinates</a></li>
     <li><span class="upcoming">Rendering</span></li>
     <li><a href="./lighting.html">Lighting</a></li>
-    <li><span class="upcoming">Materials</span></li>
+    <li><a href="./materials.html">Materials</a></li>
     <li><a href="./geospatial.html">Geospatial Data</a></li>
     <li><span class="upcoming">Textures</span></li>
     <li><span class="upcoming">Animation</span></li>
     <li><span class="upcoming">Tiling</span></li>
-    <li><a href="./prerequisites.html">Prerequisites</a> — browser integration</li>
-    <li><a href="./simpleclient.html">Simple Client</a> — minimal working example</li>
-    <li><a href="./simplecamera.html">Simple Camera</a> — camera manipulation example</li>
-    <li><a href="./simpletooltip.html">Simple Tooltip</a> — tooltip example</li>
-  </ol>
+    <li><a href="./prerequisites.html">Browser Integration</a></li>
+    <ul>
+      <li><a href="./simpleclient.html">Simple Client</a></li>
+      <li><a href="./simplecamera.html">Simple Camera</a></li>
+      <li><a href="./simpletooltip.html">Simple Tooltip</a></li>
+    </ul>
+  </ul>
+
+  <p>
+    MorphCharts is a GPU-accelerated data visualization library that uses WebGPU to render 3D charts directly in the
+    browser. Visualizations can be defined using a declarative JSON specification inspired by
+    <a href="https://vega.github.io/vega/">Vega</a>, with extensions to support 3D visualizations, including depth, 3D
+    camera, physically-based lighting, and materials.
+  </p>
+
+  <p>
+    The renderer produces photorealistic output through path tracing with progressive accumulation, and also supports
+    faster direct-lit rendering modes.
+  </p>
 
   <footer>
-    <span>© 2025 Microsoft</span>
+    <span>© 2026 Microsoft</span>
     <a href="https://go.microsoft.com/fwlink/?LinkId=521839">Privacy &amp; Cookies</a>
     <a href="https://go.microsoft.com/fwlink/?linkid=2259814">Consumer Health Privacy</a>
     <a href="https://www.microsoft.com/trademarks">Trademarks</a>
