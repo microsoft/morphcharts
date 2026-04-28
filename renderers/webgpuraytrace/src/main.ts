@@ -29,6 +29,7 @@ export class Main extends Core.Renderer {
     // Compute
     private _computeUniformBuffer: GPUBuffer;
     private _computeUniformBufferData: ComputeUniformBufferData;
+    private _outputColorBuffer: GPUBuffer;
     private _depthMinMaxBuffer: GPUBuffer;
     private _depthMinMaxResultBuffer: GPUBuffer;
     private _computeBindGroup1: GPUBindGroup;
@@ -154,6 +155,7 @@ export class Main extends Core.Renderer {
             this._maxComputeWorkgroupsPerDimension = this._device.limits.maxComputeWorkgroupsPerDimension;
             this._queue = this._device.queue;
             this._context = this._canvas.getContext("webgpu");
+            if (!this._context) { throw new Error("WebGPU canvas context not available"); }
 
             this._device.lost.then((info: GPUDeviceLostInfo) => {
                 if (!this._isInitialized) { return; }
@@ -784,14 +786,14 @@ export class Main extends Core.Renderer {
             size: outputColorBufferSizeBytes,
             usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC
         };
-        const outputColorBuffer = this._device.createBuffer(outputColorBufferDescriptor);
+        this._outputColorBuffer = this._device.createBuffer(outputColorBufferDescriptor);
 
         // Compute bind groups
         const computeBindGroup2Descriptor: GPUBindGroupDescriptor = {
             label: "Compute bind group 2 descriptor",
             layout: this._computeBindGroup2Layout,
             entries: [
-                { binding: 0, resource: { buffer: outputColorBuffer } },
+                { binding: 0, resource: { buffer: this._outputColorBuffer } },
             ]
         };
         this._computeBindGroup2 = this._device.createBindGroup(computeBindGroup2Descriptor);
@@ -801,7 +803,7 @@ export class Main extends Core.Renderer {
             label: "Quad bind group 1 descriptor",
             layout: this._quadBindGroup1Layout,
             entries: [
-                { binding: 0, resource: { buffer: outputColorBuffer } }
+                { binding: 0, resource: { buffer: this._outputColorBuffer } }
             ]
         };
         this._quadBindGroup1 = this._device.createBindGroup(quadBindGroup1Descriptor);

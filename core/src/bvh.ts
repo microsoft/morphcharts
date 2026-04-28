@@ -73,17 +73,23 @@ export class BVHAccel {
         this._normalized = [0, 0, 0];
 
         // Build BVH from primitives
-        // Initialize primitiveInfo array for primitives
+        // Initialize primitiveInfo array, filtering out degenerate (zero-volume) primitives
         this._primitiveInfo = [];
         for (let i = 0; i < primitives.length; i++) {
-            this._primitiveInfo.push(new BVHPrimitiveInfo(i, primitives[i].bounds));
+            const b = primitives[i].bounds;
+            if (b.min[0] === b.max[0] && b.min[1] === b.max[1] && b.min[2] === b.max[2]) {
+                console.warn(`bvh: skipping degenerate primitive ${i} (zero-volume bounds)`);
+                continue;
+            }
+            this._primitiveInfo.push(new BVHPrimitiveInfo(i, b));
         }
+        if (this._primitiveInfo.length === 0) { return; }
 
         // Build BVH tree for primitives using primitiveInfo
         this._totalNodes = 0;
         this._orderedPrimitives = [];
-        this._orderedPrimitivesLookup = new Uint32Array(primitives.length);
-        const root = this._recursiveBuild(0, primitives.length); // [first,last)
+        this._orderedPrimitivesLookup = new Uint32Array(this._primitiveInfo.length);
+        const root = this._recursiveBuild(0, this._primitiveInfo.length); // [first,last)
         console.log(`bvh ${this._totalNodes} nodes split ${this._splitMethod} ${Time.formatDuration(performance.now() - start)}`);
 
         // Compute representation of depth-first traversal of BVH tree
@@ -156,10 +162,10 @@ export class BVHAccel {
                         // The first half have the smallest centroid coordinate values along the chosen axis
                         mid = Math.floor((start + end) / 2);
                         // Sort subset
-                        const primtiveInfo = this._primitiveInfo.slice(start, end);
-                        primtiveInfo.sort(function (a, b) { return (a.centroid[dim] - b.centroid[dim]) });
+                        const primitiveInfo = this._primitiveInfo.slice(start, end);
+                        primitiveInfo.sort(function (a, b) { return (a.centroid[dim] - b.centroid[dim]) });
                         for (let i = start; i < end; i++) {
-                            this._primitiveInfo[i] = primtiveInfo[i - start];
+                            this._primitiveInfo[i] = primitiveInfo[i - start];
                         }
                         break;
 
@@ -170,10 +176,10 @@ export class BVHAccel {
                             // Partition primitives into equally sized subsets (SplitMethod.equalCounts)
                             mid = Math.floor((start + end) / 2);
                             // Sort subset
-                            const primtiveInfo = this._primitiveInfo.slice(start, end);
-                            primtiveInfo.sort(function (a, b) { return (a.centroid[dim] - b.centroid[dim]) });
+                            const primitiveInfo = this._primitiveInfo.slice(start, end);
+                            primitiveInfo.sort(function (a, b) { return (a.centroid[dim] - b.centroid[dim]) });
                             for (let i = start; i < end; i++) {
-                                this._primitiveInfo[i] = primtiveInfo[i - start];
+                                this._primitiveInfo[i] = primitiveInfo[i - start];
                             }
                         } else {
                             // Allocate BucketInfo for SAH partition buckets
@@ -231,10 +237,10 @@ export class BVHAccel {
                             const leafCost = nPrimitives;
                             if (nPrimitives > this._maxPrimsInNode || minCost < leafCost) {
                                 // Sort subset
-                                const primtiveInfo = this._primitiveInfo.slice(start, end);
-                                primtiveInfo.sort(function (a, b) { return (a.centroid[dim] - b.centroid[dim]) });
+                                const primitiveInfo = this._primitiveInfo.slice(start, end);
+                                primitiveInfo.sort(function (a, b) { return (a.centroid[dim] - b.centroid[dim]) });
                                 for (let i = start; i < end; i++) {
-                                    this._primitiveInfo[i] = primtiveInfo[i - start];
+                                    this._primitiveInfo[i] = primitiveInfo[i - start];
                                 }
 
                                 // Find first hittable at split bucket

@@ -12,6 +12,7 @@ export class ImageVisual extends Core.ImageVisual implements Core.IImageVisual {
             img.onload = () => {
                 const canvas = document.createElement("canvas");
                 const context = canvas.getContext("2d");
+                if (!context) { reject("2D canvas context not available"); return; }
                 this._width = canvas.width = img.width;
                 this._height = canvas.height = img.height;
                 context.drawImage(img, 0, 0);
@@ -43,6 +44,7 @@ export class ImageVisual extends Core.ImageVisual implements Core.IImageVisual {
         if (this._imageData) {
             const canvas = document.createElement("canvas");
             const context = canvas.getContext("2d");
+            if (!context) { return null; }
             canvas.width = this._width;
             canvas.height = this._height;
             context.putImageData(this._imageData, 0, 0);

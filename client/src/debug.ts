@@ -49,26 +49,32 @@ export class Debug {
   public set depthMax(value: number) { if (value != null) { this._depthMax = value; } }
 
   constructor() {
+    const el = (id: string) => {
+      const element = document.getElementById(id);
+      if (!element) { throw new Error(`element #${id} not found`); }
+      return element as HTMLSpanElement;
+    };
+
     // Renderer
-    this._renderFrameCountSpan = document.getElementById("debugRenderFrameCount") as HTMLSpanElement;
+    this._renderFrameCountSpan = el("debugRenderFrameCount");
 
     // Camera
-    this._cameraPositionSpan = document.getElementById("debugCameraPosition") as HTMLSpanElement;
-    this._cameraRightSpan = document.getElementById("debugCameraRight") as HTMLSpanElement;
-    this._cameraUpSpan = document.getElementById("debugCameraUp") as HTMLSpanElement;
-    this._cameraForwardSpan = document.getElementById("debugCameraForward") as HTMLSpanElement;
-    this._cameraManipulationOriginSpan = document.getElementById("debugCameraManipulationOrigin") as HTMLSpanElement;
-    this._cameraDistanceSpan = document.getElementById("debugCameraDistance") as HTMLSpanElement;
-    this._cameraFovSpan = document.getElementById("debugCameraFov") as HTMLSpanElement;
-    this._cameraApertureSpan = document.getElementById("debugCameraAperture") as HTMLSpanElement;
-    this._cameraFocusSpan = document.getElementById("debugCameraFocus") as HTMLSpanElement;
+    this._cameraPositionSpan = el("debugCameraPosition");
+    this._cameraRightSpan = el("debugCameraRight");
+    this._cameraUpSpan = el("debugCameraUp");
+    this._cameraForwardSpan = el("debugCameraForward");
+    this._cameraManipulationOriginSpan = el("debugCameraManipulationOrigin");
+    this._cameraDistanceSpan = el("debugCameraDistance");
+    this._cameraFovSpan = el("debugCameraFov");
+    this._cameraApertureSpan = el("debugCameraAperture");
+    this._cameraFocusSpan = el("debugCameraFocus");
 
     // World
-    this._worldPositionSpan = document.getElementById("debugWorldPosition") as HTMLSpanElement;
+    this._worldPositionSpan = el("debugWorldPosition");
 
     // Depth
-    this._depthMinSpan = document.getElementById("debugDepthMin") as HTMLSpanElement;
-    this._depthMaxSpan = document.getElementById("debugDepthMax") as HTMLSpanElement;
+    this._depthMinSpan = el("debugDepthMin");
+    this._depthMaxSpan = el("debugDepthMax");
   }
 
   public update(): void {

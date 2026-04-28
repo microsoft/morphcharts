@@ -88,10 +88,14 @@ export class Line extends Mark {
                 direction[1] = positionsY ? toPositionY - fromPositionY : 0;
                 direction[2] = positionsZ ? toPositionZ - fromPositionZ : 0;
                 let length = Core.vector3.length(direction);
-                direction[0] /= length;
-                direction[1] /= length;
-                direction[2] /= length;
-                Core.quaternion.rotationTo(identity, direction, rotation);
+                if (length > 0) {
+                    direction[0] /= length;
+                    direction[1] /= length;
+                    direction[2] /= length;
+                    Core.quaternion.rotationTo(identity, direction, rotation);
+                } else {
+                    rotation[0] = 0; rotation[1] = 0; rotation[2] = 0; rotation[3] = 1;
+                }
                 rotations[fromId * 4] = rotation[0];
                 rotations[fromId * 4 + 1] = rotation[1];
                 rotations[fromId * 4 + 2] = rotation[2];

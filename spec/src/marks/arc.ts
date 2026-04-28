@@ -181,8 +181,8 @@ export class Arc extends Mark {
         for (let i = 0; i < dataset.length; i++) { outerDiameters[i] = outerRadii[i] * 2; }
         // Define inner diameters and paddings in scale-independent units of outer diameters
         const innerDiameters = new Float32Array(dataset.length);
-        if (innerRadii) { for (let i = 0; i < dataset.length; i++) { innerDiameters[i] = innerRadii[i] / outerRadii[i]; } }
-        if (paddings) { for (let i = 0; i < dataset.length; i++) { paddings[i] = paddings[i] / outerRadii[i]; } }
+        if (innerRadii) { for (let i = 0; i < dataset.length; i++) { innerDiameters[i] = outerRadii[i] > 0 ? innerRadii[i] / outerRadii[i] : 0; } }
+        if (paddings) { for (let i = 0; i < dataset.length; i++) { paddings[i] = outerRadii[i] > 0 ? paddings[i] / outerRadii[i] : 0; } }
         const layoutOptions: Core.Layouts.IScatterLayoutOptions = {
             positionsX: positionsX,
             positionsY: positionsY,

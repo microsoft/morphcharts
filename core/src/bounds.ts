@@ -55,9 +55,10 @@ export class Bounds {
             pb[2] - pa[2]
         ];
         const aa = vector3.dot(a, a);
-        const ex = radius * Math.sqrt(1 - a[0] * a[0] / aa);
-        const ey = radius * Math.sqrt(1 - a[1] * a[1] / aa);
-        const ez = radius * Math.sqrt(1 - a[2] * a[2] / aa);
+        // Degenerate cylinder (zero length): treat as sphere
+        const ex = aa > 0 ? radius * Math.sqrt(Math.max(0, 1 - a[0] * a[0] / aa)) : radius;
+        const ey = aa > 0 ? radius * Math.sqrt(Math.max(0, 1 - a[1] * a[1] / aa)) : radius;
+        const ez = aa > 0 ? radius * Math.sqrt(Math.max(0, 1 - a[2] * a[2] / aa)) : radius;
         minBounds[0] = Math.min(pa[0] - ex, pb[0] - ex);
         minBounds[1] = Math.min(pa[1] - ey, pb[1] - ey);
         minBounds[2] = Math.min(pa[2] - ez, pb[2] - ez);
