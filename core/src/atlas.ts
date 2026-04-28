@@ -57,7 +57,7 @@ export abstract class AtlasVisual implements IAtlasVisual {
 
     public draw(data: Uint8ClampedArray, width: number, height: number): Vector4 {
         const atlasWidth = this._atlas.width;
-        const atlatHeight = this._atlas.height;
+        const atlasHeight = this._atlas.height;
 
         // > width?
         if (this._x + width > atlasWidth) {
@@ -71,7 +71,7 @@ export abstract class AtlasVisual implements IAtlasVisual {
         }
 
         // > height?
-        if (y + height > atlatHeight) {
+        if (y + height > atlasHeight) {
             console.log("height overflow");
         }
 
@@ -83,9 +83,9 @@ export abstract class AtlasVisual implements IAtlasVisual {
         // Texture coordinates
         const textCoords: Vector4 = [
             this._x / atlasWidth, // u0
-            y / atlatHeight, // v0
+            y / atlasHeight, // v0
             (this._x + width) / atlasWidth, // u1
-            (y + height) / atlatHeight, // v1
+            (y + height) / atlasHeight, // v1
         ];
 
         // Write data

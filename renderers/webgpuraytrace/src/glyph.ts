@@ -14,6 +14,7 @@ export class GlyphRasterizerVisual extends Core.GlyphRasterizerVisual implements
         canvas.width = this._size;
         canvas.height = this._size;
         this._context = canvas.getContext("2d", { willReadFrequently: true });
+        if (!this._context) { throw new Error("2D canvas context not available"); }
         // this._context.textBaseline = "middle"; // Use middle baseline for all glyphs
         this._context.textAlign = "left"; // Handle RTL
         this._context.fillStyle = "black";

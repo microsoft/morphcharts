@@ -60,7 +60,7 @@ async function renderDetail(content: HTMLDivElement, categories: ISampleCategory
     detailTryLink.href = `client.html?plot=${encodeURIComponent(plotName)}`;
 
     if (plot.notes) {
-        detailNotes.innerHTML = plot.notes;
+        detailNotes.innerHTML = plot.notes; // Trusted source (index.json)
     } else {
         detailNotes.style.display = "none";
     }

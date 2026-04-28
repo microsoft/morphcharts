@@ -16,6 +16,7 @@ export class AtlasVisual extends Core.AtlasVisual implements Core.IAtlasVisual {
         canvas.width = this.atlas.width;
         canvas.height = this.atlas.height;
         const context = canvas.getContext("2d");
+        if (!context) { throw new Error("2D canvas context not available"); }
         this._imageData = context.createImageData(this.atlas.width, this.atlas.height);
         this._buffer = this._imageData.data;
     }
@@ -25,6 +26,7 @@ export class AtlasVisual extends Core.AtlasVisual implements Core.IAtlasVisual {
         canvas.width = this.atlas.width;
         canvas.height = this.atlas.height;
         const context = canvas.getContext("2d");
+        if (!context) { throw new Error("2D canvas context not available"); }
         context.putImageData(this._imageData, 0, 0);
         return canvas.toDataURL("image/png");
     }

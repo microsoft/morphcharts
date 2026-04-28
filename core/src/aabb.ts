@@ -29,11 +29,14 @@ export class AABB {
         out[2] = this._max[2] - this._min[2];
     }
 
-    // Normalize point from min [0, 0, 0] to max [1, 1, 1];
+    // Normalize point from min [0, 0, 0] to max [1, 1, 1]
     public normalize(point: Vector3, out: Vector3): void {
-        out[0] = (point[0] - this._min[0]) / (this._max[0] - this._min[0]);
-        out[1] = (point[1] - this._min[1]) / (this._max[1] - this._min[1]);
-        out[2] = (point[2] - this._min[2]) / (this._max[2] - this._min[2]);
+        const dx = this._max[0] - this._min[0];
+        const dy = this._max[1] - this._min[1];
+        const dz = this._max[2] - this._min[2];
+        out[0] = dx !== 0 ? (point[0] - this._min[0]) / dx : 0;
+        out[1] = dy !== 0 ? (point[1] - this._min[1]) / dy : 0;
+        out[2] = dz !== 0 ? (point[2] - this._min[2]) / dz : 0;
     }
 
     public unionBounds(bounds: AABB): void {
