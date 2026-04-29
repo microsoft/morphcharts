@@ -1,10 +1,11 @@
 {
-  "name": "client",
-  "version": "1.1.0",
+  "name": "@microsoft/morphcharts-client",
+  "version": "1.0.0",
+  "author": "David Brown",
   "type": "module",
   "dependencies": {
-    "core": "^1.0.0",
-    "spec": "^1.0.0",
-    "webgpuraytrace": "^1.0.0"
+    "@microsoft/morphcharts-core": "^1.0.0",
+    "@microsoft/morphcharts-spec": "^1.0.0",
+    "@microsoft/morphcharts-webgpuraytrace": "^1.0.0"
   }
 }

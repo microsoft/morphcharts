@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license. 
 
-import * as Core from 'core';
-import * as Spec from 'spec';
-import * as WebGPURenderer from 'webgpuraytrace';
+import * as Core from '@microsoft/morphcharts-core';
+import * as Spec from '@microsoft/morphcharts-spec';
+import * as WebGPURenderer from '@microsoft/morphcharts-webgpuraytrace';
 
 interface TestResult {
     name: string;

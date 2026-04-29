@@ -17,7 +17,7 @@ export { Hittable, HittableBufferData, TextureType, HittableType, HittableSphere
 export { HittableBoxSdf, HittableTubeSdf, HittableBoxFrameSdf, HittableCylinderSdf, HittableHexPrismSdf, HittableQuadSdf, HittableRingSdf, HittableCappedTorusSdf } from "./hittablesdf.js";
 export { Image, ImageVisual } from "./image.js";
 export { LabelSet, LabelSetVisual } from "./labels.js";
-export { Light, RectLight, DiskLight, SphereLight, DirectionalLight, SpotLight, ProjectorLight, PointLight } from "./light.js";
+export { Light, LightBufferData, RectLight, DiskLight, SphereLight, DirectionalLight, SpotLight, ProjectorLight, PointLight } from "./light.js";
 export { Material, MaterialType } from "./material.js";
 export { MathUtils as Math } from "./math.js";
 export { vector2, vector3, vector4, quaternion, matrix3x3, matrix4x4 } from "./matrix.js";

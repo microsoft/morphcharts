@@ -1,4 +1,5 @@
 {
+  "author": "David Brown",
   "scripts": {
     "dev-core": "tsc -p ./core/tsconfig.json",
     "dev-spec": "tsc -p ./core/tsconfig.json && tsc -p ./spec/tsconfig.json",
