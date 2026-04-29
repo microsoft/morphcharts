@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license. 
 
-import * as Core from "core";
+import * as Core from "@microsoft/morphcharts-core";
 
 export class LabelSetVisual extends Core.LabelSetVisual implements Core.ILabelSetVisual {
     public hittables: Core.Hittable[];

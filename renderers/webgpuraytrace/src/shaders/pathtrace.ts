@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license. 
 
-import * as Core from "core";
+import * as Core from "@microsoft/morphcharts-core";
 
 export const ComputeShaderWgsl = `
 const PI = 3.1415926535897932385f;

@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license. 
 
-import * as Core from "core";
+import * as Core from "@microsoft/morphcharts-core";
 import { AtlasVisual } from "./atlas.js";
 import { BufferVisual, TransitionBufferVisual } from "./buffer.js";
 import { Config } from "./config.js";
@@ -10,7 +10,6 @@ import { ComputeShaderWgsl, ComputeUniformBufferData } from "./shaders/pathtrace
 import { QuadUniformBufferData, QuadWgsl } from "./shaders/quad.js";
 import { LabelSetVisual } from "./labels.js";
 import { ImageVisual } from "./image.js";
-import { LightBufferData } from "core/dist/light.js";
 
 export class Main extends Core.Renderer {
     // DOM
@@ -84,7 +83,7 @@ export class Main extends Core.Renderer {
     // Lights
     private _lightBuffer: GPUBuffer;
     private _emptyLightBuffer: GPUBuffer;
-    private _lightBufferData: LightBufferData;
+    private _lightBufferData: Core.LightBufferData;
 
     // Timing
     private _hasTimestampSupport: boolean;
@@ -240,7 +239,7 @@ export class Main extends Core.Renderer {
             // Placeholder light buffer
             const emptyLightBufferDescriptor: GPUBufferDescriptor = {
                 label: "Placeholder light buffer",
-                size: LightBufferData.SIZE * 4, // Single light
+                size: Core.LightBufferData.SIZE * 4, // Single light
                 usage: GPUBufferUsage.STORAGE,
             };
             this._emptyLightBuffer = this._device.createBuffer(emptyLightBufferDescriptor);
@@ -946,7 +945,7 @@ export class Main extends Core.Renderer {
         }
 
         // Create buffers
-        const lightBufferSizeBytes = this._lights.length * LightBufferData.SIZE * 4;
+        const lightBufferSizeBytes = this._lights.length * Core.LightBufferData.SIZE * 4;
         const lightBufferDescriptor: GPUBufferDescriptor = {
             label: "Light buffer",
             size: lightBufferSizeBytes,
@@ -954,7 +953,7 @@ export class Main extends Core.Renderer {
         };
         if (!this._lightBuffer || this._lightBuffer.size != lightBufferSizeBytes) {
             this._lightBuffer = this._device.createBuffer(lightBufferDescriptor);
-            this._lightBufferData = new LightBufferData(this._lights.length);
+            this._lightBufferData = new Core.LightBufferData(this._lights.length);
 
             // Need to recreate size independent resources as the light buffer is bound there
             // TODO: Optimize by only recreating the compute bind group 3

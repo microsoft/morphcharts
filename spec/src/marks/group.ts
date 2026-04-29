@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license. 
 
-import * as Core from "core";
+import * as Core from "@microsoft/morphcharts-core";
 import { Axis } from "../axis.js";
 import { Dataset } from "../dataset.js";
 import { IScene, Plot } from "../plot.js";

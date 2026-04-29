@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license. 
 
-import * as Core from "core";
+import * as Core from "@microsoft/morphcharts-core";
 import { Color } from "../color.js";
 import { Group } from "../marks/group.js";
 import { Scale, TickInfo } from "./scale.js";

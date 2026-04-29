@@ -1,9 +1,8 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license. 
 
-import * as Core from "core";
+import * as Core from "@microsoft/morphcharts-core";
 import { Manipulator } from "./manipulator.js";
-import { MathUtils } from "core/dist/math.js";
 
 export class IManipulationProcessorOptions {
     dragToleranceSquared?: number;
@@ -247,7 +246,7 @@ export class ManipulationProcessor {
 
                 // Scale
                 this.scaleDelta /= persisted;
-                this.cumulativeScale = MathUtils.clamp(this.cumulativeScale * this.scaleDelta, this.minScale, this.maxScale);
+                this.cumulativeScale = Core.Math.clamp(this.cumulativeScale * this.scaleDelta, this.minScale, this.maxScale);
                 this.scaleDelta -= 1;
 
                 // Twist

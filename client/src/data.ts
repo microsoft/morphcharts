@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license. 
 
-import * as Spec from "spec";
+import * as Spec from "@microsoft/morphcharts-spec";
 
 export class Data {
     private _datasets: { [key: string]: string };

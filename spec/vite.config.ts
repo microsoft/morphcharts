@@ -12,7 +12,7 @@ export default defineConfig({
         emptyOutDir: false,
         sourcemap: true,
         rollupOptions: {
-            external: ['core'],
+            external: ['@microsoft/morphcharts-core'],
         },
     },
 });

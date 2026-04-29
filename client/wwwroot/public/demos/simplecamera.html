@@ -5,9 +5,9 @@
   <script type="importmap">
   {
     "imports": {
-      "core": "https://microsoft.github.io/morphcharts/lib/morphcharts-core.js",
-      "spec": "https://microsoft.github.io/morphcharts/lib/morphcharts-spec.js",
-      "webgpuraytrace": "https://microsoft.github.io/morphcharts/lib/morphcharts-webgpuraytrace.js"
+      "@microsoft/morphcharts-core": "https://microsoft.github.io/morphcharts/lib/morphcharts-core.js",
+      "@microsoft/morphcharts-spec": "https://microsoft.github.io/morphcharts/lib/morphcharts-spec.js",
+      "@microsoft/morphcharts-webgpuraytrace": "https://microsoft.github.io/morphcharts/lib/morphcharts-webgpuraytrace.js"
     }
   }
   </script>
@@ -23,9 +23,9 @@
 
   <script type="module">
     // Module imports
-    import * as Core from 'core';
-    import * as Spec from 'spec';
-    import * as WebGPURenderer from 'webgpuraytrace';
+    import * as Core from '@microsoft/morphcharts-core';
+    import * as Spec from '@microsoft/morphcharts-spec';
+    import * as WebGPURenderer from '@microsoft/morphcharts-webgpuraytrace';
 
     const canvas = document.getElementById('canvas');
     const status = document.getElementById('status');

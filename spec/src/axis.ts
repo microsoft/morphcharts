@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license. 
 
-import * as Core from "core";
+import * as Core from "@microsoft/morphcharts-core";
 import { Group } from "./marks/group.js";
 import { IScene, Plot } from "./plot.js";
 import { Scale } from "./scales/scale.js";
