@@ -49,6 +49,8 @@ export abstract class Renderer {
     // Lighting
     public ambientColor: ColorRGB;
     public backgroundColor: ColorRGBA;
+    public edgeForeground: ColorRGBA;
+    public edgeBackground: ColorRGBA;
     protected _haveLightsChanged: boolean;
     protected _lights: Light[];
     public set lights(value: Light[]) {
@@ -85,6 +87,26 @@ export abstract class Renderer {
         }
     }
     public get idSource(): string { return this._idSource; }
+
+    // Max bounce depth
+    protected _maxBounceDepth: number;
+    public set maxBounceDepth(value: number) {
+        if (this._maxBounceDepth !== value) {
+            this._maxBounceDepth = value;
+            this._hasRenderModeChanged = true;
+        }
+    }
+    public get maxBounceDepth(): number { return this._maxBounceDepth; }
+
+    // Edge thickness
+    protected _edgeThickness: number;
+    public set edgeThickness(value: number) {
+        if (this._edgeThickness !== value) {
+            this._edgeThickness = value;
+            this._hasRenderModeChanged = true;
+        }
+    }
+    public get edgeThickness(): number { return this._edgeThickness; }
 
     // Visual collections
     public atlasVisuals: IAtlasVisual[];
@@ -271,10 +293,14 @@ export abstract class Renderer {
         // Lighting
         this.ambientColor = vector3.clone(Config.ambientColor);
         this.backgroundColor = vector4.clone(Config.backgroundColor);
+        this.edgeForeground = vector4.clone(Config.edgeForeground);
+        this.edgeBackground = vector4.clone(Config.edgeBackground);
 
         // Render mode
         this._renderMode = options?.renderMode ?? Config.renderMode;
         this._idSource = Config.idSource;
+        this._maxBounceDepth = Config.maxBounceDepth;
+        this._edgeThickness = Config.edgeThickness;
 
         // Camera
         this._cameraMode = Config.cameraMode;

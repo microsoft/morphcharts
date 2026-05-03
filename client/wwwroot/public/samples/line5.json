@@ -110,7 +110,7 @@
           "z": {"scale": "z", "field": "z"},
           "fuzz": {"value": 0.1},
           "strokeWidth": {"signal": "strokeWidth"},
-          "stroke": {"value": "copper"},
+          "stroke": {"value": "darkorange"},
           "_stroke": {"scale": "fill", "field": "t"}
         }
       }
@@ -127,7 +127,7 @@
           "zc": {"scale": "z", "field": "z"},
           "fuzz": {"value": 0.1},
           "width": {"signal": "strokeWidth"},
-          "fill": {"value": "copper"},
+          "fill": {"value": "darkorange"},
           "_fill": {"scale": "fill", "field": "t"}
         }
       }

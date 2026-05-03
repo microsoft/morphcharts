@@ -121,6 +121,36 @@ export class Color {
         }
         rgb[0] = r, rgb[1] = g, rgb[2] = b;
     }
+
+    public static parseColorRGB(value: string): ColorRGB {
+        if (value[0] == "#") {
+            if (value.length == 4) {
+                const r = parseInt(value[1], 16) * 0x11;
+                const g = parseInt(value[2], 16) * 0x11;
+                const b = parseInt(value[3], 16) * 0x11;
+                return [r / 0xff, g / 0xff, b / 0xff];
+            }
+            else if (value.length == 7) {
+                const r = parseInt(value.substring(1, 3), 16);
+                const g = parseInt(value.substring(3, 5), 16);
+                const b = parseInt(value.substring(5, 7), 16);
+                return [r / 0xff, g / 0xff, b / 0xff];
+            }
+            else { throw new Error(`invalid hex color ${value}`); }
+        }
+        else {
+            const color = Colors[value.toLowerCase()];
+            if (color) { return [color[0], color[1], color[2]]; }
+        }
+        throw new Error(`invalid color ${value}`);
+    }
+
+    public static colorRGBToHex(color: ColorRGB): string {
+        const r = Math.round(color[0] * 0xff).toString(16).padStart(2, "0");
+        const g = Math.round(color[1] * 0xff).toString(16).padStart(2, "0");
+        const b = Math.round(color[2] * 0xff).toString(16).padStart(2, "0");
+        return `#${r}${g}${b}`;
+    }
 }
 
 // sRGB space (converted to linear by the renderer)
@@ -273,17 +303,4 @@ export const Colors: { [key: string]: ColorRGB } = {
     "lightgray": [0xd3 / 0xff, 0xd3 / 0xff, 0xd3 / 0xff],
     "lightgrey": [0xd3 / 0xff, 0xd3 / 0xff, 0xd3 / 0xff],
     "gainsboro": [0xdc / 0xff, 0xdc / 0xff, 0xdc / 0xff],
-
-    // Metal
-    "copper": [0xb8 / 0xff, 0x73 / 0xff, 0x33 / 0xff],
-    "bronze": [0xcd / 0xff, 0x7f / 0xff, 0x32 / 0xff],
-    "steel": [0xce / 0xff, 0xd2 / 0xff, 0xd7 / 0xff],
-    "platinum": [0xe5 / 0xff, 0xe4 / 0xff, 0xe2 / 0xff],
-    "gunmetal": [0x5c / 0xff, 0x5d / 0xff, 0x5b / 0xff],
-    "titanium": [0x87 / 0xff, 0x86 / 0xff, 0x81 / 0xff],
-    "rosegold": [0xcb / 0xff, 0xa3 / 0xff, 0xb2 / 0xff],
-
-    // Glass
-    "aquaglass": [0xd2 / 0xff, 0xe8 / 0xff, 0xdf / 0xff],
-    "blueglass": [0xc7 / 0xff, 0xe3 / 0xff, 0xe1 / 0xff],
 }

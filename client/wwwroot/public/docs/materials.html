@@ -31,6 +31,18 @@
     the mark's encoding.
   </p>
 
+  <ul>
+    <li><a href="./materials.html#material-types">Material Types</a></li>
+    <li><a href="./materials.html#properties">Common Properties</a></li>
+    <li><a href="./materials.html#diffuse">Diffuse</a></li>
+    <li><a href="./materials.html#metal">Metal</a></li>
+    <li><a href="./materials.html#glossy">Glossy</a></li>
+    <li><a href="./materials.html#glass">Glass</a></li>
+    <li><a href="./materials.html#light">Emissive</a></li>
+  </ul>
+
+  <h2 id="material-types">Material Types</h2>
+
   <table>
     <tr>
       <th>Type</th>
@@ -243,6 +255,19 @@
     equates to the reciprocal of <code>density</code>).
     If both properties are specified, <code>fillDistance</code> takes precedence.
   </p>
+
+  <pre><code>    {
+      "type": "rect",
+      "geometry": "sphere",
+      "material": "glass",
+      "encode": {
+        "enter": {
+          "width": {"value": 100},
+          "fill": {"value": "crimson"},
+          "fillDistance": {"value": 100}
+        }
+      } 
+    }</code></pre>
 
   <figure>
     <img src="../img/glassfilldistance1.jpg" alt="Crimson glass spheres with varying fill distance">

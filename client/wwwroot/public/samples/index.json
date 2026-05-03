@@ -39,6 +39,13 @@
         "description": "A faceted bar chart"
       },
       {
+        "plot": "bar13.json",
+        "thumbnail": "bar13_raytrace_640x360.jpg",
+        "image": "bar13_raytrace_3840x2160.jpg",
+        "title": "Faceted Grouped Bar Chart",
+        "description": "A faceted grouped bar chart"
+      },
+      {
         "plot": "bar3.json",
         "thumbnail": "bar3_raytrace_640x360.jpg",
         "image": "bar3_raytrace_3840x2160.jpg",

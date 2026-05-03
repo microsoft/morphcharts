@@ -40,6 +40,9 @@ export class Config {
     // Render mode
     public static readonly renderMode: string = "raytrace";
     public static readonly idSource: string = "segment";
+    public static readonly maxBounceDepth: number = 8;
+    public static readonly edgeThickness: number = 1;
+    public static readonly maxEdgeThickness: number = 8;
 
     // Camera mode
     public static readonly cameraMode: string = "perspective";

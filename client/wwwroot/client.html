@@ -483,16 +483,28 @@
                                     <div style="width: 48px;"><label class="rangeValue" id="focusLabel"></label></div>
                                     <input type="button" id="focusResetButton" value="Reset" />
                                 </div>
+                                <!-- max bounce depth -->
+                                <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
+                                    <label class="rangeLabel" style="width: 104px;">Max bounces</label>
+                                    <input type="range" min="1" max="64" step="1" id="maxBounceDepthRange" />
+                                    <div style="width: 48px;"><label class="rangeValue" id="maxBounceDepthLabel"></label></div>
+                                </div>
                             </div>
                             <!-- color options (shares raytraceOptions) -->
                             <!-- edge options -->
                             <div id="edgeOptions" class="renderOptions">
-                                <!-- color -->
-                                <div style="display: flex; flex-direction: row; gap: 8px; align-items: baseline;">
-                                    <input type="radio" name="edgeMode" value="light" id="edgeLight" checked disabled />
-                                    <label for="edgeLight" class="radioLabel disabled">Light</label>
-                                    <input type="radio" name="edgeMode" value="dark" id="edgeDark" disabled />
-                                    <label for="edgeDark" class="radioLabel disabled">Dark</label>
+                                <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
+                                    <label class="rangeLabel" style="width: 104px;">Thickness</label>
+                                    <input type="range" min="1" max="8" step="1" id="edgeThicknessRange" />
+                                    <div style="width: 48px;"><label class="rangeValue" id="edgeThicknessLabel"></label></div>
+                                </div>
+                                <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
+                                    <label class="rangeLabel" style="width: 104px;">Foreground</label>
+                                    <input type="color" id="edgeForeground" />
+                                </div>
+                                <div style="display: flex; flex-direction: row; gap: 8px; align-items: center;">
+                                    <label class="rangeLabel" style="width: 104px;">Background</label>
+                                    <input type="color" id="edgeBackground" />
                                 </div>
                             </div>
                             <!-- depth options -->
