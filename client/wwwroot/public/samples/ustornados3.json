@@ -1,18 +1,18 @@
 {
   "title": "US Tornados",
-  "description": "US Tornados Unit Stack by Month, Strength",
+  "description": "US Tornados Unit Stack by Hour, Strength",
 
   "signals": [
-    { "name": "stackWidth", "value": 10},
-    { "name": "stackDepth", "value": 10},
-    { "name": "width", "update": "12*(stackWidth+1)"},
+    { "name": "stackWidth", "value": 6},
+    { "name": "stackDepth", "value": 6},
+    { "name": "width", "update": "24*(stackWidth+1)"},
     { "name": "depth", "update": "6*(stackDepth+1)"}
   ],
 
   "camera": {
     "altitude": 45,
-    "distance": 2,
-    "target": [0, 0, -0.3]
+    "distance": 1.8,
+    "target": [0, 0, -0.5]
   },
 
   "ambient": "black",
@@ -26,12 +26,9 @@
 
   "data": [
     {
-      "name": "months",
-      "values": [
-        {"id":  1, "name": "Jan"}, {"id":  2, "name": "Feb"}, {"id":  3, "name": "Mar"},
-        {"id":  4, "name": "Apr"}, {"id":  5, "name": "May"}, {"id":  6, "name": "Jun"},
-        {"id":  7, "name": "Jul"}, {"id":  8, "name": "Aug"}, {"id":  9, "name": "Sep"},
-        {"id": 10, "name": "Oct"}, {"id": 11, "name": "Nov"}, {"id": 12, "name": "Dec"}
+      "name": "hours",
+      "transform": [
+        {"type": "sequence", "start": 0, "stop": 24, "as": "hour"}
       ]
     },
     {
@@ -45,7 +42,7 @@
       "url": "data/ustornados_1950-2024.csv",
       "transform": [
         {"type": "formula", "expr": "0.5+random()*0.25", "as": "fuzz"},
-        {"type": "lookup", "from": "months", "key": "id", "fields": ["mo"], "values": ["name"], "as": ["monthname"]}
+        {"type": "formula", "expr": "substring(datum.time,0,2)", "as": "hour"}
       ]
     },
     {
@@ -54,7 +51,7 @@
       "transform": [
         {
           "type": "unitstack",
-          "groupby": ["mo", "mag"],
+          "groupby": ["hour", "mag"],
           "x": {"signal": "stackWidth"}, 
           "width": {"signal": "stackWidth"}, 
           "z": {"signal": "stackDepth"},
@@ -66,9 +63,9 @@
 
   "scales": [
     {
-      "name": "month",
+      "name": "hour",
       "type": "band",
-      "domain": {"data": "months", "field": "name", "sort": {"field": "id", "op": "max"}},
+      "domain": {"data": "hours", "field": "hour"},
       "range": {"step": {"signal": "stackWidth+1"}}
     },
     {
@@ -91,7 +88,7 @@
   "axes": [
     {
       "orient": "bottom",
-      "scale": "month",
+      "scale": "hour",
       "labelBaseline": "top",
       "labelFontSize": 3,
       "labelOffsetY": -2,
@@ -101,7 +98,7 @@
       "labelColor": "black",
       "bandGridPosition": 1,
       "bandLabelPosition": 0.5,
-      "title": "Month",
+      "title": "Hour",
       "titleAngleX": 90,
       "titleBaseline": "top",
       "titleOffsetZ": 6,
@@ -162,7 +159,7 @@
               "color2": { "value": "whitesmoke" }
             },
             "texScale": {
-              "x": {"value": 6},
+              "x": {"value": 12},
               "z": {"value": 3}
             }
           }
@@ -192,7 +189,7 @@
           "zc": {"signal": "depth/2"},
           "yc": {"value": -2.01},
           "width": {"signal": "width*4"},
-          "depth": {"signal": "depth*8"},
+          "depth": {"signal": "depth*18"},
           "fill": {"value": "darkgray"}
         }
       }
@@ -204,8 +201,8 @@
       "from": {"data": "unitstack"},
       "encode": {
         "enter": {
-          "x": {"field": "x0", "offset": {"scale": "month", "field": "monthname"}},
-          "x2": {"field": "x1", "offset": {"scale": "month", "field": "monthname"}},
+          "x": {"field": "x0", "offset": {"scale": "hour", "field": "hour"}},
+          "x2": {"field": "x1", "offset": {"scale": "hour", "field": "hour"}},
           "y": {"field": "y0"},
           "y2": {"field": "y1"},
           "z": {"field": "z0", "offset": {"scale": "strength", "field": "mag"}},

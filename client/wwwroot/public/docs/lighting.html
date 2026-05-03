@@ -20,12 +20,12 @@
   <h1>Lighting</h1>
 
   <nav class="page-nav">
-    <a href="./coordinates.html">Previous</a>
+    <a href="./rendering.html">Previous</a>
     <a href="./materials.html">Next</a>
   </nav>
 
   <p>
-    Multiple supports several different light types for illuminating scenes.
+    MorphCharts supports several different light types for illuminating scenes.
   </p>
 
   <ul>
@@ -33,16 +33,16 @@
     <li><a href="#common-properties">Common Properties</a></li>
     <li><a href="#area-lights">Area Lights</a></li>
     <ul>
-      <li><a href="#rect-light">Rect Light</a></li>
-      <li><a href="#disk-light">Disk Light</a></li>
-      <li><a href="#sphere-light">Sphere Light</a></li>
+      <li><a href="#rect-light">Rect</a></li>
+      <li><a href="#disk-light">Disk</a></li>
+      <li><a href="#sphere-light">Sphere</a></li>
     </ul>
     <li><a href="#direct-lights">Direct Lights</a></li>
     <ul>
-      <li><a href="#directional-light">Directional Light</a></li>
-      <li><a href="#point-light">Point Light</a></li>
-      <li><a href="#spot-light">Spot Light</a></li>
-      <li><a href="#projector-light">Projector Light</a></li>
+      <li><a href="#directional-light">Directional</a></li>
+      <li><a href="#point-light">Point</a></li>
+      <li><a href="#spot-light">Spot</a></li>
+      <li><a href="#projector-light">Projector</a></li>
     </ul>
     <li><a href="#emissive-marks">Emissive Marks</a></li>
     <li><a href="#standard-lighting">Standard Lighting</a></li>
@@ -56,8 +56,29 @@
     <code>white</code>. Set to <code>black</code> to disable ambient lighting.
   </p>
 
-  <pre><code id="ambientSpec"></code></pre>
-  <div class="listing-caption">Listing 1. Ambient light example</div>
+  <pre><code>  "ambient": "black",
+  "background": "black",</code></pre>
+
+  <table>
+    <tr>
+      <th>Property</th>
+      <th>Type</th>
+      <th>Default</th>
+      <th>Description</th>
+    </tr>
+    <tr>
+      <td><code>ambient</code></td>
+      <td>string</td>
+      <td><code>white</code></td>
+      <td>Ambient color (CSS color string)</td>
+    </tr>
+    <tr>
+      <td><code>background</code></td>
+      <td>string</td>
+      <td><code>white</code></td>
+      <td>Background color (CSS color string)</td>
+    </tr>
+  </table>
 
   <figure>
     <img src="../img/ambientlight1.jpg" alt="Ambient light example">
@@ -577,10 +598,7 @@
     light, and back light arranged in a specific configuration to create balanced and visually appealing illumination.
   </p>
 
-  <pre><code>  "ambient": "black",
-  "background": "black",
-
-  "lights": [
+  <pre><code>  "lights": [
     {
       "type": "rect",
       "size": 0.5,
@@ -616,7 +634,7 @@
   </figure>
 
   <nav class="page-nav">
-    <a href="./coordinates.html">Previous</a>
+    <a href="./rendering.html">Previous</a>
     <a href="./materials.html">Next</a>
   </nav>
 
@@ -629,11 +647,6 @@
   </footer>
 
   <script src="../js/copy.js"></script>
-  <script>
-    fetch('../samples/ambientlight1.json')
-      .then(r => r.text())
-      .then(text => { document.getElementById('ambientSpec').textContent = text; });
-  </script>
 </body>
 
 </html>

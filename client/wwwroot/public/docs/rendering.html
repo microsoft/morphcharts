@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MorphCharts — Rendering</title>
+  <link rel="stylesheet" href="../css/common.css">
+</head>
+
+<body>
+  <header>
+    <a href="../index.html">Home</a>
+    <a href="../client.html">Try Online</a>
+    <a href="../gallery.html">Gallery</a>
+    <a href="./index.html">Docs</a>
+    <a href="https://github.com/microsoft/morphcharts">GitHub</a>
+  </header>
+
+  <h1>Rendering</h1>
+
+  <nav class="page-nav">
+    <a href="./coordinates.html">Previous</a>
+    <a href="./lighting.html">Next</a>
+  </nav>
+
+  <p>
+    MorphCharts supports multiple render modes.
+  </p>
+
+  <ul>
+    <li><a href="./rendering.html#render-modes">Render Modes</a></li>
+    <li><a href="./rendering.html#raytrace">Raytrace</a></li>
+    <li><a href="./rendering.html#color">Color</a></li>
+    <li><a href="./rendering.html#edge">Edge</a></li>
+    <li><a href="./rendering.html#normal">Normal</a></li>
+    <li><a href="./rendering.html#depth">Depth</a></li>
+    <li><a href="./rendering.html#segment">Segment</a></li>
+    <li><a href="./rendering.html#compositing">Compositing</a></li>
+  </ul>
+
+  <h2 id="render-modes">Render Modes</h2>
+
+  <p>
+    The <code>renderMode</code> is set on the renderer and determines how the scene is drawn.
+  </p>
+
+  <table>
+    <tr>
+      <th>Mode</th>
+      <th>Description</th>
+    </tr>
+    <tr>
+      <td><code>raytrace</code></td>
+      <td>Path-traced rendering with global illumination, materials, reflections, refractions, and soft shadows.
+        Progressively accumulates samples for high-quality output. The default mode.</td>
+    </tr>
+    <tr>
+      <td><code>color</code></td>
+      <td>Direct lighting only. Faster than raytrace.</td>
+    </tr>
+    <tr>
+      <td><code>edge</code></td>
+      <td>Renders edges detected from the segment buffer, producing an outline view.</td>
+    </tr>
+    <tr>
+      <td><code>normal</code></td>
+      <td>Visualizes surface normals as RGB colors.</td>
+    </tr>
+    <tr>
+      <td><code>depth</code></td>
+      <td>Visualizes depth from the camera as a grayscale image. Closer surfaces appear lighter,
+        distant surfaces appear darker.</td>
+    </tr>
+    <tr>
+      <td><code>segment</code></td>
+      <td>Renders each mark with a unique flat color based on its segment ID.</td>
+    </tr>
+  </table>
+
+  <h2 id="raytrace">Raytrace</h2>
+
+  <p>
+    The default render mode.
+    Rays are cast from the camera through each pixel into the scene, bouncing off surfaces according to their material
+    properties.
+    Each frame adds one sample per pixel, progressively refining the image over time.
+    This produces photorealistic results including soft shadows, color bleeding, reflections, refractions, and depth of
+    field.
+    Raytrace mode supports all material types (see <a href="./materials.html">Materials</a>) and all light types (see <a
+      href="./lighting.html">Lighting</a>).
+  </p>
+
+  <figure>
+    <img src="../img/ambientlight1.jpg" alt="Raytrace render mode">
+    <figcaption>Figure 1. Raytrace render mode example.</figcaption>
+  </figure>
+
+  <h2 id="color">Color</h2>
+
+  <p>
+    A faster alternative to <code>raytrace</code>.
+    It uses direct lighting with Phong shading — no bounced light, reflections, or refractions.
+  </p>
+
+  <figure>
+    <img src="../img/color2.jpg" alt="Color render mode">
+    <figcaption>Figure 2. Color render mode example.</figcaption>
+  </figure>
+
+  <p>
+    Specular highlights require a non-ambient light (to provide a direction),
+    and a non-diffuse material (e.g. <code>glossy</code>).
+    The <code>gloss</code> property, <code>[0,1]</code> controls the intensity of specular highlights and
+    <code>fuzz</code>, <code>[0,1]</code> controls the spread — low values for <code>fuzz</code> produces tight, sharp
+    highlights while high values for <code>fuzz</code> produces broad, soft ones.
+    The mapping from <code>fuzz</code> to specular power is exponential, so the visual change is spread evenly across
+    the fuzz range.
+  </p>
+
+  <pre><code>    {
+      "type": "rect",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "fuzz": { "value": 0.3 },
+          "gloss": { "value": 0.8 },
+          ...
+        }
+      } 
+    }</code></pre>
+
+  <h2 id="edge">Edge</h2>
+
+  <p>
+    Renders edges detected from differences in the segment buffer, producing an outline view of the scene.
+    Adjacent pixels with different segment IDs are drawn as edges.
+  </p>
+
+  <p>
+    Use <code>segmentId</code> in the mark encoding to control which marks share an edge boundary.
+    Note that edges are detected based on <code>segmentId</code> differences only — they will not appear at
+    normal or depth discontinuities within the same segment.
+    For line and area charts, it is generally desirable to assign the same <code>segmentId</code> to all marks in a
+    given series, so that edges are drawn by series, rather than by their constituent marks.
+  </p>
+
+  <p>
+    The <code>edgeThickness</code> property controls the width of the edge lines in pixels (1–8).
+    The <code>edgeForeground</code> and <code>edgeBackground</code> properties set the edge and background colors.
+  </p>
+
+  <figure>
+    <img src="../img/edge1.png" alt="Edge render mode">
+    <figcaption>Figure 3. Edge render mode example (rendered at 4K and downsampled to Full HD for anti-aliasing).
+    </figcaption>
+  </figure>
+
+  <pre><code>renderer.renderMode = "edge";
+renderer.edgeThickness = 4;
+renderer.edgeForeground = [0, 0, 0, 1]; // Black edges
+renderer.edgeBackground = [1, 1, 1, 1]; // White background</code></pre>
+
+  <pre><code>    {
+      "type": "rect",
+      "encode": {
+        "enter": {
+          "segmentId": { "field": "category" },
+          ...
+        }
+      } 
+    }</code></pre>
+
+  <h2 id="normal">Normal</h2>
+
+  <p>
+    A diagnostic mode that maps surface normals to RGB colors.
+  </p>
+
+  <figure>
+    <img src="../img/normal1.jpg" alt="Normal render mode">
+    <figcaption>Figure 4. Normal render mode example (rendered at 4K and downsampled to Full HD for anti-aliasing).
+    </figcaption>
+  </figure>
+
+  <h2 id="depth">Depth</h2>
+
+  <p>
+    Renders depth from the camera as a grayscale image.
+    The depth range is either calculated automatically (the default), or scaled between specific minimum and maximum
+    values.
+  </p>
+
+  <figure>
+    <img src="../img/depth1.png" alt="Depth render mode">
+    <figcaption>Figure 5. Depth render mode example (rendered at 4K and downsampled to Full HD for anti-aliasing).
+    </figcaption>
+  </figure>
+
+  <pre><code>renderer.renderMode = "depth";
+renderer.depthAuto = false;
+renderer.depthMin = 1;
+renderer.depthMax = 3;</code></pre>
+
+  <h2 id="segment">Segment</h2>
+
+  <p>
+    Each mark is rendered with a unique flat color derived from its segment ID.
+    This mode can be used to identify which mark is under the cursor (see <a href="./simpletooltip.html">Simple
+      Tooltip</a>), and is used internally for edge detection in <code>edge</code> render mode.
+  </p>
+
+  <h2 id="compositing">Compositing</h2>
+
+  <p>
+    Render modes can be composited to achieve various visual effects.
+    For example, combine <code>color</code> mode with <code>edge</code> mode to create a <a
+      href="https://en.wikipedia.org/wiki/Cel_shading">cel-shading</a>-like effect by rendering the visualization in
+    multiple passes, and compositing the results in an image editor.
+  </p>
+
+  <figure>
+    <img src="../img/cel1.jpg" alt="Cel-shading-like render">
+    <figcaption>Figure 6. Cel-shading-like render by compositing edge and color modes.</figcaption>
+  </figure>
+
+  <p>
+    Use the following steps to create the cel-shading-like effect in Figure 6 from <a
+      href="../gallery.html?plot=circlepack2">this</a> plot specification:
+  </p>
+
+  <ol>
+    <li>Hide the text marks by setting <code>visible</code> to <code>false</code> in the mark encoding, so that edges
+      are only drawn around the shapes. Set <code>renderMode</code> to <code>edge</code>, <code>edgeThickness</code> to
+      <code>4</code>, <code>edgeForeground</code> to <code>[0, 0, 0, 1]</code> (black edges) and
+      <code>edgeBackground</code> to <code>[1, 1, 1, 1]</code> (white background). Render the edge layer at 4K
+      resolution, then downsample to half resolution (Full HD) in an image editor for anti-aliased 2-pixel thick edges.
+    </li>
+    <li>Switch to <code>color</code> mode with <code>ambient</code> set to <code>white</code> for a flat-shaded image.
+      Set the <code>material</code> to <code>glossy</code> and add a directional light (see <a
+        href="./lighting.html#directional-light">Directional Light</a>) to give specular highlights and a flat shadow.
+      Render the color layer at Full HD.
+    </li>
+    <li>
+      Set all marks to white (to maintain occlusion) and make the text mark visible again. Render the text layer at Full
+      HD.
+    </li>
+    <li>Composite the three layers together in an image editor, using multiplicative blending for the edge and text
+      layers.
+    </li>
+  </ol>
+
+  <nav class="page-nav">
+    <a href="./coordinates.html">Previous</a>
+    <a href="./lighting.html">Next</a>
+  </nav>
+
+  <footer>
+    <span>© 2026 Microsoft</span>
+    <a href="https://go.microsoft.com/fwlink/?LinkId=521839">Privacy &amp; Cookies</a>
+    <a href="https://go.microsoft.com/fwlink/?linkid=2259814">Consumer Health Privacy</a>
+    <a href="https://www.microsoft.com/trademarks">Trademarks</a>
+    <a href="https://www.microsoft.com/en-us/servicesagreement/">Terms of Use</a>
+  </footer>
+
+  <script src="../js/copy.js"></script>
+</body>
+
+</html>

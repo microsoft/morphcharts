@@ -818,6 +818,7 @@ export class Group extends Mark {
                     mark.axes = [];
                     for (let i = 0; i < axesJSON.length; i++) {
                         const axisJSON = axesJSON[i];
+                        if (axisJSON.visible === false) { continue; } // Skip invisible axes
                         const axis = Axis.fromJSON(mark, axisJSON);
                         mark.axes.push(axis);
                         console.log(`added axis ${axis.orient}, ${axis.orientZ}`);

@@ -46,6 +46,8 @@ export class Main {
     private _fovLabel: HTMLLabelElement;
     private _apertureRange: HTMLInputElement;
     private _apertureLabel: HTMLLabelElement;
+    private _maxBounceDepthRange: HTMLInputElement;
+    private _maxBounceDepthLabel: HTMLLabelElement;
     private _focusRange: HTMLInputElement;
     private _focusLabel: HTMLLabelElement;
     private _cameraResetButton: HTMLInputElement;
@@ -58,6 +60,12 @@ export class Main {
     private _depthMinLabel: HTMLLabelElement;
     private _depthMaxRange: HTMLInputElement;
     private _depthMaxLabel: HTMLLabelElement;
+
+    // Edge
+    private _edgeThicknessRange: HTMLInputElement;
+    private _edgeThicknessLabel: HTMLLabelElement;
+    private _edgeForegroundInput: HTMLInputElement;
+    private _edgeBackgroundInput: HTMLInputElement;
 
     // Renderer
     private _widthText: HTMLInputElement;
@@ -446,6 +454,17 @@ export class Main {
             this._camera.aperture = aperture / 1000;
         }
 
+        // Max bounce depth
+        this._maxBounceDepthRange = document.getElementById("maxBounceDepthRange") as HTMLInputElement;
+        this._maxBounceDepthLabel = document.getElementById("maxBounceDepthLabel") as HTMLLabelElement;
+        this._maxBounceDepthRange.value = Core.Config.maxBounceDepth.toString();
+        this._maxBounceDepthLabel.innerText = Core.Config.maxBounceDepth.toString();
+        this._maxBounceDepthRange.oninput = () => {
+            const maxBounceDepth = parseInt(this._maxBounceDepthRange.value);
+            this._maxBounceDepthLabel.innerText = maxBounceDepth.toString();
+            this._renderer.maxBounceDepth = maxBounceDepth;
+        }
+
         // Focus distance
         this._focusRange = document.getElementById("focusRange") as HTMLInputElement;
         this._focusLabel = document.getElementById("focusLabel") as HTMLLabelElement;
@@ -458,6 +477,31 @@ export class Main {
         focusResetButton.onclick = () => {
             this._camera.focusDistance = Core.Config.cameraFocusDistance;
             this._updateUI();
+        }
+
+        // Edge
+        this._edgeThicknessRange = document.getElementById("edgeThicknessRange") as HTMLInputElement;
+        this._edgeThicknessLabel = document.getElementById("edgeThicknessLabel") as HTMLLabelElement;
+        this._edgeThicknessRange.value = Core.Config.edgeThickness.toString();
+        this._edgeThicknessLabel.innerText = Core.Config.edgeThickness.toString();
+        this._edgeThicknessRange.oninput = () => {
+            const thickness = parseInt(this._edgeThicknessRange.value);
+            this._edgeThicknessLabel.innerText = thickness.toString();
+            this._renderer.edgeThickness = thickness;
+        }
+        this._edgeForegroundInput = document.getElementById("edgeForeground") as HTMLInputElement;
+        this._edgeBackgroundInput = document.getElementById("edgeBackground") as HTMLInputElement;
+        const fg = Core.Config.edgeForeground;
+        const bg = Core.Config.edgeBackground;
+        this._edgeForegroundInput.value = Core.Color.colorRGBToHex([fg[0], fg[1], fg[2]]);
+        this._edgeBackgroundInput.value = Core.Color.colorRGBToHex([bg[0], bg[1], bg[2]]);
+        this._edgeForegroundInput.oninput = () => {
+            const rgb = Core.Color.parseColorRGB(this._edgeForegroundInput.value);
+            this._renderer.edgeForeground = [rgb[0], rgb[1], rgb[2], 1];
+        }
+        this._edgeBackgroundInput.oninput = () => {
+            const rgb = Core.Color.parseColorRGB(this._edgeBackgroundInput.value);
+            this._renderer.edgeBackground = [rgb[0], rgb[1], rgb[2], 1];
         }
 
         // Depth

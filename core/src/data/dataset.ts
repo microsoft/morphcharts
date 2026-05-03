@@ -56,7 +56,7 @@ export class Dataset {
         this._all = this.createFilter(indices);
     }
 
-    public static inferTypes(data: string[][], firstRow = 0, maxRows = Number.MAX_VALUE): ColumnType[] {
+    public static inferTypes(data: string[][], firstRow = 0, maxRows = Number.MAX_VALUE): { columnTypes: ColumnType[], compatibleTypes: ColumnType[] } {
         const columnTypes: ColumnType[] = [];
         // Get compatible types
         // First row
@@ -148,6 +148,6 @@ export class Dataset {
             }
             columnTypes.push(columnType);
         }
-        return columnTypes;
+        return { columnTypes, compatibleTypes };
     }
 }

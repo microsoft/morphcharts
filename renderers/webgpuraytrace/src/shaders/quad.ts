@@ -17,11 +17,12 @@ struct Uniforms {              // -----------------------
     exposure: f32,             //         12      4     4
     minDepth: f32,             //         16*     4     4
     maxDepth: f32,             //         20      4     4
-                               // padding 24      4     8
+    edgeThickness: f32,        //         24      4     4
+    bufferStride: f32,         //         28      4     4
     edgeForeground: vec4<f32>, //         32*    16    16
     edgeBackground: vec4<f32>, //         48*    16    16
 }                              // -----------------------
-                               //                16    48
+                               //                16    64
 
 @group(0) @binding(0) var<storage, read> colorBuffer : ColorData;
 @group(1) @binding(0) var<uniform> uniforms : Uniforms;
@@ -44,7 +45,7 @@ fn vert_main(@builtin(vertex_index) vertexIndex : u32) -> VertexOutput {
 fn frag_main(@builtin(position) coord: vec4<f32>) -> @location(0) vec4<f32> {
     let x = floor(coord.x);
     let y = floor(coord.y);
-    let index = u32(x + y * (uniforms.width + 1)) * 4u;
+    let index = u32(x + y * (uniforms.bufferStride)) * 4u;
     // [0,1]
     var color = vec3<f32>(colorBuffer.data[index], colorBuffer.data[index + 1u], colorBuffer.data[index + 2u]) / uniforms.samplesPerPixel;
     // return vec4<f32>(color, 1f);
@@ -60,7 +61,7 @@ fn frag_main(@builtin(position) coord: vec4<f32>) -> @location(0) vec4<f32> {
 fn frag_normal(@builtin(position) coord: vec4<f32>) -> @location(0) vec4<f32> {
     let x = floor(coord.x);
     let y = floor(coord.y);
-    let index = u32(x + y * (uniforms.width + 1)) * 4u;
+    let index = u32(x + y * (uniforms.bufferStride)) * 4u;
     // [0,1]
     // TODO: Convert from [-1,1] to [0,1] here instead of in the shader
     var normal = vec3<f32>(colorBuffer.data[index], colorBuffer.data[index + 1u], colorBuffer.data[index + 2u]) / uniforms.samplesPerPixel;
@@ -71,7 +72,7 @@ fn frag_normal(@builtin(position) coord: vec4<f32>) -> @location(0) vec4<f32> {
 fn frag_depth(@builtin(position) coord: vec4<f32>) -> @location(0) vec4<f32> {
     let x = floor(coord.x);
     let y = floor(coord.y);
-    let index = u32(x + y * (uniforms.width + 1)) * 4u;
+    let index = u32(x + y * (uniforms.bufferStride)) * 4u;
     let depth = colorBuffer.data[index + 3u] / uniforms.samplesPerPixel;
     let minDepth = uniforms.minDepth;
     let maxDepth = uniforms.maxDepth;
@@ -95,37 +96,38 @@ fn frag_depth(@builtin(position) coord: vec4<f32>) -> @location(0) vec4<f32> {
 fn frag_segment(@builtin(position) coord: vec4<f32>) -> @location(0) vec4<f32> {
     let x = floor(coord.x);
     let y = floor(coord.y);
-    let index = u32(x + y * (uniforms.width + 1)) * 4u; // Overdispatched by 1
+    let index = u32(x + y * (uniforms.bufferStride)) * 4u;
     var color = vec3<f32>(colorBuffer.data[index], colorBuffer.data[index + 1u], colorBuffer.data[index + 2u]) / uniforms.samplesPerPixel;
     return vec4<f32>(color, 1f);
 }
     
 @fragment
 fn frag_edge(@builtin(position) coord: vec4<f32>) -> @location(0) vec4<f32> {
-    let x = floor(coord.x);
-    let y = floor(coord.y);
-    let index = u32(x + y * (uniforms.width + 1)) * 4u; // Overdispatched by 1
+    let x = u32(floor(coord.x));
+    let y = u32(floor(coord.y));
+    let stride = u32(uniforms.bufferStride);
+    let thickness = u32(uniforms.edgeThickness);
     let background = uniforms.edgeBackground;
     let foreground = uniforms.edgeForeground;
-    
-    // Segment derivatives
-    // TODO: Use a Sobel filter
-    let yOffset = index + u32(uniforms.width + 1) * 4u; // Overdispatched by 1
-    let p = vec3<f32>(colorBuffer.data[index], colorBuffer.data[index + 1u], colorBuffer.data[index + 2u]);
-    let px = vec3<f32>(colorBuffer.data[index + 4u], colorBuffer.data[index + 5u], colorBuffer.data[index + 6u]);
-    let py = vec3<f32>(colorBuffer.data[yOffset], colorBuffer.data[yOffset + 1u], colorBuffer.data[yOffset + 2u]);
-    let dpdx = px - p;
-    let dpdy = py - p;
-    let fwidth = abs(dpdx) + abs(dpdy);
-    if (dot(fwidth, fwidth) > 0f) {
-        return foreground;
-    } else {
-        return background;
 
-        // TODO: Add another mode for edgeFill, or a flag for edgeFill (0 = background, 1 = color)
-        // Use idColor
-        // return vec4<f32>(p.x, p.y, p.z, 1f);
+    // Forward edge detection with configurable thickness
+    for (var dy = 0u; dy < thickness; dy++) {
+        for (var dx = 0u; dx < thickness; dx++) {
+            let cx = x + dx;
+            let cy = y + dy;
+            let ci = (cy * stride + cx) * 4u;
+            let p = vec3<f32>(colorBuffer.data[ci], colorBuffer.data[ci + 1u], colorBuffer.data[ci + 2u]);
+            // Check pixel to the right
+            let ri = ci + 4u;
+            let px = vec3<f32>(colorBuffer.data[ri], colorBuffer.data[ri + 1u], colorBuffer.data[ri + 2u]);
+            if (any(p != px)) { return foreground; }
+            // Check pixel below
+            let bi = ci + stride * 4u;
+            let py = vec3<f32>(colorBuffer.data[bi], colorBuffer.data[bi + 1u], colorBuffer.data[bi + 2u]);
+            if (any(p != py)) { return foreground; }
+        }
     }
+    return background;
 }`;
 
 export class QuadUniformBufferData extends Float32Array {
@@ -137,6 +139,8 @@ export class QuadUniformBufferData extends Float32Array {
     public readonly EXPOSURE_OFFSET = 12 / 4;
     public readonly MIN_DEPTH_OFFSET = 16 / 4;
     public readonly MAX_DEPTH_OFFSET = 20 / 4;
+    public readonly EDGE_THICKNESS_OFFSET = 24 / 4;
+    public readonly BUFFER_STRIDE_OFFSET = 28 / 4;
     public readonly EDGE_FOREGROUND_OFFSET = 32 / 4;
     public readonly EDGE_BACKGROUND_OFFSET = 48 / 4;
 
@@ -161,6 +165,12 @@ export class QuadUniformBufferData extends Float32Array {
 
     public getMaxDepth() { return this[this.MAX_DEPTH_OFFSET]; }
     public setMaxDepth(value: number) { this[this.MAX_DEPTH_OFFSET] = value; }
+
+    public getEdgeThickness() { return this[this.EDGE_THICKNESS_OFFSET]; }
+    public setEdgeThickness(value: number) { this[this.EDGE_THICKNESS_OFFSET] = value; }
+
+    public getBufferStride() { return this[this.BUFFER_STRIDE_OFFSET]; }
+    public setBufferStride(value: number) { this[this.BUFFER_STRIDE_OFFSET] = value; }
 
     public getEdgeForeground(value: Core.ColorRGBA) {
         const offset = this.EDGE_FOREGROUND_OFFSET;

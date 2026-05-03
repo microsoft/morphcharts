@@ -4,7 +4,6 @@
 import * as Core from "@microsoft/morphcharts-core";
 import { AtlasVisual } from "./atlas.js";
 import { BufferVisual, TransitionBufferVisual } from "./buffer.js";
-import { Config } from "./config.js";
 import { GlyphRasterizerVisual } from "./glyph.js";
 import { ComputeShaderWgsl, ComputeUniformBufferData } from "./shaders/pathtrace.js";
 import { QuadUniformBufferData, QuadWgsl } from "./shaders/quad.js";
@@ -588,17 +587,27 @@ export class Main extends Core.Renderer {
 
         // Id source
         this._computeUniformBufferData.setIdSource(this._idSource === "pick" ? 1 : 0);
+
+        // Max bounce depth
+        this._computeUniformBufferData.setMaxDepth(this._maxBounceDepth);
+
+        // Buffer stride (fixed: width + maxEdgeThickness)
+        const bufferStride = this._width + Core.Config.maxEdgeThickness;
+        this._computeUniformBufferData.setBufferStride(bufferStride);
+
         this._device.queue.writeBuffer(this._computeUniformBuffer, 0, this._computeUniformBufferData.buffer, this._computeUniformBufferData.byteOffset, this._computeUniformBufferData.byteLength);
 
         // Quad
         this._quadUniformBufferData.setSamplesPerPixel(this.frameCount + 1); // Rendered frames is frameCount + 1
+        this._quadUniformBufferData.setBufferStride(bufferStride);
         switch (this._renderMode) {
             case "hdr":
                 this._quadUniformBufferData.setExposure(1);
                 break;
             case "edge":
-                this._quadUniformBufferData.setEdgeForeground(Config.edgeForeground);
-                this._quadUniformBufferData.setEdgeBackground(Config.edgeBackground);
+                this._quadUniformBufferData.setEdgeForeground(this.edgeForeground);
+                this._quadUniformBufferData.setEdgeBackground(this.edgeBackground);
+                this._quadUniformBufferData.setEdgeThickness(this._edgeThickness);
                 break;
             case "depth":
                 this._quadUniformBufferData.setMinDepth(this._depthMin);
@@ -778,8 +787,10 @@ export class Main extends Core.Renderer {
 
         // Output color buffer
         const colorChannels = 4;
-        // const outputColorBufferSizeBytes = Uint32Array.BYTES_PER_ELEMENT * this._width * this._height * colorChannels;
-        const outputColorBufferSizeBytes = Uint32Array.BYTES_PER_ELEMENT * (this._width + 1) * (this._height + 1) * colorChannels; // Overdispatch by 1 to allow edge detection to work at the edges
+        const maxEdgeThickness = Core.Config.maxEdgeThickness;
+        const bufferStride = this._width + maxEdgeThickness;
+        const bufferHeight = this._height + maxEdgeThickness;
+        const outputColorBufferSizeBytes = Uint32Array.BYTES_PER_ELEMENT * bufferStride * bufferHeight * colorChannels;
         const outputColorBufferDescriptor: GPUBufferDescriptor = {
             label: "Output color buffer",
             size: outputColorBufferSizeBytes,
@@ -985,10 +996,16 @@ export class Main extends Core.Renderer {
         }
         const computePassEncoder = commandEncoder.beginComputePass(computePassDescriptor);
 
-        // Dispatch dimensions (overdispatch by 1 to allow edge detection to work at the edges)
+        // Dispatch dimensions
         const maxDispatch = this._maxComputeWorkgroupsPerDimension;
-        let dispatchX = Math.min(Math.ceil((this._width + 1) / 16), maxDispatch);
-        let dispatchY = Math.min(Math.ceil((this._height + 1) / 16), maxDispatch);
+        const overdispatch = (this._renderMode === "edge" || this._renderMode === "segment") ? this._edgeThickness : 0;
+        let dispatchX = Math.min(Math.ceil((this._width + overdispatch) / 16), maxDispatch);
+        let dispatchY = Math.min(Math.ceil((this._height + overdispatch) / 16), maxDispatch);
+
+        // Clear dispatch covers the full buffer stride
+        const bufferStride = this._width + Core.Config.maxEdgeThickness;
+        const clearDispatchX = Math.min(Math.ceil(bufferStride / 16), maxDispatch);
+        const clearDispatchY = Math.min(Math.ceil((this._height + Core.Config.maxEdgeThickness) / 16), maxDispatch);
 
         // Set bind groups
         computePassEncoder.setBindGroup(0, this._computeBindGroup1);
@@ -998,7 +1015,7 @@ export class Main extends Core.Renderer {
         // Clear
         if (clear) {
             computePassEncoder.setPipeline(this._clearPipeline);
-            computePassEncoder.dispatchWorkgroups(dispatchX, dispatchY, 1);
+            computePassEncoder.dispatchWorkgroups(clearDispatchX, clearDispatchY, 1);
         }
 
         // Render mode

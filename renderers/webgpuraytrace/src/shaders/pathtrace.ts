@@ -75,9 +75,11 @@ struct Uniforms {                  // ---------------------------
     focusDistance: f32,            //          112*    16    12
     cameraTypeId: f32,             //          116      4     4
     idSource: f32,                 //          120      4     4
-                                   // padding  124      4     4
+    maxDepth: f32,                 //          124      4     4
+    bufferStride: f32,             //          128*    16     4
+                                   // padding  132            12
 }                                  // -------------------------
-                                   //                  16   128
+                                   //                  16   144
 
 
 // id   type
@@ -1601,7 +1603,7 @@ fn materialMapValue(hitRecord: ptr<function, HitRecord>, constantValue: f32, typ
 }
 
 fn rayColor(ray: ptr<function, Ray>, seed: ptr<function, u32>) -> vec3<f32> {
-    let maxDepth = 8u; // TODO: Pass as uniform
+    let maxDepth = u32(uniforms.maxDepth);
     var depth = 0u;
     var color = vec3<f32>(1f, 1f, 1f);
     var attenuation = vec3<f32>(1f, 1f, 1f);
@@ -1699,9 +1701,9 @@ fn rayColor(ray: ptr<function, Ray>, seed: ptr<function, u32>) -> vec3<f32> {
 
 @compute @workgroup_size(16, 16, 1)
 fn clear(@builtin(global_invocation_id) globalId : vec3<u32>) {
-    let tileSize = vec2<u32>(u32(uniforms.width), u32(uniforms.height));
-    if (globalId.x > tileSize.x || globalId.y > tileSize.y) { return; }
-    let index = (globalId.y * (tileSize.x + 1u) + globalId.x) * 4u;
+    let stride = u32(uniforms.bufferStride);
+    if (globalId.x >= stride || globalId.y >= u32(uniforms.height) + stride - u32(uniforms.width)) { return; }
+    let index = (globalId.y * stride + globalId.x) * 4u;
     outputColorBuffer.values[index] = 0f;
     outputColorBuffer.values[index + 1u] = 0f;
     outputColorBuffer.values[index + 2u] = 0f;
@@ -1757,7 +1759,7 @@ fn main(@builtin(global_invocation_id) globalId : vec3<u32>) {
     // Next frame
     frameSeed++;
     
-    let index = (globalId.y * (u32(tileSize.x) + 1u) + globalId.x) * 4u;
+    let index = (globalId.y * u32(uniforms.bufferStride) + globalId.x) * 4u;
     outputColorBuffer.values[index + 0u] += color.x;
     outputColorBuffer.values[index + 1u] += color.y;
     outputColorBuffer.values[index + 2u] += color.z;
@@ -1810,8 +1812,8 @@ fn color(@builtin(global_invocation_id) globalId : vec3<u32>) {
         let materialTypeId = hittable.materialTypeId;
         let fuzz = select(hittable.materialFuzz, 1f, materialTypeId == 0f);
         let gloss = select(hittable.materialGloss, 0f, materialTypeId == 0f);
-        let specularIntensity = gloss * (1f - fuzz);
-        let shininess = 64f; // TODO: Make per-material or calculate from fuzz
+        let specularIntensity = gloss;
+        let shininess = pow(2f, mix(9f, 1f, fuzz));
         // Lights
         for (var i: u32 = 0u; i < arrayLength(&lightBuffer.lights); i++) {
             let light = lightBuffer.lights[i];
@@ -1937,7 +1939,7 @@ fn color(@builtin(global_invocation_id) globalId : vec3<u32>) {
 
                         // Specular
                         let reflected = -reflect(direction, hitRecord.normal);
-                        let specular = pow(clamp(dot(reflected, -ray.direction), 0f, 1f), shininess / 4f);
+                        let specular = pow(clamp(dot(reflected, -ray.direction), 0f, 1f), shininess);
                         color += specular * specularIntensity * light.color * attenuation;
                     }
                 }
@@ -1953,7 +1955,7 @@ fn color(@builtin(global_invocation_id) globalId : vec3<u32>) {
         color += uniforms.backgroundColor.xyz;
     }
 
-    let index = (globalId.y * (u32(uniforms.width) + 1u) + globalId.x) * 4u;
+    let index = (globalId.y * u32(uniforms.bufferStride) + globalId.x) * 4u;
     outputColorBuffer.values[index + 0u] += color.x;
     outputColorBuffer.values[index + 1u] += color.y;
     outputColorBuffer.values[index + 2u] += color.z;
@@ -2009,7 +2011,7 @@ fn normalDepth(@builtin(global_invocation_id) globalId : vec3<u32>) {
         }
     }
     
-    let index = (globalId.y * (u32(uniforms.width) + 1u) + globalId.x) * 4u;
+    let index = (globalId.y * u32(uniforms.bufferStride) + globalId.x) * 4u;
     outputColorBuffer.values[index + 0u] += normal.x;
     outputColorBuffer.values[index + 1u] += normal.y;
     outputColorBuffer.values[index + 2u] += normal.z;
@@ -2029,10 +2031,11 @@ fn segment(@builtin(global_invocation_id) globalId : vec3<u32>) {
     let imageSize = vec2<f32>(uniforms.width * uniforms.tilesX, uniforms.height * uniforms.tilesY);
     let tileSize = vec2<f32>(uniforms.width, uniforms.height);
 
-    // Pixel coords (overdispatched by 1 for edge detection)
+    // Pixel coords (overdispatched for edge detection)
     let tilePixelX = f32(globalId.x);
     let tilePixelY = f32(globalId.y);
-    if (tilePixelX > tileSize.x || tilePixelY > tileSize.y) { return; }
+    let overdispatch = uniforms.bufferStride - uniforms.width;
+    if (tilePixelX >= tileSize.x + overdispatch || tilePixelY >= tileSize.y + overdispatch) { return; }
     let imagePixelX = tilePixelX + uniforms.tileOffsetX * tileSize.x;
     let imagePixelY = tilePixelY + uniforms.tileOffsetY * tileSize.y;
 
@@ -2066,7 +2069,7 @@ fn segment(@builtin(global_invocation_id) globalId : vec3<u32>) {
         }
     }
     
-    let index = (globalId.y * (u32(tileSize.x) + 1u) + globalId.x) * 4u;
+    let index = (globalId.y * u32(uniforms.bufferStride) + globalId.x) * 4u;
     outputColorBuffer.values[index + 0u] += segment.x;
     outputColorBuffer.values[index + 1u] += segment.y;
     outputColorBuffer.values[index + 2u] += segment.z;
@@ -2074,7 +2077,7 @@ fn segment(@builtin(global_invocation_id) globalId : vec3<u32>) {
 `;
 
 export class ComputeUniformBufferData extends Float32Array {
-    public static readonly SIZE = 128 / 4;
+    public static readonly SIZE = 144 / 4;
 
     public readonly POSITION_OFFSET = 0 / 4;
     public readonly WIDTH_OFFSET = 12 / 4;
@@ -2094,6 +2097,7 @@ export class ComputeUniformBufferData extends Float32Array {
     public readonly FOCUS_DISTANCE_OFFSET = 112 / 4;
     public readonly CAMERA_TYPE_ID_OFFSET = 116 / 4;
     public readonly ID_SOURCE_OFFSET = 120 / 4;
+    public readonly MAX_DEPTH_OFFSET = 124 / 4;
 
     constructor() {
         super(ComputeUniformBufferData.SIZE)
@@ -2214,4 +2218,11 @@ export class ComputeUniformBufferData extends Float32Array {
 
     public getIdSource() { return this[this.ID_SOURCE_OFFSET]; }
     public setIdSource(value: number) { this[this.ID_SOURCE_OFFSET] = value; }
+
+    public getMaxDepth() { return this[this.MAX_DEPTH_OFFSET]; }
+    public setMaxDepth(value: number) { this[this.MAX_DEPTH_OFFSET] = value; }
+
+    public readonly BUFFER_STRIDE_OFFSET = 128 / 4;
+    public getBufferStride() { return this[this.BUFFER_STRIDE_OFFSET]; }
+    public setBufferStride(value: number) { this[this.BUFFER_STRIDE_OFFSET] = value; }
 }
