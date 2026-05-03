@@ -96,7 +96,7 @@ fn frag_depth(@builtin(position) coord: vec4<f32>) -> @location(0) vec4<f32> {
 fn frag_segment(@builtin(position) coord: vec4<f32>) -> @location(0) vec4<f32> {
     let x = floor(coord.x);
     let y = floor(coord.y);
-    let index = u32(x + y * (uniforms.bufferStride)) * 4u; // Overdispatched by 1
+    let index = u32(x + y * (uniforms.bufferStride)) * 4u;
     var color = vec3<f32>(colorBuffer.data[index], colorBuffer.data[index + 1u], colorBuffer.data[index + 2u]) / uniforms.samplesPerPixel;
     return vec4<f32>(color, 1f);
 }

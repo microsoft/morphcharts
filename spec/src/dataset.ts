@@ -10,6 +10,20 @@ export class Dataset extends Core.Data.Dataset {
     protected _parent: Dataset;
     public get datum() { return this._parent; }
 
+    private static _applyExplicitTypes(
+        headings: string[],
+        columnTypes: Core.Data.ColumnType[],
+        compatibleTypes: Core.Data.ColumnType[],
+        explicitColumnTypes: { [key: string]: Core.Data.ColumnType }
+    ) {
+        for (let i = 0; i < headings.length; i++) {
+            const heading = headings[i];
+            if (explicitColumnTypes[heading] && (explicitColumnTypes[heading] & compatibleTypes[i])) {
+                columnTypes[i] = explicitColumnTypes[heading];
+            }
+        }
+    }
+
     // Factory method to create empty dataset
     public static createEmpty(): Dataset {
         // Single row with single empty string column
@@ -38,7 +52,7 @@ export class Dataset extends Core.Data.Dataset {
             const name = datasetJSON.name; // Required
 
                 // Explicit column types
-                const parse = datasetJSON.format?.parse || datasetJSON.parse;
+                const parse = datasetJSON.format?.parse ?? datasetJSON.parse;
                 let explicitColumnTypes: { [key: string]: Core.Data.ColumnType };
                 if (typeof parse == "object") {
                     explicitColumnTypes = {};
@@ -103,12 +117,7 @@ export class Dataset extends Core.Data.Dataset {
                     }
                     const { columnTypes, compatibleTypes } = Dataset.inferTypes(rows);
                     if (explicitColumnTypes) {
-                        for (let i = 0; i < headings.length; i++) {
-                            const heading = headings[i];
-                            if (explicitColumnTypes[heading] && (explicitColumnTypes[heading] & compatibleTypes[i])) {
-                                columnTypes[i] = explicitColumnTypes[heading];
-                            }
-                        }
+                        Dataset._applyExplicitTypes(headings, columnTypes, compatibleTypes, explicitColumnTypes);
                     }
                     dataset = new Dataset(headings, rows, columnTypes);
                     console.log(`create data ${name} ${headings.length} columns ${rows.length} rows`);
@@ -178,14 +187,8 @@ export class Dataset extends Core.Data.Dataset {
                                             break;
                                     }
                                     const { columnTypes, compatibleTypes } = Dataset.inferTypes(rows);
-                                    // Override inferred column types if compatible
                                     if (explicitColumnTypes) {
-                                        for (let i = 0; i < headings.length; i++) {
-                                            const heading = headings[i];
-                                            if (explicitColumnTypes[heading] && (explicitColumnTypes[heading] & compatibleTypes[i])) {
-                                                columnTypes[i] = explicitColumnTypes[heading];
-                                            }
-                                        }
+                                        Dataset._applyExplicitTypes(headings, columnTypes, compatibleTypes, explicitColumnTypes);
                                     }
                                     dataset = new Dataset(headings, rows, columnTypes);
                                     console.log(`loaded data ${name} ${headings.length} columns ${rows.length} rows ${Core.Time.formatDuration(performance.now() - start)}`);
@@ -244,12 +247,7 @@ export class Dataset extends Core.Data.Dataset {
                         }
                         const { columnTypes, compatibleTypes } = Dataset.inferTypes(rows);
                         if (explicitColumnTypes) {
-                            for (let i = 0; i < headings.length; i++) {
-                                const heading = headings[i];
-                                if (explicitColumnTypes[heading] && (explicitColumnTypes[heading] & compatibleTypes[i])) {
-                                    columnTypes[i] = explicitColumnTypes[heading];
-                                }
-                            }
+                            Dataset._applyExplicitTypes(headings, columnTypes, compatibleTypes, explicitColumnTypes);
                         }
                         dataset = new Dataset(headings, rows, columnTypes);
                         console.log(`loaded data ${name} ${headings.length} columns ${rows.length} rows ${Core.Time.formatDuration(performance.now() - start)}`);
