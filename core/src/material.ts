@@ -37,7 +37,7 @@ export class Material {
     public gloss: number;
     /** Reference distance at which the fill color represents the glass transmittance. */
     public fillDistance: number;
-    /** Linear brightness multiplier for emissive materials. */
+    /** Linear brightness multiplier for emissive materials (1 = no adjustment). */
     public emission: number;
     /** Glass absorption density (computed from fillDistance). */
     public density: number;
