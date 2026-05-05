@@ -4,36 +4,13 @@
 
   "width": 250,
 
-  "ambient": "white",
-  "background": "white",
-
   "camera": {"position": [0, 0.5, 1.5]},
 
+  "lights": [
+    {"type": "rect", "position": [-1, 1, 1], "brightness": 5}
+  ],
+
   "marks": [
-    {
-      "type": "rect",
-      "geometry": "box",
-      "material": "light",
-      "encode": {
-        "enter": {
-          "xc": {"signal": "width/2-width"},
-          "yc": {"signal": "width"},
-          "zc": {"signal": "width"},
-          "height": {"signal": "width"},
-          "width": {"signal": "width"},
-          "angleX": {"value": 30},
-          "angleY": {"value": 45},
-          "depth": {"value": 0},
-          "fill": {
-            "color": {
-              "h": {"value": 0},
-              "s": {"value": 0},
-              "l": {"value": 2}
-            }
-          }
-        }
-      }
-    },
     {
       "type": "rect",
       "geometry": "sphere",

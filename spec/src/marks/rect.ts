@@ -396,7 +396,7 @@ export class Rect extends Mark {
         let fuzzes: Float32Array;
         let glosses: Float32Array;
         let refractiveIndices: Float32Array;
-        let densities: Float32Array;
+        let emissions: Float32Array;
         let texCoords: Float32Array; // [x (left), y (bottom), x2 (right), y2 (top)]
         let texOffsets: Float32Array;
         let texScales: Float32Array;
@@ -495,7 +495,7 @@ export class Rect extends Mark {
         }
         if (this.encode.gloss) { glosses = group.values(this.encode.gloss, dataset); }
         if (this.encode.refractiveIndex) { refractiveIndices = group.values(this.encode.refractiveIndex, dataset); }
-        if (this.encode.density) { densities = group.values(this.encode.density, dataset); }
+        if (this.encode.emission) { emissions = group.values(this.encode.emission, dataset); }
         let fillDistances: Float32Array;
         if (this.encode.fillDistance) { fillDistances = group.values(this.encode.fillDistance, dataset); }
         const defaultFill: Core.ColorRGB = materialType == Core.MaterialType.glass ? [1, 1, 1] : Plot.FILL_COLOR;
@@ -508,7 +508,7 @@ export class Rect extends Mark {
             materials[i].fuzzType = fuzzImageType;
             materials[i].gloss = glosses ? glosses[i] : Plot.MATERIAL_GLOSS;
             materials[i].refractiveIndex = refractiveIndices ? refractiveIndices[i] : Plot.MATERIAL_REFRACTIVE_INDEX;
-            materials[i].density = densities ? densities[i] : Plot.MATERIAL_DENSITY;
+            materials[i].emission = emissions ? emissions[i] : 1;
             materials[i].fillDistance = fillDistances ? fillDistances[i] * scaling : 0;
 
             // Checker texture
@@ -598,7 +598,7 @@ export class Rect extends Mark {
                         if (encodeJSON.fuzz) { mark.encode.fuzz = MarkEncodingValue.fromJSON(mark, group, encodeJSON.fuzz); }
                         if (encodeJSON.refractiveIndex) { mark.encode.refractiveIndex = MarkEncodingValue.fromJSON(mark, group, encodeJSON.refractiveIndex); }
                         if (encodeJSON.gloss) { mark.encode.gloss = MarkEncodingValue.fromJSON(mark, group, encodeJSON.gloss); }
-                        if (encodeJSON.density) { mark.encode.density = MarkEncodingValue.fromJSON(mark, group, encodeJSON.density); }
+                        if (encodeJSON.emission) { mark.encode.emission = MarkEncodingValue.fromJSON(mark, group, encodeJSON.emission); }
                         if (encodeJSON.fillDistance) { mark.encode.fillDistance = MarkEncodingValue.fromJSON(mark, group, encodeJSON.fillDistance); }
 
                         // Segment

@@ -8,6 +8,10 @@
 
   "camera": {"position": [0, 1, 1], "target": [0, 0, 0.05]},
 
+  "lights": [
+    {"type": "rect", "position": [-1, 1, 1], "brightness": 10}
+  ],
+
   "scales": [{"name": "degreesToRadians", "domain": [0,360], "range": [0,{"signal": "2*PI"}]}],
 
   "marks": [
@@ -167,30 +171,6 @@
           "outerRadius": {"value": 25},
           "rounding": {"value": 1},
           "fuzz": {"value": 0.1}
-        }
-      }
-    },
-    {
-      "type": "rect",
-      "geometry": "box",
-      "material": "light",
-      "encode": {
-        "enter": {
-          "xc": {"signal": "width/2-width"},
-          "yc": {"signal": "width"},
-          "zc": {"signal": "width"},
-          "height": {"signal": "width"},
-          "width": {"signal": "width"},
-          "angleX": {"value": 30},
-          "angleY": {"value": 45},
-          "depth": {"value": 0},
-          "fill": {
-            "color": {
-              "h": {"value": 0},
-              "s": {"value": 0},
-              "l": {"value": 2.848}
-            }
-          }
         }
       }
     },

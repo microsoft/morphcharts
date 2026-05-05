@@ -121,6 +121,12 @@
       <td><code>max(w, h, d)</code></td>
       <td>Distance at which the glass tint matches the fill color.</td>
     </tr>
+    <tr>
+      <td><code>emission</code></td>
+      <td>number</td>
+      <td><code>1</code></td>
+      <td>Light intensity for emissive materials.</td>
+    </tr>
   </table>
 
   <p>
@@ -251,9 +257,8 @@
   </p>
 
   <p>
-    Note that <code>fillDistance</code> replaces the deprecated <code>density</code> property (<code>fillDistance</code>
-    equates to the reciprocal of <code>density</code>).
-    If both properties are specified, <code>fillDistance</code> takes precedence.
+    The <code>fillDistance</code> property replaces the former <code>density</code> property
+    (<code>fillDistance</code> equates to the reciprocal of <code>density</code>).
   </p>
 
   <pre><code>    {
@@ -288,24 +293,20 @@
       "encode": {
         "enter": {
           "width": {"value": 100},
-          "fill": {
-            "color": {
-              "h": {"value": 180},
-              "s": {"value": 0.5},
-              "l": {"value": 1}
-            }
-          }
+          "fill": {"value": "yellowgreen"},
+          "emission": {"value": 5}
         }
       } 
     }</code></pre>
 
   <p>
-    The <code>fill</code> color determines the color of the emitted light.
+    The <code>fill</code> color determines the color of the emitted light, while the <code>emission</code> property
+    controls its intensity.
   </p>
 
   <figure>
-    <img src="../img/lightlightness1.jpg" alt="Emissive spheres with varying lightness">
-    <figcaption>Figure 7. Emissive spheres with varying lightness.</figcaption>
+    <img src="../img/lightemission1.jpg" alt="Emissive spheres with varying emission">
+    <figcaption>Figure 7. Emissive spheres with varying emission.</figcaption>
   </figure>
 
   <nav class="page-nav">

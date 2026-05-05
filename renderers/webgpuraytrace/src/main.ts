@@ -581,9 +581,9 @@ export class Main extends Core.Renderer {
             this._computeUniformBufferData.setTileOffsetY(this._tileOffsetY);
         }
 
-        // Lighting
-        this._computeUniformBufferData.setAmbientColor(this.ambientColor);
-        this._computeUniformBufferData.setBackgroundColor(this.backgroundColor);
+        // Lighting (use pre-computed linear values)
+        this._computeUniformBufferData.setAmbientColor(this.ambientColorLinear);
+        this._computeUniformBufferData.setBackgroundColor(this.backgroundColorLinear);
 
         // Id source
         this._computeUniformBufferData.setIdSource(this._idSource === "pick" ? 1 : 0);
@@ -887,7 +887,7 @@ export class Main extends Core.Renderer {
                 const textureDescriptor: GPUTextureDescriptor = {
                     label: "Background texture",
                     size: textureSize,
-                    format: this._presentationFormat,
+                    format: "rgba8unorm-srgb", // GPU linearizes sRGB on sample
                     usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
                 };
                 this._backgroundTexture = this._device.createTexture(textureDescriptor);

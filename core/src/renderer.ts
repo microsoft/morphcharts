@@ -47,8 +47,24 @@ export abstract class Renderer {
     public maxPrimsInNode: number;
 
     // Lighting
-    public ambientColor: ColorRGB;
-    public backgroundColor: ColorRGBA;
+    protected _ambientColor: ColorRGB;
+    protected _ambientColorLinear: ColorRGB;
+    public get ambientColor(): ColorRGB { return this._ambientColor; }
+    public set ambientColor(value: ColorRGB) {
+        this._ambientColor = value;
+        this._ambientColorLinear = [Math.pow(value[0], 2.2), Math.pow(value[1], 2.2), Math.pow(value[2], 2.2)];
+    }
+    public get ambientColorLinear(): ColorRGB { return this._ambientColorLinear; }
+
+    protected _backgroundColor: ColorRGBA;
+    protected _backgroundColorLinear: ColorRGBA;
+    public get backgroundColor(): ColorRGBA { return this._backgroundColor; }
+    public set backgroundColor(value: ColorRGBA) {
+        this._backgroundColor = value;
+        this._backgroundColorLinear = [Math.pow(value[0], 2.2), Math.pow(value[1], 2.2), Math.pow(value[2], 2.2), value[3]];
+    }
+    public get backgroundColorLinear(): ColorRGBA { return this._backgroundColorLinear; }
+
     public edgeForeground: ColorRGBA;
     public edgeBackground: ColorRGBA;
     protected _haveLightsChanged: boolean;

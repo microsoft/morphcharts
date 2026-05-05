@@ -19,8 +19,8 @@ export interface IMaterialOptions {
     fuzz?: number;
     refractiveIndex?: number;
     gloss?: number;
-    density?: number;
     fillDistance?: number;
+    emission?: number;
 }
 
 export class Material {
@@ -35,9 +35,12 @@ export class Material {
      */
     public refractiveIndex: number;
     public gloss: number;
-    public density: number;
     /** Reference distance at which the fill color represents the glass transmittance. */
     public fillDistance: number;
+    /** Linear brightness multiplier for emissive materials (1 = no adjustment). */
+    public emission: number;
+    /** Glass absorption density (computed from fillDistance). */
+    public density: number;
     
     constructor(options?: IMaterialOptions) {
         this.type = options?.type || MaterialType.diffuse;
@@ -47,7 +50,8 @@ export class Material {
         this.fuzzType = 0;
         this.refractiveIndex = options?.refractiveIndex || 1.5;
         this.gloss = options?.gloss || 1;
-        this.density = options?.density || 1;
         this.fillDistance = options?.fillDistance || 0;
+        this.emission = options?.emission ?? 1;
+        this.density = 0;
     }
 }

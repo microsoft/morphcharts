@@ -24,7 +24,7 @@ export class UnitVertex {
     // material color, vec3<f32> (r,g,b)
     // material fuzz, f32, material fuzziness
     // material gloss, f32, material glossiness
-    // material density, f32, material density
+    // material emission, f32, material emission
     // material refractive index, f32, material refractive index
     // segment color, vec3<f32> (r,g,b)
 
@@ -234,7 +234,7 @@ export class UnitVertex {
     //
     // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     // |   144    |   145    |   146    |   147    |   148    |   149    |   150    |   151    |   152    |   153    |   154    |   155    |   156    |   157    |   158    |   159    |
-    // |                  density                  |        stroke       |        stroke       |        stroke       | sdf buff | sdf halo |              fillDistance                  |
+    // |                  emission                 |        stroke       |        stroke       |        stroke       | sdf buff | sdf halo |              fillDistance                 |
     // |                                           |          r          |          g          |          b          |          |          |                                           |
     // |                    F32                    |      UI16 NORM      |      UI16 NORM      |      UI16 NORM      |   UI8    |   UI8    |                    F32                    |
     // | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 | 00000000 |
@@ -264,7 +264,7 @@ export class UnitVertex {
     public static readonly FILL_OFFSET_BYTES = 132;
     public static readonly FUZZ_TYPE_OFFSET_BYTES = 138;
     public static readonly REFRACTIVE_INDEX_OFFSET_BYTES = 140;
-    public static readonly DENSITY_OFFSET_BYTES = 144;
+    public static readonly EMISSION_OFFSET_BYTES = 144;
     public static readonly STROKE_OFFSET_BYTES = 148;
     public static readonly SDF_BUFFER_OFFSET_BYTES = 154;
     public static readonly SDF_HALO_OFFSET_BYTES = 155;
@@ -493,7 +493,7 @@ export class UnitVertex {
         material.type = this.getMaterialType(bufferView, index);
         material.fuzz = this.getFuzz(bufferView, index);
         material.fuzzType = this.getFuzzType(bufferView, index);
-        material.density = this.getDensity(bufferView, index);
+        material.emission = this.getEmission(bufferView, index);
         material.fillDistance = this.getFillDistance(bufferView, index);
         material.refractiveIndex = this.getRefractiveIndex(bufferView, index);
         material.gloss = this.getMatGloss(bufferView, index);
@@ -504,7 +504,7 @@ export class UnitVertex {
         this.setMaterialType(bufferView, index, material.type);
         this.setFuzz(bufferView, index, material.fuzz);
         this.setFuzzType(bufferView, index, material.fuzzType);
-        this.setDensity(bufferView, index, material.density);
+        this.setEmission(bufferView, index, material.emission);
         this.setFillDistance(bufferView, index, material.fillDistance);
         this.setRefractiveIndex(bufferView, index, material.refractiveIndex);
         this.setGloss(bufferView, index, material.gloss);
@@ -515,7 +515,7 @@ export class UnitVertex {
         this.copyMaterialType(fromBufferView, fromIndex, toBufferView, toIndex);
         this.copyFuzz(fromBufferView, fromIndex, toBufferView, toIndex);
         this.copyFuzzType(fromBufferView, fromIndex, toBufferView, toIndex);
-        this.copyDensity(fromBufferView, fromIndex, toBufferView, toIndex);
+        this.copyEmission(fromBufferView, fromIndex, toBufferView, toIndex);
         this.copyFillDistance(fromBufferView, fromIndex, toBufferView, toIndex);
         this.copyRefractiveIndex(fromBufferView, fromIndex, toBufferView, toIndex);
         this.copyGloss(fromBufferView, fromIndex, toBufferView, toIndex);
@@ -624,14 +624,14 @@ export class UnitVertex {
     public static copyGloss(fromBufferView: DataView, fromIndex: number, toBufferView: DataView, toIndex: number) {
         toBufferView.setUint8(UnitVertex.SIZE_BYTES * toIndex + this.GLOSS_OFFSET_BYTES, fromBufferView.getUint8(UnitVertex.SIZE_BYTES * fromIndex + this.GLOSS_OFFSET_BYTES));
     }
-    public static getDensity(bufferView: DataView, index: number): number {
-        return bufferView.getFloat32(UnitVertex.SIZE_BYTES * index + this.DENSITY_OFFSET_BYTES, true);
+    public static getEmission(bufferView: DataView, index: number): number {
+        return bufferView.getFloat32(UnitVertex.SIZE_BYTES * index + this.EMISSION_OFFSET_BYTES, true);
     }
-    public static setDensity(bufferView: DataView, index: number, value: number) {
-        bufferView.setFloat32(UnitVertex.SIZE_BYTES * index + this.DENSITY_OFFSET_BYTES, value, true);
+    public static setEmission(bufferView: DataView, index: number, value: number) {
+        bufferView.setFloat32(UnitVertex.SIZE_BYTES * index + this.EMISSION_OFFSET_BYTES, value, true);
     }
-    public static copyDensity(fromBufferView: DataView, fromIndex: number, toBufferView: DataView, toIndex: number) {
-        toBufferView.setFloat32(UnitVertex.SIZE_BYTES * toIndex + this.DENSITY_OFFSET_BYTES, fromBufferView.getFloat32(UnitVertex.SIZE_BYTES * fromIndex + this.DENSITY_OFFSET_BYTES, true), true);
+    public static copyEmission(fromBufferView: DataView, fromIndex: number, toBufferView: DataView, toIndex: number) {
+        toBufferView.setFloat32(UnitVertex.SIZE_BYTES * toIndex + this.EMISSION_OFFSET_BYTES, fromBufferView.getFloat32(UnitVertex.SIZE_BYTES * fromIndex + this.EMISSION_OFFSET_BYTES, true), true);
     }
     public static getFillDistance(bufferView: DataView, index: number): number {
         return bufferView.getFloat32(UnitVertex.SIZE_BYTES * index + this.FILL_DISTANCE_OFFSET_BYTES, true);

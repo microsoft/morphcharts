@@ -29,7 +29,7 @@
           "yc": {"value": 80},
           "width": {"value": 160},
           "fuzz": {"image": "map"},
-          "fill": {"value": "darkorange"}
+          "fill": {"value": "peru"}
         }
       }
     },
