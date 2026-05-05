@@ -67,6 +67,23 @@ export class BufferVisual extends Core.BufferVisual implements Core.IBufferVisua
                     material.density = 1 / fillDistance;
                 }
 
+                // Emissive: apply emission brightness to linear fill and stroke colors
+                if (material.type == Core.MaterialType.light) {
+                    const emission = material.emission;
+                    if (emission !== 1) {
+                        material.fill = [
+                            material.fill[0] * emission,
+                            material.fill[1] * emission,
+                            material.fill[2] * emission,
+                        ];
+                        material.stroke = [
+                            material.stroke[0] * emission,
+                            material.stroke[1] * emission,
+                            material.stroke[2] * emission,
+                        ];
+                    }
+                }
+
                 // Segment color
                 const segment: Core.ColorRGBA = [0, 0, 0, 0];
                 Core.UnitVertex.getSegColor(buffer.dataView, i, segment);

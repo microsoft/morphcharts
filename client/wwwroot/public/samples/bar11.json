@@ -6,7 +6,11 @@
   "depth": 48,
       
   "camera": {"position": [0, 0.6, 1.2]},
-  
+
+  "lights": [
+    {"type": "rect", "position": [-1, 1, 1], "brightness": 5}
+  ],
+
   "signals": [
     {"name": "stackx", "value": 2},
     {"name": "stackz", "value": 2}
@@ -125,30 +129,6 @@
           "stroke": {"value": "white"},
           "strokeWidth": {"value": 0.5},
           "text": {"field": "amount"}
-        }
-      }
-    },
-    {
-      "type": "rect",
-      "geometry": "box",
-      "material": "light",
-      "encode": {
-        "enter": {
-          "xc": {"signal": "width/2-width"},
-          "yc": {"signal": "width"},
-          "zc": {"signal": "width"},
-          "height": {"signal": "width/2"},
-          "width": {"signal": "width/2"},
-          "angleX": {"value": 30},
-          "angleY": {"value": 45},
-          "depth": {"value": 0},
-          "fill": {
-            "color": {
-              "h": {"value": 0},
-              "s": {"value": 0},
-              "l": {"value": 2.848}
-            }
-          }
         }
       }
     },

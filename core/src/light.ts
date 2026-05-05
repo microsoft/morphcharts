@@ -18,7 +18,8 @@ export const LightType = {
 export type LightType = typeof LightType[keyof typeof LightType];
 
 export interface ILightOptions {
-    color?: Vector3; // RGB
+    color?: Vector3; // RGB (sRGB [0,1])
+    brightness?: number; // Linear intensity multiplier (default 1)
     hidden?: boolean; // Hidden from primary rays (default true)
 }
 
@@ -90,13 +91,19 @@ export interface IProjectorLightOptions extends ILightOptions {
 }
 
 export abstract class Light {
-    protected _color: Vector3; // RGB
+    protected _color: Vector3; // RGB (sRGB [0,1])
     public get color(): Vector3 { return this._color; }
+    public set color(value: Vector3) { this._color = value; }
+    protected _brightness: number; // Linear intensity multiplier
+    public get brightness(): number { return this._brightness; }
+    public set brightness(value: number) { this._brightness = value; }
     protected _hidden: boolean;
     public get hidden(): boolean { return this._hidden; }
+    public set hidden(value: boolean) { this._hidden = value; }
 
     constructor(options: ILightOptions) {
         this._color = options.color || [1, 1, 1]; // Default to white
+        this._brightness = options.brightness ?? 1;
         this._hidden = options.hidden != undefined ? options.hidden : true;
     }
 
@@ -118,7 +125,12 @@ export abstract class Light {
     }
 
     public toBuffer(buffer: LightBufferData, index: number) {
-        buffer.setColor(index, this._color);
+        // Convert sRGB to linear and apply brightness
+        buffer.setColor(index, [
+            Math.pow(this._color[0], 2.2) * this._brightness,
+            Math.pow(this._color[1], 2.2) * this._brightness,
+            Math.pow(this._color[2], 2.2) * this._brightness,
+        ]);
         buffer.setHidden(index, this._hidden ? 1 : 0);
     }
 }
@@ -277,8 +289,9 @@ export class DirectionalLight extends Light {
 }
 
 export class ProjectorLight extends Light {
-    protected _color2: Vector3; // RGB
+    protected _color2: Vector3; // RGB (sRGB [0,1])
     public get color2(): Vector3 { return this._color2; }
+    public set color2(value: Vector3) { this._color2 = value; }
     protected _rotation: Quaternion; // Rotation
     public get rotation(): Quaternion { return this._rotation; }
     protected _center: Vector3; // Center position
@@ -328,7 +341,11 @@ export class ProjectorLight extends Light {
         buffer.setDirection(index, this._direction);
         buffer.setNearPlane(index, this._nearPlane);
         buffer.setAngle(index, this._fov);
-        buffer.setColor2(index, this._color2);
+        buffer.setColor2(index, [
+            Math.pow(this._color2[0], 2.2) * this._brightness,
+            Math.pow(this._color2[1], 2.2) * this._brightness,
+            Math.pow(this._color2[2], 2.2) * this._brightness,
+        ]);
         buffer.setTextureType(index, this._textureType);
         buffer.setTexCoords(index, this._texCoords);
         buffer.setTexScale(index, this._texScale);

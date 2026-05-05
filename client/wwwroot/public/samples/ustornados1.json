@@ -14,13 +14,13 @@
     "worldTarget": [320, 0, 320]
   },
 
-  "ambient": "#222",
+  "ambient": "darkslategray",
   "background": "black",
 
   "lights": [
-    {"type": "rect", "size": 0.5, "distance": 1, "altitude": 45, "azimuth":  -45, "brightness": 8, "color": "lightgoldenrodyellow"},
-    {"type": "rect", "size": 0.5, "distance": 1, "altitude": 45, "azimuth":   45, "brightness": 2, "color": "lightgoldenrodyellow"},
-    {"type": "rect", "size": 0.5, "distance": 1, "altitude": 45, "azimuth": -135, "brightness": 2, "color": "lightgoldenrodyellow"}
+    {"type": "rect", "size": 0.5, "distance": 1, "altitude": 45, "azimuth":  -45, "brightness": 8, "color": "oldlace"},
+    {"type": "rect", "size": 0.5, "distance": 1, "altitude": 45, "azimuth":   45, "brightness": 2, "color": "oldlace"},
+    {"type": "rect", "size": 0.5, "distance": 1, "altitude": 45, "azimuth": -135, "brightness": 2, "color": "oldlace"}
   ],
 
   "signals": [
@@ -157,7 +157,7 @@
           "z": {"scale": "xzscale", "field": "z0", "offset": {"signal": "0.04*width/maxbins"}},
           "z2": {"scale": "xzscale", "field": "z1", "offset": {"signal": "-0.04*width/maxbins"}},
           "rounding": {"signal": "0.02*width/maxbins"},
-          "fill": {"value": "#c84"},
+          "fill": {"value": "peru"},
           "fuzz": {"value": 0.3}
         }
       }

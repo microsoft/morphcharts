@@ -127,9 +127,8 @@ export class Plot {
     public static readonly MATERIAL_FUZZ = 0;
     public static readonly MATERIAL_GLOSS = 1;
     public static readonly MATERIAL_REFRACTIVE_INDEX = 1.5;
-    public static readonly MATERIAL_DENSITY = 0;
 
-    /** Create a scene from the plot — convenience wrapper that parses JSON and creates the scene in one call */
+    /** Create a scene from the plot— convenience wrapper that parses JSON and creates the scene in one call */
     public static async createSceneAsync(plotJSON: any, options?: { datasets?: { [key: string]: string }, images?: { [key: string]: string } }): Promise<IScene> {
         const plot = await Plot.fromJSONAsync(plotJSON, options);
         return plot.createSceneAsync();
@@ -175,6 +174,7 @@ export class Plot {
                             lights.push(new Core.RectLight({
                                 center: this.lights[i].position,
                                 color: this.lights[i].color,
+                                brightness: this.lights[i].brightness,
                                 size: this.lights[i].size,
                                 aspectRatio: this.lights[i].aspectRatio,
                                 direction: this.lights[i].direction,
@@ -185,6 +185,7 @@ export class Plot {
                             lights.push(new Core.DiskLight({
                                 center: this.lights[i].position,
                                 color: this.lights[i].color,
+                                brightness: this.lights[i].brightness,
                                 size: this.lights[i].size,
                                 direction: this.lights[i].direction,
                                 hidden: this.lights[i].hidden,
@@ -194,6 +195,7 @@ export class Plot {
                             lights.push(new Core.SphereLight({
                                 center: this.lights[i].position,
                                 color: this.lights[i].color,
+                                brightness: this.lights[i].brightness,
                                 size: this.lights[i].size,
                                 hidden: this.lights[i].hidden,
                             }));
@@ -202,12 +204,14 @@ export class Plot {
                             lights.push(new Core.PointLight({
                                 center: this.lights[i].position,
                                 color: this.lights[i].color,
+                                brightness: this.lights[i].brightness,
                                 hidden: this.lights[i].hidden,
                             }));
                             break;
                         case "directional":
                             lights.push(new Core.DirectionalLight({
                                 color: this.lights[i].color,
+                                brightness: this.lights[i].brightness,
                                 direction: this.lights[i].direction,
                                 hidden: this.lights[i].hidden,
                             }));
@@ -216,6 +220,7 @@ export class Plot {
                             lights.push(new Core.SpotLight({
                                 center: this.lights[i].position,
                                 color: this.lights[i].color,
+                                brightness: this.lights[i].brightness,
                                 nearPlane: this.lights[i].nearPlane,
                                 direction: this.lights[i].direction,
                                 angle: this.lights[i].angle,
@@ -227,6 +232,7 @@ export class Plot {
                             lights.push(new Core.ProjectorLight({
                                 center: this.lights[i].position,
                                 color: this.lights[i].color,
+                                brightness: this.lights[i].brightness,
                                 color2: this.lights[i].color2,
                                 nearPlane: this.lights[i].nearPlane,
                                 aspectRatio: this.lights[i].aspectRatio,

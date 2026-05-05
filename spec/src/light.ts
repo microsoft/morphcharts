@@ -16,6 +16,7 @@ export class Light {
     // Colors
     public color: Core.ColorRGB;
     public color2: Core.ColorRGB;
+    public brightness: number;
 
     // Specify either target or direction
     public direction: Core.Vector3; // Direction from position to target (normalized)
@@ -45,13 +46,9 @@ export class Light {
         // Group for signal parsing
         const group = plot.root;
 
-        // Color
+        // Color (sRGB) and brightness — conversion to linear happens in toBuffer
         light.color = json.color ? Color.parse(json.color) : [1, 1, 1];
-        if (json.brightness != undefined) {
-            light.color[0] *= json.brightness;
-            light.color[1] *= json.brightness;
-            light.color[2] *= json.brightness;
-        }
+        light.brightness = json.brightness ?? 1;
 
         light.position = [0, 0, 0];
         // Position in camera/world coordinates
@@ -253,21 +250,13 @@ export class Light {
                     light.textureType = Core.TextureType.image;
                 }
 
-                // Checker
+                // Checker (sRGB colours — conversion to linear happens in toBuffer)
                 if (texture.checker) {
                     light.textureType = Core.TextureType.checkerboard;
                     if (texture.checker.color1) { light.color = Color.parse(texture.checker.color1); }
                     else { light.color = [Core.Colors.black[0], Core.Colors.black[1], Core.Colors.black[2]]; }
                     if (texture.checker.color2) { light.color2 = Color.parse(texture.checker.color2); }
                     else { light.color2 = [Core.Colors.white[0], Core.Colors.white[1], Core.Colors.white[2]]; }
-                    if (json.brightness != undefined) {
-                        light.color[0] *= json.brightness;
-                        light.color[1] *= json.brightness;
-                        light.color[2] *= json.brightness;
-                        light.color2[0] *= json.brightness;
-                        light.color2[1] *= json.brightness;
-                        light.color2[2] *= json.brightness;
-                    }
                 }
 
                 // Tex Coords, scale, offset

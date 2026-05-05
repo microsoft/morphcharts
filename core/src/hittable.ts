@@ -576,7 +576,6 @@ export class HittableBufferData extends Float32Array {
         material.type = this.getMaterialType(index);
         material.fuzz = this.getMaterialFuzz(index);
         material.gloss = this.getMaterialGloss(index);
-        material.density = this.getMaterialDensity(index);
         material.refractiveIndex = this.getMaterialRefractiveIndex(index);
         this.getMaterialColor1(index, material.fill);
         this.getMaterialColor2(index, material.stroke);

@@ -15,13 +15,13 @@
     "target": [0, 0, -0.3]
   },
 
-  "ambient": "black",
+  "ambient": "darkslategray",
   "background": "black",
   
   "lights": [
-    {"type": "rect", "size": 0.5, "distance": 1, "altitude": 45, "azimuth":  -45, "brightness": 8, "color": "lightgoldenrodyellow"},
-    {"type": "rect", "size": 0.5, "distance": 1, "altitude": 45, "azimuth":   45, "brightness": 2, "color": "lightgoldenrodyellow"},
-    {"type": "rect", "size": 0.5, "distance": 1, "altitude": 45, "azimuth": -135, "brightness": 2, "color": "lightgoldenrodyellow"}
+    {"type": "rect", "size": 0.5, "distance": 1, "altitude": 45, "azimuth":  -45, "brightness": 8, "color": "oldlace"},
+    {"type": "rect", "size": 0.5, "distance": 1, "altitude": 45, "azimuth":   45, "brightness": 2, "color": "oldlace"},
+    {"type": "rect", "size": 0.5, "distance": 1, "altitude": 45, "azimuth": -135, "brightness": 2, "color": "oldlace"}
   ],
 
   "data": [

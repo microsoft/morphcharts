@@ -164,8 +164,8 @@ export class MarkEncodings {
     public fuzz: MarkEncodingValue;
     public refractiveIndex: MarkEncodingValue;
     public gloss: MarkEncodingValue;
-    public density: MarkEncodingValue;
     public fillDistance: MarkEncodingValue;
+    public emission: MarkEncodingValue;
 
     // Segment
     public segmentId: MarkEncodingValue;

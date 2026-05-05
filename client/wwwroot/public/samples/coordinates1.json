@@ -540,7 +540,7 @@
           "z": {"signal": "depth/2"},
           "z2": {"signal": "depth/2"},
           "strokeWidth": {"value": 5},
-          "stroke": { "value": "green"}
+          "stroke": { "value": "lime"}
         }
       }
     },
@@ -588,7 +588,7 @@
           "baseline": {"value": "bottom"},
           "font": {"value": "monospace"},
           "fontSize": {"value": 24},
-          "fill": {"value": "green"},
+          "fill": {"value": "lime"},
           "stroke": {"value": "white"},
           "strokeWidth": {"value": 0.5},
           "text": {"value": "y"}

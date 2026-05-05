@@ -219,12 +219,12 @@ export class Arc extends Mark {
         let materialFuzzes: Float32Array;
         let materialGlosses: Float32Array;
         let materialRefractiveIndices: Float32Array;
-        let materialDensities: Float32Array;
+        let materialEmissions: Float32Array;
         if (this.encode.fill) { fillColors = group.colorValues(this.encode.fill, dataset); }
         if (this.encode.fuzz) { materialFuzzes = group.values(this.encode.fuzz, dataset); }
         if (this.encode.gloss) { materialGlosses = group.values(this.encode.gloss, dataset); }
         if (this.encode.refractiveIndex) { materialRefractiveIndices = group.values(this.encode.refractiveIndex, dataset); }
-        if (this.encode.density) { materialDensities = group.values(this.encode.density, dataset); }
+        if (this.encode.emission) { materialEmissions = group.values(this.encode.emission, dataset); }
         let materialType;
         switch (this.material) {
             case "lambertian":
@@ -253,7 +253,7 @@ export class Arc extends Mark {
             materials[i].fuzz = materialFuzzes ? materialFuzzes[i] : Plot.MATERIAL_FUZZ;
             materials[i].gloss = materialGlosses ? materialGlosses[i] : Plot.MATERIAL_GLOSS;
             materials[i].refractiveIndex = materialRefractiveIndices ? materialRefractiveIndices[i] : Plot.MATERIAL_REFRACTIVE_INDEX;
-            materials[i].density = materialDensities ? materialDensities[i] : Plot.MATERIAL_DENSITY;
+            materials[i].emission = materialEmissions ? materialEmissions[i] : 1;
         }
         vertexOptions.materials = materials;
 
@@ -304,7 +304,7 @@ export class Arc extends Mark {
                         if (encodeJSON.fuzz) { mark.encode.fuzz = MarkEncodingValue.fromJSON(mark, group, encodeJSON.fuzz); }
                         if (encodeJSON.refractiveIndex) { mark.encode.refractiveIndex = MarkEncodingValue.fromJSON(mark, group, encodeJSON.refractiveIndex); }
                         if (encodeJSON.gloss) { mark.encode.gloss = MarkEncodingValue.fromJSON(mark, group, encodeJSON.gloss); }
-                        if (encodeJSON.density) { mark.encode.density = MarkEncodingValue.fromJSON(mark, group, encodeJSON.density); }
+                        if (encodeJSON.emission) { mark.encode.emission = MarkEncodingValue.fromJSON(mark, group, encodeJSON.emission); }
 
                         // Segment
                         if (encodeJSON.segmentId) { mark.encode.segmentId = MarkEncodingValue.fromJSON(mark, group, encodeJSON.segmentId); }
