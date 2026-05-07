@@ -70,6 +70,7 @@ export class Main {
     // Renderer
     private _widthText: HTMLInputElement;
     private _heightText: HTMLInputElement;
+    private _refreshSizeRadioAvailability: () => void;
     private _renderer: WebGPURenderer.Main;
     private _startStopButton: HTMLButtonElement;
     private _maxSamplesText: HTMLInputElement;
@@ -233,6 +234,39 @@ export class Main {
         this._widthText = document.getElementById("widthText") as HTMLInputElement;
         this._heightText = document.getElementById("heightText") as HTMLInputElement;
         const resizeButton = document.getElementById("resizeButton") as HTMLButtonElement;
+        // Preset resolutions in pixels; "fit" and "custom" are computed at runtime.
+        const sizePresets: { [key: string]: { width: number, height: number } } = {
+            hd: { width: 1280, height: 720 },
+            fhd: { width: 1920, height: 1080 },
+            "4k": { width: 3840, height: 2160 },
+            "8k": { width: 7680, height: 4320 },
+        };
+        // Returns null if (width, height) is renderable; otherwise an error message describing the limit hit.
+        const checkRenderSize = (width: number, height: number): string | null => {
+            const maxPixels = this._renderer.maxPixels;
+            const maxDim = this._renderer.maxRenderDim;
+            // Over-dispatch by 1 in each axis for correct edge handling
+            const requested = (width + 1) * (height + 1);
+            if (width > maxDim || height > maxDim) {
+                return `${width}x${height}px exceeds device per-dimension limit of ${maxDim}px`;
+            }
+            if (requested > maxPixels) {
+                return `${width}x${height}px (${requested.toLocaleString()} pixels) exceeds device max of ${Math.floor(maxPixels).toLocaleString()} pixels (~${Math.floor(Math.sqrt(maxPixels)).toLocaleString()}px square or ${Math.floor(Math.sqrt(maxPixels * 16 / 9)).toLocaleString()}x${Math.floor(Math.sqrt(maxPixels * 9 / 16)).toLocaleString()} 16:9)`;
+            }
+            return null;
+        };
+        // Disable preset radios whose resolution exceeds device limits. Called after renderer init when limits are populated.
+        this._refreshSizeRadioAvailability = () => {
+            for (let i = 0; i < sizeRadioGroup.length; i++) {
+                const radio = sizeRadioGroup[i] as HTMLInputElement;
+                const preset = sizePresets[radio.value];
+                if (!preset) { continue; } // skip "fit" and "custom"
+                const err = checkRenderSize(preset.width, preset.height);
+                radio.disabled = err !== null;
+                const label = document.querySelector(`label[for="${radio.id}"]`) as HTMLLabelElement;
+                if (label) { label.style.opacity = err ? "0.4" : ""; }
+            }
+        };
         let sizeType: string;
         for (let i = 0; i < sizeRadioGroup.length; i++) {
             const sizeRadio = sizeRadioGroup[i] as HTMLInputElement;
@@ -252,33 +286,34 @@ export class Main {
         const sizeChanged = () => {
             let width: number;
             let height: number;
-            switch (sizeType) {
-                case "fit":
-                    const leftContainer = document.getElementById("leftContainer") as HTMLDivElement;
-                    width = leftContainer.clientWidth - 1; // -1 to avoid scrollbar
-                    height = leftContainer.clientHeight - 1; // -1 to avoid scrollbar
-                    break;
-                case "hd":
-                    width = 1280; height = 720;
-                    break;
-                case "fhd":
-                    width = 1920; height = 1080;
-                    break;
-                case "4k":
-                    width = 3840; height = 2160;
-                    break;
-                case "custom":
-                    width = parseInt(this._widthText.value);
-                    height = parseInt(this._heightText.value);
-                    if (isNaN(width) || isNaN(height)) {
-                        console.log("invalid size");
-                        return;
-                    }
-                    const maxBufferSize = Math.pow(2, 20) * 128 / 16; // 128MB buffer, 4 bytes/channel, 4 channels (3840x2160px 16:9, or 2,896px² square)
-                    if ((width + 1) * (height + 1) > maxBufferSize) { // Overdispatching for correct edge handling
-                        console.log(`${width}x${height}px buffer size ${(width + 1) * (height + 1)} bytes exceeds max ${maxBufferSize} bytes`);
-                        return;
-                    }
+            if (sizeType === "fit") {
+                const leftContainer = document.getElementById("leftContainer") as HTMLDivElement;
+                width = leftContainer.clientWidth - 1; // -1 to avoid scrollbar
+                height = leftContainer.clientHeight - 1; // -1 to avoid scrollbar
+            }
+            else if (sizeType === "custom") {
+                width = parseInt(this._widthText.value);
+                height = parseInt(this._heightText.value);
+                if (isNaN(width) || isNaN(height)) {
+                    console.log("invalid size");
+                    return;
+                }
+                const err = checkRenderSize(width, height);
+                if (err) {
+                    console.log(err);
+                    return;
+                }
+            }
+            else {
+                const preset = sizePresets[sizeType];
+                if (!preset) { return; }
+                width = preset.width;
+                height = preset.height;
+                const err = checkRenderSize(width, height);
+                if (err) {
+                    console.log(err);
+                    return;
+                }
             }
             this._resize(width, height);
         };
@@ -389,6 +424,9 @@ export class Main {
             this._startStopButton.disabled = true;
             return;
         }
+
+        // Renderer device limits are now populated; gray out preset sizes that exceed them.
+        this._refreshSizeRadioAvailability();
 
         console.log(`client initialized ${Core.Time.formatDuration((performance.now() - start))}`);
     }

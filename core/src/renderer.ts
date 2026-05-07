@@ -46,6 +46,15 @@ export abstract class Renderer {
     // BVH
     public maxPrimsInNode: number;
 
+    // Render-size capabilities (set by concrete renderers after device init).
+    // Default: no limit. WebGPU subclass derives these from device limits.
+    protected _maxPixels: number = Number.POSITIVE_INFINITY;
+    protected _maxRenderDim: number = Number.POSITIVE_INFINITY;
+    /** Max total pixels per render, including any over-dispatch padding. Concrete renderers populate this from their backend's buffer/memory limits. */
+    public get maxPixels(): number { return this._maxPixels; }
+    /** Max pixels per render axis (width or height). Concrete renderers populate this from their backend's per-axis dispatch or framebuffer limits. */
+    public get maxRenderDim(): number { return this._maxRenderDim; }
+
     // Lighting
     protected _ambientColor: ColorRGB;
     protected _ambientColorLinear: ColorRGB;
@@ -304,7 +313,7 @@ export abstract class Renderer {
         this._transitionTime = 1;
 
         // BVH
-        this.maxPrimsInNode = 1;
+        this.maxPrimsInNode = 4;
 
         // Lighting
         this.ambientColor = vector3.clone(Config.ambientColor);
