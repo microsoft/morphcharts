@@ -139,18 +139,35 @@ export class Main extends Core.Renderer {
             if (this._adapter.features.has("timestamp-query")) {
                 requiredFeatures.push("timestamp-query");
             }
+            const limits = this._adapter.limits;
             const gpuDeviceDescriptor: GPUDeviceDescriptor = {
                 requiredFeatures,
                 requiredLimits: {
-                    // Max storage buffer size
-                    maxStorageBufferBindingSize: 134217728,
+                    // Buffers (overall size and binding size as a storage buffer) — request adapter max
+                    maxBufferSize: limits.maxBufferSize,
+                    maxStorageBufferBindingSize: limits.maxStorageBufferBindingSize,
 
-                    // Match workgroups per dimension to shader
-                    maxComputeWorkgroupsPerDimension: 256,
+                    // Compute dispatch cap — request adapter max so high-resolution
+                    // renders aren't silently truncated. With a 16x16 workgroup,
+                    // each dispatch dimension allows up to 16 * limit pixels.
+                    maxComputeWorkgroupsPerDimension: limits.maxComputeWorkgroupsPerDimension,
                 }
             };
             this._device = await this._adapter.requestDevice(gpuDeviceDescriptor);
             this._maxComputeWorkgroupsPerDimension = this._device.limits.maxComputeWorkgroupsPerDimension;
+
+            // Derive render-size limits from device.
+            // maxPixels: dominated by the output color buffer (16 B/pixel = 4 channels × 4 bytes).
+            //   The buffer is bound for storage, so the limit is min(maxBufferSize, maxStorageBufferBindingSize).
+            //   Subtract a padding band (maxEdgeThickness²) to account for edge-detection over-dispatch.
+            // maxRenderDim: each compute dispatch can be at most maxComputeWorkgroupsPerDimension workgroups
+            //   along an axis; the workgroup is 16×16, so the per-axis pixel limit is 16× that.
+            const deviceLimits = this._device.limits;
+            const bytesPerPixel = 16;
+            const maxBufferPixels = Math.min(deviceLimits.maxBufferSize, deviceLimits.maxStorageBufferBindingSize) / bytesPerPixel;
+            const padding = Core.Config.maxEdgeThickness;
+            this._maxPixels = Math.max(0, Math.floor(maxBufferPixels - padding * padding));
+            this._maxRenderDim = this._maxComputeWorkgroupsPerDimension * 16;
             this._queue = this._device.queue;
             this._context = this._canvas.getContext("webgpu");
             if (!this._context) { throw new Error("WebGPU canvas context not available"); }

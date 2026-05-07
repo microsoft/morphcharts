@@ -172,8 +172,20 @@ export class BVHAccel {
                     case "sah":
                     default:
                         // Partition primitives using approximate SAH
-                        if (nPrimitives <= 4) {
-                            // Partition primitives into equally sized subsets (SplitMethod.equalCounts)
+                        if (nPrimitives <= this._maxPrimsInNode) {
+                            // Few enough primitives to fit in a leaf — stop splitting
+                            const firstPrimOffset = this._orderedPrimitives.length;
+                            for (let i = start; i < end; i++) {
+                                const primNum = this._primitiveInfo[i].primitiveNumber;
+                                this._orderedPrimitivesLookup[this._orderedPrimitives.length] = primNum;
+                                this._orderedPrimitives.push(this._primitives[primNum]);
+                            }
+                            node.initLeaf(firstPrimOffset, nPrimitives, bounds);
+                            return node;
+                        } else if (nPrimitives <= 4) {
+                            // Only reachable when maxPrimsInNode < 4 (the leaf check above otherwise
+                            // catches all small nodes). For 2-4 primitives, SAH bucketing across 12
+                            // buckets isn't meaningful, so split by equal counts instead.
                             mid = Math.floor((start + end) / 2);
                             // Sort subset
                             const primitiveInfo = this._primitiveInfo.slice(start, end);

@@ -1734,7 +1734,8 @@ fn main(@builtin(global_invocation_id) globalId : vec3<u32>) {
     var normal = vec3<f32>(0f, 0f, 0f);
     
     // Seed random number generator per pixel
-    var seed = u32(tilePixelY * tileSize.x + tilePixelX) + frameSeed * u32(tileSize.x * tileSize.y);
+    // Compute the per-pixel seed in u32 to avoid f32 mantissa precision loss above 2^24 pixels (~16.7M, e.g. row >2184 at 7680px wide)
+    var seed = (globalId.y * u32(tileSize.x) + globalId.x) + frameSeed * (u32(tileSize.x) * u32(tileSize.y));
 
     // Sample position (sub-pixel sampling has same seed, but only sampled once per frame)
     let samplePos = vec2<f32>(texCoord) + vec2<f32>(random(&seed), random(&seed)) / imageSize;
@@ -1781,8 +1782,9 @@ fn color(@builtin(global_invocation_id) globalId : vec3<u32>) {
     let texCoord = vec2<f32>(imagePixelX / imageSize.x, imagePixelY / imageSize.y);
 
     // Seed random number generator per pixel
+    // Compute the per-pixel seed in u32 to avoid f32 mantissa precision loss above 2^24 pixels (~16.7M, e.g. row >2184 at 7680px wide)
     var frameSeed = u32(uniforms.seed);
-    var seed = u32(tilePixelY * tileSize.x + tilePixelX) + frameSeed * u32(tileSize.x * tileSize.y);
+    var seed = (globalId.y * u32(tileSize.x) + globalId.x) + frameSeed * (u32(tileSize.x) * u32(tileSize.y));
 
     // Sample position (random sub-pixel jitter)
     let samplePos = vec2<f32>(texCoord) + vec2<f32>(random(&seed), random(&seed)) / imageSize;
