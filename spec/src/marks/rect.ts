@@ -44,19 +44,36 @@ export class Rect extends Mark {
 
         // Unit type
         let unitType: string;
+        const hasRounding = !!this.encode.rounding;
         switch (this.geometry && this.geometry.toLowerCase()) {
             default:
-                unitType = "box";
-                break;
             case "box":
+                unitType = hasRounding ? "boxsdf" : "box";
+                break;
             case "boxsdf":
+                unitType = "boxsdf";
+                break;
+            case "boxframe":
             case "boxframesdf":
+                unitType = "boxframesdf";
+                break;
             case "cylinder":
+                unitType = hasRounding ? "cylindersdf" : "cylinder";
+                break;
             case "cylindersdf":
+                unitType = "cylindersdf";
+                break;
             case "hexprism":
             case "hexprismsdf":
+                unitType = "hexprismsdf";
+                break;
             case "sphere":
+                unitType = "sphere";
+                break;
+            case "tube":
             case "tubesdf":
+                unitType = "tubesdf";
+                break;
             case "xyrect":
             case "xzrect":
             case "yzrect":

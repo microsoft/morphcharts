@@ -251,6 +251,13 @@ export class Expression {
                 continue;
             }
 
+            // Type checking
+            if (expr.substring(i, i + 5) == "isNaN") {
+                expression += "Number.isNaN";
+                i += 5;
+                continue;
+            }
+
             // Trigonometric
             if (expr.substring(i, i + 4) == "acos") {
                 expression += "Math.acos";

@@ -1,0 +1,244 @@
+{
+  "title": "US Polio Cases",
+  "description": "US Polio Cases by State and Year",
+  
+  "_width": 615,
+  "_depth": 765,
+  "height": 160,
+
+  "signals": [
+    {"name": "size", "value": 15}
+  ],
+
+  "camera": {
+    "altitude": 30,
+    "azimuth": 0,
+    "distance": 1.5,
+    "target": [0, -0.175, 0]
+  },
+
+  "ambient": "black",
+  "background": "black",
+
+  "lights": [
+    {"type": "rect", "size": 0.5, "distance": 1, "altitude": 45, "azimuth":  -45, "brightness":  8, "color": "oldlace"},
+    {"type": "rect", "size": 0.5, "distance": 1, "altitude": 45, "azimuth":   45, "brightness":  8, "color": "oldlace"},
+    {"type": "rect", "size": 0.5, "distance": 1, "altitude": 45, "azimuth": -135, "brightness":  2, "color": "oldlace"},
+    {"type": "rect", "size": 0.5, "distance": 1, "altitude": 45, "azimuth":  135, "brightness":  2, "color": "oldlace"}
+  ],
+
+  "data": [
+    {
+      "name": "table",
+      "url": "https://raw.githubusercontent.com/microsoft/charticulator.com/refs/heads/master/data/polio_incidence_rates_us.csv",
+      "transform": [
+        {"type": "filter", "expr": "datum['Polio Cases']>0"},
+        {"type": "extent", "field": "Year", "signal": "YearExtent"},
+        {"type": "extent", "field": "State", "signal": "StateExtent"}
+      ]
+    }
+  ],
+  
+  "encode": {
+    "enter": {
+      "strokeWidth": {"value": 0},
+      "width": {"signal": "(YearExtent[1]-YearExtent[0]+1)*size"},
+      "depth": {"signal": "(StateExtent[1]-StateExtent[0]+1)*size"}
+    }
+  },
+
+  "scales": [
+    {
+      "name": "xscale",
+      "type": "band",
+      "domain": {"data": "table", "field": "Year"},
+      "range": {"step": {"signal": "size"}}
+    },
+    {
+      "name": "zscale",
+      "type": "band",
+      "domain": {
+        "data": "table",
+        "field": "State",
+        "sort": true
+      },
+      "reverse": true,
+      "range": {"step": {"signal": "size"}}
+    },
+    {
+      "name": "yscale",
+      "type": "linear",
+      "domain": {"data": "table", "field": "Polio Cases"},
+      "range": [1, {"signal": "height"}]
+    },
+    {
+      "name": "fillscale",
+      "type": "quantile",
+      "domain": {"data": "table", "field": "Polio Cases"},
+      "range": {"scheme": "redyellowblue", "count": 64},
+      "reverse": true
+    }
+  ],
+
+  "axes": [
+    {
+      "orient": "bottom",
+      "orientZ": "left",
+      "scale": "zscale",
+      "labelAlign": "right",
+      "labelAngleX": 90,
+      "labelFontSize": 11,
+      "labelOffsetY": -5,
+      "labelOffsetX": -2,
+      "labelColor": "black",
+      "domain": false,
+      "grid": false
+    },
+    {
+      "orient": "bottom",
+      "orientZ": "right",
+      "scale": "zscale",
+      "labelAlign": "left",
+      "labelAngleX": 90,
+      "labelFontSize": 11,
+      "labelOffsetY": -5,
+      "labelOffsetX": 2,
+      "labelColor": "black",
+      "domain": true,
+      "domainWidth": 0.1,
+      "grid": true,
+      "gridWidth": 0.1,
+      "gridWidthY": 0.01,
+      "bandGridPosition": 0
+    },
+    {
+      "orient": "bottom",
+      "orientZ": "front",
+      "scale": "xscale",
+      "labelAlign": "right",
+      "labelAngle": -90,
+      "labelAngleX": 90,
+      "labelFontSize": 11,
+      "labelOffsetY": -5,
+      "labelOffsetZ": 2,
+      "labelColor": "black",
+      "domain": true,
+      "domainWidth": 0.1,
+      "gridZ": true,
+      "gridWidth": 0.1,
+      "gridWidthY": 0.01,
+      "bandGridPosition": 0
+    },
+    {
+      "orient": "bottom",
+      "orientZ": "back",
+      "scale": "xscale",
+      "labelAlign": "left",
+      "labelAngle": -90,
+      "labelAngleX": 90,
+      "labelFontSize": 11,
+      "labelOffsetY": -5,
+      "labelOffsetZ": -2,
+      "labelColor": "black",
+      "domain": false,
+      "gridZ": false
+    }
+  ],
+
+
+  "marks": [
+    {
+      "type": "rect",
+      "geometry": "xzrect",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "zc": {"signal": "depth/2"},
+          "yc": {"value": -0.01},
+          "width": {"signal": "width"},
+          "depth": {"signal": "depth"},
+          "fill": {
+            "checker": {
+              "color1": { "value": "white" },
+              "color2": { "value": "whitesmoke" }
+            },
+            "texScale": {
+              "x": {"signal": "(YearExtent[1]-YearExtent[0]+1)/2"},
+              "z": {"signal": "(StateExtent[1]-StateExtent[0]+1)/2"}
+            },
+            "texOffset": {
+              "x": {"value": 0.25},
+              "z": {"value": 0.25}
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "zc": {"signal": "depth/2"},
+          "y": {"value": -0.02},
+          "y2": {"value": -5},
+          "width": {"signal": "width"},
+          "depth": {"signal": "depth"},
+          "fill": {"value": "white"}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "geometry": "xzrect",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "zc": {"signal": "depth/2"},
+          "yc": {"value": -5.01},
+          "width": {"signal": "width*6"},
+          "depth": {"signal": "depth*6"},
+          "fill": {"value": "darkgray"}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "from": {"data": "table"},
+      "geometry": "cylinder",
+      "material": "glossy",
+      "encode": {
+        "enter": {
+          "xc": {"scale": "xscale", "field": "Year", "band": 0.5},
+          "width": {"scale": "xscale", "band": 0.95},
+          "y": {"value": 0},
+          "y2": {"scale": "yscale", "field": "Polio Cases"},
+          "zc": {"scale": "zscale", "field": "State", "band": 0.5},
+          "depth": {"scale": "zscale", "band": 0.95},
+          "fill": {"scale": "fillscale", "field": "Polio Cases"},
+          "rounding": {"scale": "xscale", "band": 0.05},
+          "fuzz": {"value": 0.2}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": {"data": "table"},
+      "numberFormat": {"maximumFractionDigits": 2},
+      "encode": {
+        "enter": {
+          "x": {"scale": "xscale", "field": "Year", "band": 0.5},
+          "z": {"scale": "zscale", "field": "State", "band": 0.5},
+          "y": {"scale": "yscale", "field": "Polio Cases", "offset": 0.01},
+          "text": {"field": "Polio Cases"},
+          "fontSize": {"value": 4.5},
+          "fill": {"value": "black"},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0},
+          "angleX": {"value": 90},
+          "angleY": {"value": 0}
+        }
+      }
+    }
+  ]
+}

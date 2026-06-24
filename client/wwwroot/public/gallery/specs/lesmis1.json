@@ -1,0 +1,259 @@
+{
+  "title": "Adjacency Matrix",
+  "description": "An adjacency matrix showing character co-occurrence in Les Misérables",
+
+  "width": 640,
+  "height": 120,
+  "depth": 640,
+
+  "camera": {
+    "distance": 1.6,
+    "altitude": 20,
+    "azimuth": 45,
+    "position": [0, 0, 0],
+    "target": [0, -0.225, 0]
+  },
+
+  "ambient": "black",
+  "background": "black",
+
+  "lights": [
+    {"type": "rect", "size": 0.5, "distance": 1, "altitude": 30, "azimuth":   0, "brightness": 10, "color": "oldlace"},
+    {"type": "rect", "size": 0.5, "distance": 1, "altitude": 30, "azimuth":  90, "brightness": 10, "color": "oldlace"},
+    {"type": "rect", "size": 0.5, "distance": 1, "altitude": 45, "azimuth": 180, "brightness":  2, "color": "oldlace"},
+    {"type": "rect", "size": 0.5, "distance": 1, "altitude": 45, "azimuth": -90, "brightness":  2, "color": "oldlace"}
+  ],
+
+  "data": [
+    {
+      "name": "characters",
+      "url": "https://raw.githubusercontent.com/vega/vega-datasets/refs/heads/main/data/miserables.json",
+      "property": "nodes",
+      "format": {"type": "json"}
+    },
+    {
+      "name": "cooccurrences",
+      "url": "https://raw.githubusercontent.com/vega/vega-datasets/refs/heads/main/data/miserables.json",
+      "format": {"type": "json"},
+      "property": "links",
+      "transform": [
+        {
+          "type": "lookup",
+          "from":"characters",
+          "key": "index",
+          "fields": ["source"],
+          "values": ["name", "group"],
+          "as": ["fromname", "fromgroup"]
+        },
+        {
+          "type": "lookup",
+          "from":"characters",
+          "key": "index",
+          "fields": ["target"],
+          "values": ["name", "group"],
+          "as": ["toname", "togroup"]
+        }
+      ]
+    }
+  ],
+
+  "scales": [
+    {
+      "name": "position",
+      "type": "band",
+      "domain": {"data": "characters", "field": "name"},
+      "range": "width"
+    },
+    {
+      "name": "size",
+      "type": "linear",
+      "domain": {"data": "cooccurrences", "field": "value"},
+      "range": "height"
+    },
+    {
+      "name": "fill",
+      "type": "linear",
+      "domain": {"data": "cooccurrences", "field": "value"},
+      "range": {"scheme": "blues"},
+      "reverse": true
+    }
+  ],
+
+  "axes": [
+    {
+      "orient": "bottom",
+      "orientZ": "left",
+      "scale": "position",
+      "labelAlign": "right",
+      "labelBaseline": "middle",
+      "labelAngle": 0,
+      "labelAngleX": 90,
+      "labelFontSize": 6,
+      "labelFontWeight": 600,
+      "labelOffsetY": -1,
+      "labelOffsetX": -1,
+      "domain": true,
+      "domainWidth": 0.1
+    },
+    {
+      "orient": "bottom",
+      "orientZ": "right",
+      "scale": "position",
+      "labelAlign": "left",
+      "labelBaseline": "middle",
+      "labelAngle": 0,
+      "labelAngleX": 90,
+      "labelFontSize": 7,
+      "labelFontWeight": 600,
+      "labelOffsetY": -1,
+      "labelOffsetX": 1,
+      "domain": false,
+      "grid": true,
+      "gridWidth": 0.1,
+      "gridWidthY": 0.01,
+      "bandGridPosition": 1
+    },
+    {
+      "orient": "bottom",
+      "orientZ": "front",
+      "scale": "position",
+      "labelAlign": "right",
+      "labelBaseline": "middle",
+      "labelAngle": -90,
+      "labelAngleX": 90,
+      "labelFontSize": 7,
+      "labelFontWeight": 600,
+      "labelOffsetY": -1,
+      "labelOffsetZ": 1,
+      "domain": false,
+      "gridZ": true,
+      "gridWidth": 0.1,
+      "gridWidthY": 0.01,
+      "bandGridPosition": 1
+    },
+    {
+      "orient": "bottom",
+      "orientZ": "back",
+      "scale": "position",
+      "labelAlign": "left",
+      "labelBaseline": "middle",
+      "labelAngle": -90,
+      "labelAngleX": 90,
+      "labelFontSize": 6,
+      "labelFontWeight": 600,
+      "labelOffsetY": -1,
+      "labelOffsetZ": -1,
+      "domain": true,
+      "domainWidth": 0.1
+    }
+  ],
+
+  "marks": [
+    {
+      "type": "rect",
+      "geometry": "xzrect",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "zc": {"signal": "depth/2"},
+          "yc": {"value": -1.01},
+          "width": {"signal": "width*4"},
+          "depth": {"signal": "depth*4"},
+          "fill": {"value": "silver"}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "encode": {
+        "enter": {
+          "xc": {"signal": "width/2"},
+          "zc": {"signal": "depth/2"},
+          "y": {"value": -0.01},
+          "y2": {"value": -1},
+          "width": {"signal": "width"},
+          "depth": {"signal": "depth"},
+          "fill": {"value": "gainsboro"}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "from": {"data": "cooccurrences"},
+      "geometry": "cylinder",
+      "material": "metal",
+      "encode": {
+        "enter": {
+          "x": {"scale": "position", "field": "fromname"},
+          "y": {"value": 0},
+          "z": {"scale": "position", "field": "toname"},
+          "width": {"scale": "position", "band": 1},
+          "height": {"scale": "size", "field": "value"},
+          "depth": {"scale": "position", "band": 1},
+          "fuzz": {"value": 0.2},
+          "rounding": {"scale": "position", "band": 0.05},
+          "fill": {"value": "tan"}
+        }
+      }
+    },
+    {
+      "type": "rect",
+      "from": {"data": "cooccurrences"},
+      "geometry": "cylinder",
+      "material": "metal",
+      "encode": {
+        "enter": {
+          "x": {"scale": "position", "field": "toname"},
+          "y": {"value": 0},
+          "z": {"scale": "position", "field": "fromname"},
+          "width": {"scale": "position", "band": 1},
+          "height": {"scale": "size", "field": "value"},
+          "depth": {"scale": "position", "band": 1},
+          "fuzz": {"value": 0.2},
+          "rounding": {"scale": "position", "band": 0.05},
+          "fill": {"value": "tan"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": {"data": "cooccurrences"},
+      "encode": {
+        "enter": {
+          "x": {"scale": "position", "field": "fromname", "offset": {"scale": "position", "band": 0.5}},
+          "y": {"scale": "size", "field": "value", "offset": 0.01},
+          "z": {"scale": "position", "field": "toname", "offset": {"scale": "position", "band": 0.5}},
+          "dy":{"scale": "position", "band": -0.05},
+          "text": {"field": "value"},
+          "fontSize": {"value": 6},
+          "fill": {"value": "black"},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.2},
+          "fontWeight": {"value": 900},
+          "angleX": {"value": 90},
+          "angleY": {"value": 0}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": {"data": "cooccurrences"},
+      "encode": {
+        "enter": {
+          "x": {"scale": "position", "field": "toname", "offset": {"scale": "position", "band": 0.5}},
+          "y": {"scale": "size", "field": "value", "offset": 0.01},
+          "z": {"scale": "position", "field": "fromname", "offset": {"scale": "position", "band": 0.5}},
+          "dy":{"scale": "position", "band": -0.05},
+          "text": {"field": "value"},
+          "fontSize": {"value": 6},
+          "fill": {"value": "black"},
+          "stroke": {"value": "white"},
+          "strokeWidth": {"value": 0.2},
+          "fontWeight": {"value": 900},
+          "angleX": {"value": 90},
+          "angleY": {"value": -90}
+        }
+      }
+    }
+  ]
+}

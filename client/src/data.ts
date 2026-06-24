@@ -242,7 +242,24 @@ export class Data {
         const table = document.createElement("table");
 
         // Headings
-        // TODO: Add column types
+        // Column types
+        const typeNames: { [key: number]: string } = { 0: "", 1: "float", 2: "integer", 4: "string", 8: "date" };
+        let typeRow = document.createElement("tr");
+        if (dataset.datum) {
+            for (let i = 0; i < dataset.datum.headings.length; i++) {
+                const th = document.createElement("th");
+                th.innerText = typeNames[dataset.datum.getColumnType(i)] || "";
+                typeRow.appendChild(th);
+            }
+        }
+        for (let i = 0; i < dataset.headings.length; i++) {
+            const th = document.createElement("th");
+            th.innerText = typeNames[dataset.getColumnType(i)] || "";
+            typeRow.appendChild(th);
+        }
+        table.appendChild(typeRow);
+
+        // Column names
         let headerRow = document.createElement("tr");
         let headings;
         if (dataset.datum) {

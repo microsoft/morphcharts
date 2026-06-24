@@ -46,16 +46,29 @@ export class Rule extends Mark {
         let unitType: string;
         switch (this.geometry && this.geometry.toLowerCase()) {
             default:
+            case "box":
                 unitType = "box";
                 break;
-            case "box":
             case "boxsdf":
+                unitType = "boxsdf";
+                break;
             case "cylinder":
+                unitType = "cylinder";
+                break;
             case "cylindersdf":
+                unitType = "cylindersdf";
+                break;
             case "hexprism":
             case "hexprismsdf":
+                unitType = "hexprismsdf";
+                break;
             case "sphere":
+                unitType = "sphere";
+                break;
+            case "tube":
             case "tubesdf":
+                unitType = "tubesdf";
+                break;
             case "xyrect":
             case "xzrect":
             case "yzrect":

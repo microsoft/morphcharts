@@ -1,0 +1,277 @@
+[
+  {
+    "title": "Bar Charts",
+    "description": "Bar chart visualizations",
+    "plots": [
+      {
+        "plot": "bar2.json",
+        "thumbnail": "bar2_raytrace_640x360.jpg",
+        "image": "bar2_raytrace_3840x2160.jpg",
+        "title": "Bar Chart",
+        "description": "A bar chart"
+      },
+      {
+        "plot": "bar4.json",
+        "thumbnail": "bar4_raytrace_640x360.jpg",
+        "image": "bar4_raytrace_3840x2160.jpg",
+        "title": "Stacked Bar Chart",
+        "description": "A stacked bar chart"
+      },
+      {
+        "plot": "bar7.json",
+        "thumbnail": "bar7_raytrace_640x360.jpg",
+        "image": "bar7_raytrace_3840x2160.jpg",
+        "title": "Matrix Bar Chart",
+        "description": "A matrix bar chart"
+      },
+      {
+        "plot": "bar6.json",
+        "thumbnail": "bar6_raytrace_640x360.jpg",
+        "image": "bar6_raytrace_3840x2160.jpg",
+        "title": "Grouped Bar Chart",
+        "description": "A grouped bar chart"
+      },
+      {
+        "plot": "bar9.json",
+        "thumbnail": "bar9_raytrace_640x360.jpg",
+        "image": "bar9_raytrace_3840x2160.jpg",
+        "title": "Faceted Bar Chart",
+        "description": "A faceted bar chart"
+      },
+      {
+        "plot": "bar13.json",
+        "thumbnail": "bar13_raytrace_640x360.jpg",
+        "image": "bar13_raytrace_3840x2160.jpg",
+        "title": "Faceted Grouped Bar Chart",
+        "description": "A faceted grouped bar chart"
+      },
+      {
+        "plot": "bar3.json",
+        "thumbnail": "bar3_raytrace_640x360.jpg",
+        "image": "bar3_raytrace_3840x2160.jpg",
+        "title": "Stacked Bar Chart",
+        "description": "A stacked bar chart"
+      },
+      {
+        "plot": "bar1.json",
+        "thumbnail": "bar1_raytrace_640x360.jpg",
+        "image": "bar1_raytrace_3840x2160.jpg",
+        "title": "Bar Chart",
+        "description": "A bar chart"
+      },
+      {
+        "plot": "bar5.json",
+        "thumbnail": "bar5_raytrace_640x360.jpg",
+        "image": "bar5_raytrace_3840x2160.jpg",
+        "title": "Grouped Bar Chart",
+        "description": "A grouped bar chart"
+      },
+      {
+        "plot": "bar8.json",
+        "thumbnail": "bar8_raytrace_640x360.jpg",
+        "image": "bar8_raytrace_3840x2160.jpg",
+        "title": "Faceted Bar Chart",
+        "description": "A faceted bar chart"
+      }
+    ]
+  },
+  {
+    "title": "Tree Diagrams",
+    "description": "Treemaps, sunburst charts, circle packing, and other tree visualizations",
+    "plots": [
+      {
+        "plot": "treemap6.json",
+        "thumbnail": "treemap6_raytrace_640x360.jpg",
+        "image": "treemap6_raytrace_3840x2160.jpg",
+        "title": "Non-Hierarchical Faceted Treemaps",
+        "description": "Non-hierarchical, faceted treemaps"
+      },
+      {
+        "plot": "treemap4.json",
+        "thumbnail": "treemap4_raytrace_640x360.jpg",
+        "image": "treemap4_raytrace_3840x2160.jpg",
+        "title": "Hierarchical Treemap",
+        "description": "A hierarchical treemap"
+      },
+      {
+        "plot": "treemap2.json",
+        "thumbnail": "treemap2_raytrace_640x360.jpg",
+        "image": "treemap2_raytrace_3840x2160.jpg",
+        "title": "Non-Hierarchical Treemap",
+        "description": "A non-hierarchical treemap"
+      },
+      {
+        "plot": "treemap5.json",
+        "thumbnail": "treemap5_raytrace_640x360.jpg",
+        "image": "treemap5_raytrace_3840x2160.jpg",
+        "title": "Non-Hierarchical Faceted Treemaps",
+        "description": "A non-hierarchical, faceted treemaps"
+      },
+      {
+        "plot": "treemap3.json",
+        "thumbnail": "treemap3_raytrace_640x360.jpg",
+        "image": "treemap3_raytrace_3840x2160.jpg",
+        "title": "Hierarchical Treemap",
+        "description": "A hierarchical treemap"
+      },
+      {
+        "plot": "treemap1.json",
+        "thumbnail": "treemap1_raytrace_640x360.jpg",
+        "image": "treemap1_raytrace_3840x2160.jpg",
+        "title": "Non-Hierarchical Treemap",
+        "description": "A non-hierarchical treemap"
+      },
+      {
+        "plot": "circlepack1.json",
+        "thumbnail": "circlepack1_raytrace_640x360.jpg",
+        "image": "circlepack1_raytrace_3840x2160.jpg",
+        "title": "Circle Packing Chart",
+        "description": "A circle packing chart"
+      },
+      {
+        "plot": "sunburst1.json",
+        "thumbnail": "sunburst1_raytrace_640x360.jpg",
+        "image": "sunburst1_raytrace_3840x2160.jpg",
+        "title": "Sunburst Chart",
+        "description": "A sunburst chart with rotated labels"
+      }
+    ]
+  },
+  {
+    "title": "Line & Area Charts",
+    "description": "Line and area chart visualizations",
+    "plots": [
+      {
+        "plot": "area2.json",
+        "thumbnail": "area2_raytrace_640x360.jpg",
+        "image": "area2_raytrace_3840x2160.jpg",
+        "title": "Multi Series Area Chart",
+        "description": "A multi series area chart"
+      },
+      {
+        "plot": "area1.json",
+        "thumbnail": "area1_raytrace_640x360.jpg",
+        "image": "area1_raytrace_3840x2160.jpg",
+        "title": "Multi Series Area Chart",
+        "description": "A multi series area chart"
+      },
+      {
+        "plot": "area3.json",
+        "thumbnail": "area3_raytrace_640x360.jpg",
+        "image": "area3_raytrace_3840x2160.jpg",
+        "title": "Stacked Area Chart",
+        "description": "A stacked area chart"
+      },
+      {
+        "plot": "line4.json",
+        "thumbnail": "line4_raytrace_640x360.jpg",
+        "image": "line4_raytrace_3840x2160.jpg",
+        "title": "Multi Series Line Chart",
+        "description": "A multi series line chart"
+      },
+      {
+        "plot": "line2.json",
+        "thumbnail": "line2_raytrace_640x360.jpg",
+        "image": "line2_raytrace_3840x2160.jpg",
+        "title": "Multi Series Line Chart",
+        "description": "A multi series line chart"
+      },
+      {
+        "plot": "line1.json",
+        "thumbnail": "line1_raytrace_640x360.jpg",
+        "image": "line1_raytrace_3840x2160.jpg",
+        "title": "Single Series Line Chart",
+        "description": "A single series line chart"
+      },
+      {
+        "plot": "line3.json",
+        "thumbnail": "line3_raytrace_640x360.jpg",
+        "image": "line3_raytrace_3840x2160.jpg",
+        "title": "Faceted Line Chart",
+        "description": "A faceted line chart"
+      }
+    ]
+  },
+  {
+    "title": "Unit Charts",
+    "description": "Unit chart visualizations",
+    "plots": [
+      {
+        "plot": "bar11.json",
+        "thumbnail": "bar11_raytrace_640x360.jpg",
+        "image": "bar11_raytrace_3840x2160.jpg",
+        "title": "Unit Histogram",
+        "description": "A unit histogram",
+        "notes": "<p>Some randomness has been introduced into the stack positions.</p><p>Includes an accent light.</p>"
+      },
+      {
+        "plot": "histogram1.json",
+        "thumbnail": "histogram1_raytrace_640x360.jpg",
+        "image": "histogram1_raytrace_3840x2160.jpg",
+        "title": "Unit Histogram",
+        "description": "A unit histogram of the sum of rolling 2 dice, highlighting doubles"
+      },
+      {
+        "plot": "histogram2.json",
+        "thumbnail": "histogram2_raytrace_640x360.jpg",
+        "image": "histogram2_raytrace_3840x2160.jpg",
+        "title": "Unit Histogram",
+        "description": "A unit histogram of a 2D normal distribution using the Box-Muller transform, showing standard deviations as color"
+      },
+      {
+        "plot": "bar10.json",
+        "thumbnail": "bar10_raytrace_640x360.jpg",
+        "image": "bar10_raytrace_3840x2160.jpg",
+        "title": "Unit Histogram",
+        "description": "A unit histogram"
+      },
+      {
+        "plot": "messystack1.json",
+        "thumbnail": "messystack1_raytrace_640x360.jpg",
+        "image": "messystack1_raytrace_3840x2160.jpg",
+        "title": "Messy Stack",
+        "description": "A stack of labelled blocks with random size and rotation"
+      }
+    ]
+  },
+  {
+    "title": "Network Diagrams",
+    "description": "Network visualizations",
+    "plots": [
+      {
+        "plot": "nodelink1.json",
+        "thumbnail": "nodelink1_raytrace_640x360.jpg",
+        "image": "nodelink1_raytrace_3840x2160.jpg",
+        "title": "Node Link",
+        "description": "Regular dodecahedron as a node link chart"
+      }
+    ]
+  },
+  {
+    "title": "Donut & Pie Charts",
+    "description": "Donut and pie chart visualizations",
+    "plots": [
+      {
+        "plot": "donut1.json",
+        "thumbnail": "donut1_raytrace_640x360.jpg",
+        "image": "donut1_raytrace_3840x2160.jpg",
+        "title": "Donut Chart",
+        "description": "A donut chart with ring segments"
+      },
+      {
+        "plot": "donut2.json",
+        "thumbnail": "donut2_raytrace_640x360.jpg",
+        "image": "donut2_raytrace_3840x2160.jpg",
+        "title": "Donut Chart",
+        "description": "A donut chart with ring segments and rotated labels"
+      },
+      {
+        "plot": "donut3.json",
+        "thumbnail": "donut3_raytrace_640x360.jpg",
+        "image": "donut3_raytrace_3840x2160.jpg",
+        "title": "Faceted Pie Charts",
+        "description": "Faceted pie charts"
+      }
+    ]
+  }
+]
