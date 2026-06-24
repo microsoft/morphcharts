@@ -35,6 +35,67 @@
     <figcaption>Figure 1. A selection of geometric primitives.</figcaption>
   </figure>
 
+  <p><a href="../client.html?spec=docs/primitives1">View in Online Editor</a></p>
+
+  <table>
+    <tr>
+      <th>Geometry</th>
+      <th>Description</th>
+    </tr>
+    <tr>
+      <td><code>box</code></td>
+      <td>Cuboid. Default for <code>rect</code> marks.</td>
+    </tr>
+    <tr>
+      <td><code>sphere</code></td>
+      <td>Sphere. Radius determined by <code>width</code>.</td>
+    </tr>
+    <tr>
+      <td><code>cylinder</code></td>
+      <td>Cylinder. Default for <code>line</code> and <code>rule</code> marks.</td>
+    </tr>
+    <tr>
+      <td><code>hexprism</code></td>
+      <td>Hexagonal prism.</td>
+    </tr>
+    <tr>
+      <td><code>boxframe</code></td>
+      <td>Open cuboid with thick edges.</td>
+    </tr>
+    <tr>
+      <td><code>tube</code></td>
+      <td>Hollow cylinder.</td>
+    </tr>
+    <tr>
+      <td><code>ring</code></td>
+      <td>Ring segment. Default for <code>arc</code> marks.</td>
+    </tr>
+    <tr>
+      <td><code>torus</code></td>
+      <td>Capped torus segment. Alternative for <code>arc</code> marks.</td>
+    </tr>
+    <tr>
+      <td><code>xyrect</code></td>
+      <td>Flat rectangle in the XY plane.</td>
+    </tr>
+    <tr>
+      <td><code>xzrect</code></td>
+      <td>Flat rectangle in the XZ plane (ground plane).</td>
+    </tr>
+    <tr>
+      <td><code>yzrect</code></td>
+      <td>Flat rectangle in the YZ plane.</td>
+    </tr>
+  </table>
+
+  <p>
+    The <code>rounding</code> encoding property controls edge rounding radius.
+    Supported by <code>box</code>, <code>cylinder</code>, <code>hexprism</code>, <code>boxframe</code>,
+    and <code>tube</code>.
+    When <code>rounding</code> is specified on <code>box</code> or <code>cylinder</code>, the renderer
+    automatically uses the SDF variant for rounded edges.
+  </p>
+
   <nav class="page-nav">
     <a href="./coordinates.html">Previous</a>
     <a href="./rendering.html">Next</a>
