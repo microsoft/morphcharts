@@ -399,7 +399,8 @@ export class Main {
         const start = performance.now();
 
         // GPU initialization and sample loading run in parallel
-        const sample = new URLSearchParams(window.location.search).get("plot");
+        const urlParams = new URLSearchParams(window.location.search);
+        const sample = urlParams.get("spec") || urlParams.get("plot");
         try {
             await Promise.all([
                 // GPU: adapter, device, pipeline compilation
@@ -414,8 +415,8 @@ export class Main {
                 }),
                 // Sample: load initial spec from querystring or use empty spec
                 this._loadInitialSampleAsync(sample),
-                // Gallery: load sample index and build gallery grid
-                this._loadGalleryAsync(),
+                // Samples: load sample index and build samples grid
+                this._loadSamplesAsync(),
             ]);
         }
         catch (error) {
@@ -435,8 +436,9 @@ export class Main {
         const emptySpec = "{}";
         if (sample) {
             const value = sample.toLowerCase().endsWith(".json") ? sample : `${sample}.json`;
+            const path = value.includes("/") ? `${value.substring(0, value.lastIndexOf("/"))}/specs/${value.substring(value.lastIndexOf("/") + 1)}` : `samples/specs/${value}`;
             try {
-                const text = await fetch(`samples/${value}`).then(response => response.text());
+                const text = await fetch(path).then(response => response.text());
                 this._sampleLoaded(text);
             }
             catch (error) {
@@ -447,15 +449,15 @@ export class Main {
         else { this._sampleLoaded(emptySpec); }
     }
 
-    private async _loadGalleryAsync(): Promise<void> {
+    private async _loadSamplesAsync(): Promise<void> {
         this._samplesPopup = document.getElementById("samplesPopup") as HTMLDivElement;
         const samplesCloseButton = document.getElementById("samplesCloseButton") as HTMLButtonElement;
         samplesCloseButton.onclick = () => { this._samplesPopup.style.display = "none"; };
         const samplesContainer = document.getElementById("samples") as HTMLDivElement;
-        const categories = await Common.loadSampleIndex("samples/index.json");
-        Common.renderGalleryGrid(samplesContainer, categories, async (plot) => {
+        const categories = await Common.loadSampleIndex("samples/specs/index.json");
+        Common.renderSamplesGrid(samplesContainer, categories, async (plot) => {
             this._samplesPopup.style.display = "none";
-            await this._loadSampleAsync(`samples/${plot.plot}`);
+            await this._loadSampleAsync(`samples/specs/${plot.plot}`);
         });
         const samplesButton = document.getElementById("samplesButton") as HTMLAnchorElement;
         samplesButton.onclick = () => { this._samplesPopup.style.display = "flex"; };

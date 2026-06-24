@@ -46,10 +46,13 @@ export class Arc extends Mark {
         let unitType: string;
         switch (this.geometry && this.geometry.toLowerCase()) {
             default:
+            case "ring":
+            case "ringsdf":
                 unitType = "ringsdf";
                 break;
+            case "torus":
             case "cappedtorussdf":
-                unitType = this.geometry.toLowerCase();
+                unitType = "cappedtorussdf";
                 break;
         }
         buffer.unitType = unitType;

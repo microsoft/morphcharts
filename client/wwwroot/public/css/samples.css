@@ -1,0 +1,70 @@
+.samplesGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+.samplesContainer {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    border: 1px solid gainsboro;
+    border-radius: 4px;
+}
+
+.samplesContainer:hover {
+    text-decoration: none;
+    border-color: gray;
+}
+
+.samplesImage {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 4px;
+}
+
+.samplesTitle {
+    padding: 4px 0;
+    text-align: center;
+}
+
+.samplesHeading {
+    margin-top: 0px;
+    margin-bottom: 8px;
+}
+
+.samplesHeading:first-child {
+    margin-top: 0;
+}
+
+.samplesDescription {
+    margin-bottom: 12px;
+}
+
+.samplesNotes {
+    margin-top: 12px;
+}
+
+.samplesNotes p:first-child {
+    margin-top: 0;
+}
+
+.samplesNotes p {
+    margin: 8px 0;
+}
+
+.samplesNotes p:last-child {
+    margin-bottom: 0;
+}
+
+#samplesDetail img {
+    width: 100%;
+    height: auto;
+}
+
+#samplesDetailTryLink {
+    display: inline-block;
+    margin: 12px 0;
+}

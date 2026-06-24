@@ -2,45 +2,162 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>MorphCharts - Gallery</title>
-    <link rel="stylesheet" href="./css/common.css">
-    <link rel="stylesheet" href="./css/gallery.css">
-    <script type="module" src="./js/gallery.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MorphCharts - Gallery</title>
+  <link rel="stylesheet" href="./css/common.css">
+  <style>
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+
+    .gallery-item img {
+      border: 1px solid gainsboro;
+      border-radius: 8px;
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .gallery-caption {
+      padding: 8px 0;
+      color: gray;
+      font-size: 0.85em;
+    }
+  </style>
 </head>
 
 <body>
-    <header>
-        <a href="./index.html">Home</a>
-        <a href="./client.html">Try Online</a>
-        <a href="./gallery.html">Gallery</a>
-        <a href="./docs/index.html">Docs</a>
-        <a href="https://github.com/microsoft/morphcharts">GitHub</a>
-    </header>
+  <header>
+    <a href="./index.html">Home</a>
+    <a href="./client.html">Try Online</a>
+    <a href="./samples.html">Samples</a>
+    <a href="./gallery.html">Gallery</a>
+    <a href="./docs/index.html">Docs</a>
+    <a href="https://github.com/microsoft/morphcharts">GitHub</a>
+  </header>
 
-    <h1>Gallery</h1>
-    <div id="content" style="visibility: hidden;"></div>
+  <h1>Gallery</h1>
 
-    <!-- Detail view (hidden until a sample is selected) -->
-    <div id="galleryDetail" style="display: none;">
-        <h2 id="galleryDetailTitle" class="galleryHeading"></h2>
-        <div id="galleryDetailDescription" class="galleryDescription"></div>
-        <img id="galleryDetailImage" alt="">
-        <div id="galleryDetailNotes" class="galleryNotes"></div>
-        <a id="galleryDetailTryLink">View in Online Editor</a>
-        <h3>Specification</h3>
-        <pre><code id="galleryDetailSpec"></code></pre>
+  <div class="gallery-grid">
+    <div class="gallery-item">
+      <a href="./client.html?spec=gallery/ustornados1"><img src="./gallery/images/ustornados1_raytrace_3840x2160.jpg"
+          alt="US Tornadoes" loading="lazy"></a>
+      <div class="gallery-caption">US Tornadoes 1950-2024 Mercator hex bins. Imagery courtesy of the <a
+          href="https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer">U.S. Geological Survey
+          National Map</a>. Tornado data courtesy of the <a href="https://www.spc.noaa.gov/wcm/#data">NOAA Storm
+          Prediction Center</a>.</div>
     </div>
+    <div class="gallery-item">
+      <a href="./client.html?spec=gallery/earthquakes1"><img src="./gallery/images/earthquakes1_raytrace_3840x2160.jpg"
+          alt="Global Earthquakes" loading="lazy"></a>
+      <div class="gallery-caption">Global Earthquakes 2000-2025 on a spherical projection. Blue Marble imagery courtesy
+        of <a href="https://science.nasa.gov/earth/earth-observatory/">NASA Earth Observatory</a>. Earthquake data
+        courtesy of <a href="https://earthquake.usgs.gov">U.S. Geological Survey, Earthquake Hazards Program</a>.
+        </p>
+      </div>
+    </div>
+    <div class="gallery-item">
+      <a href="./client.html?spec=gallery/flarecirclepack1"><img src="./gallery/images/flarecirclepack1_raytrace_3840x2160.jpg"
+          alt="Flare Circle Pack" loading="lazy"></a>
+      <div class="gallery-caption">The Flare visualization library as a circle packing chart. Note the use of the
+        <code>sort</code> property in the <code>pack</code> transform to sort the data by the <code>size</code> column.
+        This results in more efficient packing than using the data in its original order. Data linked from <a
+          href="https://github.com/vega/vega-datasets">vega-datasets</a>.
+      </div>
+    </div>
+    <div class="gallery-item">
+      <a href="./client.html?spec=gallery/flaretreemap1"><img src="./gallery/images/flaretreemap1_raytrace_3840x2160.jpg"
+          alt="Flare Treemap" loading="lazy"></a>
+      <div class="gallery-caption">The Flare visualization library as a hierarchical treemap. The labels have been
+        rotated to follow the aspect ratio of the blocks. A <code>paddingOuter</code> creates a margin around groups of
+        child blocks, leaving space for a label. Leaf node labels are scaled according the the block size. Data linked
+        from <a href="https://github.com/vega/vega-datasets">vega-datasets</a>.</div>
+    </div>
+    <div class="gallery-item">
+      <a href="./client.html?spec=gallery/flaresunburst1"><img src="./gallery/images/flaresunburst1_raytrace_3840x2160.jpg"
+          alt="Flare Sunburst" loading="lazy"></a>
+      <div class="gallery-caption">The Flare visualization library as a sunburst chart with rotated labels. Data linked
+        from <a href="https://github.com/vega/vega-datasets">vega-datasets</a>.</div>
+    </div>
+    <div class="gallery-item">
+      <a href="./client.html?spec=gallery/electiontreemap1"><img src="./gallery/images/electiontreemap1_raytrace_3840x2160.jpg"
+          alt="US Election Treemap" loading="lazy"></a>
+      <div class="gallery-caption">The 2012 US Presidential election results by county as faceted treemaps. Each
+        state is a separate treemap, with each county sized according to its total population, and colored according
+        to the percentage of votes for Obama (blue) to Romney (red). The heights of the blocks also represent total
+        population. Only the continental US is included and the states are ordered alphabetically. The labels have been
+        rotated to follow the aspect ratio of the blocks, and scaled to the block size (with a maximum font size). The
+        word &quot;County&quot; has been removed from each county for clarity. Data linked from <a
+          href="https://github.com/microsoft/sanddance">SandDance</a>.
+      </div>
+    </div>
+    <div class="gallery-item">
+      <a href="./client.html?spec=gallery/lesmis1"><img
+          src="./gallery/images/lesmis1_raytrace_3840x2160.jpg" alt="Les Misérables Adjacency Matrix"
+          loading="lazy"></a>
+      <div class="gallery-caption">An adjacency matrix showing character co-occurrence in Les Misérables. This
+        visualization shows character relationships in Victor Hugo's novel, <a
+          href="https://en.wikipedia.org/wiki/Les_Misérables">Les Misérables</a>. The data is a network, where
+        nodes represent characters in the novel, and edges represent two characters appearing in the same chapter.
+        While this data can be drawn as a node-link graph, this chart is an adjacency matrix. Since co-occurrences are
+        not directed, the chart is symmetrical. The characters are ordered according to a clustering algorithm which
+        detects character communities, rather than alphabetically, or by total co-occurrences. <a
+          href="https://www-cs-faculty.stanford.edu/~knuth/sgb.html">D. E. Knuth, The Stanford GraphBase: A
+          Platform for Combinatorial Computing, Addison-Wesley, Reading, MA (1993)</a>. Data linked from <a
+          href="https://github.com/vega/vega-datasets">vega-datasets</a>.
+      </div>
+    </div>
+    <div class="gallery-item">
+      <a href="./client.html?spec=gallery/populationpyramid1"><img
+          src="./gallery/images/populationpyramid1_raytrace_3840x2160.jpg" alt="US Population Pyramid"
+          loading="lazy"></a>
+      <div class="gallery-caption">Population Pyramid of US Census from 1850 to 2000. Note the <a
+          href="https://en.wikipedia.org/wiki/1890_United_States_census#Data_availability">missing data</a> for year
+        1890. U.S. population counts by age group (0-90+ in 5-year intervals) and sex for each decade between 1850 and
+        2000, collected and harmonized from historical census records by IPUMS USA. IPUMS updates and revises datasets
+        over time, which may result in discrepancies with current IPUMS data. <a
+          href="http://doi.org/10.18128/D010.V6.0">Steven Ruggles, Katie Genadek, Ronald Goeken, Josiah Grover, and
+          Matthew Sobek. Integrated Public Use Microdata Series: Version 6.0. Minneapolis: University of Minnesota,
+          2015. http://doi.org/10.18128/D010.V6.0</a>. Data linked from <a
+          href="https://github.com/vega/vega-datasets">vega-datasets</a>.
+      </div>
+    </div>
+    <div class="gallery-item">
+      <a href="./client.html?spec=gallery/uspolio1"><img src="./gallery/images/uspolio1_raytrace_3840x2160.jpg"
+          alt="US Polio cases" loading="lazy"></a>
+      <div class="gallery-caption">US Polio cases from 1928 to 1968. This is a 3D version of a chart which appeared in a
+        Wall Street Journal <a href="http://graphics.wsj.com/infectious-diseases-and-vaccines/">article</a>. The blocks
+        are sized and colored by cases per 100,000 people. The vaccine was introduced in 1955.
+        Data linked from <a href="https://github.com/microsoft/charticulator.com">Charticulator</a>.
+      </div>
+    </div>
+    <div class="gallery-item">
+      <a href="./client.html?spec=gallery/ustornados2"><img src="./gallery/images/ustornados2_raytrace_3840x2160.jpg"
+          alt="US Tornadoes scatter" loading="lazy"></a>
+      <div class="gallery-caption">US Tornadoes 1950-2024 unit histogram by strength and month of year. Tornado data
+        courtesy of the <a href="https://www.spc.noaa.gov/wcm/#data">NOAA Storm Prediction Center</a>.</div>
+    </div>
+    <div class=" gallery-item">
+      <a href="./client.html?spec=gallery/lissajous1"><img src="./gallery/images/lissajous1_raytrace_3840x2160.jpg"
+          alt="Lissajous Curve" loading="lazy"></a>
+      <div class="gallery-caption">A 3D Lissajous curve. The curve is defined by three parametric <code>sin</code>
+        functions, and drawn as a line with <code>rows</code> line segments, and thickness <code>strokeWidth</code>.
+        Try varying <code>a</code>, <code>b</code>, and <code>c</code> for different effects.
+        The color can be varied using a scale along the <code>t</code> field (uncomment the <code>_fill</code>).
+      </div>
+    </div>
+  </div>
 
-    <footer style="visibility: hidden;">
-        <span>© 2026 Microsoft</span>
-        <a href="https://go.microsoft.com/fwlink/?LinkId=521839">Privacy &amp; Cookies</a>
-        <a href="https://go.microsoft.com/fwlink/?linkid=2259814">Consumer Health Privacy</a>
-        <a href="https://www.microsoft.com/trademarks">Trademarks</a>
-        <a href="https://www.microsoft.com/en-us/servicesagreement/">Terms of Use</a>
-    </footer>
-    <script src="./js/copy.js"></script>
+  <footer>
+    <span>© 2026 Microsoft</span>
+    <a href="https://go.microsoft.com/fwlink/?LinkId=521839">Privacy &amp; Cookies</a>
+    <a href="https://go.microsoft.com/fwlink/?linkid=2259814">Consumer Health Privacy</a>
+    <a href="https://www.microsoft.com/trademarks">Trademarks</a>
+    <a href="https://www.microsoft.com/en-us/servicesagreement/">Terms of Use</a>
+  </footer>
 </body>
 
 </html>

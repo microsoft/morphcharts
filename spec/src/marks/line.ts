@@ -162,14 +162,21 @@ export class Line extends Mark {
         let unitType;
         switch (this.geometry && this.geometry.toLowerCase()) {
             default:
+            case "box":
                 unitType = "box";
                 break;
-            case "box":
             case "boxsdf":
+                unitType = "boxsdf";
+                break;
             case "cylinder":
+                unitType = "cylinder";
+                break;
             case "cylindersdf":
+                unitType = "cylindersdf";
+                break;
+            case "tube":
             case "tubesdf":
-                unitType = this.geometry.toLowerCase();
+                unitType = "tubesdf";
                 break;
         }
         buffer.unitType = unitType;

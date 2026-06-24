@@ -28,29 +28,29 @@ export class Common {
         }
     }
 
-    static renderGalleryGrid(container: HTMLElement, categories: ISampleCategory[], onPlotClick?: (plot: ISamplePlot) => void): void {
-        const imageFolder = "gallery";
+    static renderSamplesGrid(container: HTMLElement, categories: ISampleCategory[], onPlotClick?: (plot: ISamplePlot) => void): void {
+        const imageFolder = "samples/images";
         for (const category of categories) {
             // Add an id for deep linking to the category
             const categoryId = category.title.toLowerCase().replace(/\s+/g, "-");
             const h2 = document.createElement("h2");
-            h2.className = "galleryHeading";
+            h2.className = "samplesHeading";
             h2.id = categoryId;
             h2.textContent = category.title;
             container.appendChild(h2);
 
             const desc = document.createElement("div");
-            desc.className = "galleryDescription";
+            desc.className = "samplesDescription";
             desc.innerText = category.description;
             container.appendChild(desc);
 
             const grid = document.createElement("div");
-            grid.className = "galleryGrid";
+            grid.className = "samplesGrid";
             for (const plot of category.plots) {
                 const name = plot.plot.replace(".json", "");
                 const a = document.createElement("a");
-                a.className = "galleryContainer";
-                a.href = `gallery.html?plot=${encodeURIComponent(name)}`;
+                a.className = "samplesContainer";
+                a.href = `samples.html?plot=${encodeURIComponent(name)}`;
 
                 if (onPlotClick) {
                     a.onclick = (e) => {
@@ -60,14 +60,14 @@ export class Common {
                 }
 
                 const img = document.createElement("img");
-                img.className = "galleryImage";
+                img.className = "samplesImage";
                 img.src = `${imageFolder}/${plot.thumbnail}`;
                 img.alt = plot.title;
                 img.loading = "lazy";
                 a.appendChild(img);
 
                 const title = document.createElement("div");
-                title.className = "galleryTitle";
+                title.className = "samplesTitle";
                 title.textContent = plot.title;
                 a.appendChild(title);
 

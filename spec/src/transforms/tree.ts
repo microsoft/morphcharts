@@ -69,14 +69,20 @@ export class Tree3D extends Transform {
         switch (method) {
             default:
             case "tree":
-                const edgeLengthScaling = this._transformJSON.lengthScaling == undefined ? 1 : this._transformJSON.lengthScaling;
-                const branchAngle = this._transformJSON.angle == undefined ? 0 : this._transformJSON.angle * Core.Constants.RADIANS_PER_DEGREE;
-                const twistAngle = this._transformJSON.twist == undefined ? 0 : this._transformJSON.twist * Core.Constants.RADIANS_PER_DEGREE;
-                const minEdgeLength = this._transformJSON.minLength == undefined ? 0.01 : this._transformJSON.minLength;
-                const randomBranchAngle = this._transformJSON.randomAngle == undefined ? 0 : this._transformJSON.randomAngle * Core.Constants.RADIANS_PER_DEGREE;
-                const randomTwistAngle = this._transformJSON.randomTwist == undefined ? 0 : this._transformJSON.randomTwist * Core.Constants.RADIANS_PER_DEGREE;
-                const randomSplitAngle = this._transformJSON.randomSplit == undefined ? 0 : this._transformJSON.randomSplit * Core.Constants.RADIANS_PER_DEGREE;
-                const randomEdgeLengthScaling = this._transformJSON.randomLengthScaling == undefined ? 0 : this._transformJSON.randomLengthScaling;
+                const parseValue = (v: any, defaultValue: number) => {
+                    if (v == undefined) return defaultValue;
+                    if (typeof v == "number") return v;
+                    if (typeof v == "object" && v.signal) return group.parseSignalValue(v.signal);
+                    return defaultValue;
+                };
+                const edgeLengthScaling = parseValue(this._transformJSON.lengthScaling, 1);
+                const branchAngle = parseValue(this._transformJSON.angle, 0) * Core.Constants.RADIANS_PER_DEGREE;
+                const twistAngle = parseValue(this._transformJSON.twist, 0) * Core.Constants.RADIANS_PER_DEGREE;
+                const minEdgeLength = parseValue(this._transformJSON.minLength, 0.01);
+                const randomBranchAngle = parseValue(this._transformJSON.randomAngle, 0) * Core.Constants.RADIANS_PER_DEGREE;
+                const randomTwistAngle = parseValue(this._transformJSON.randomTwist, 0) * Core.Constants.RADIANS_PER_DEGREE;
+                const randomSplitAngle = parseValue(this._transformJSON.randomSplit, 0) * Core.Constants.RADIANS_PER_DEGREE;
+                const randomEdgeLengthScaling = parseValue(this._transformJSON.randomLengthScaling, 0);
                 const positionsX = new Float32Array(dataset.length);
                 const positionsY = new Float32Array(dataset.length);
                 const positionsZ = new Float32Array(dataset.length);
@@ -119,6 +125,19 @@ export class Tree3D extends Transform {
                     twistAngleValues = dataset.all.columnValues(columnIndex, false);
                 }
 
+                // Size
+                let treeSize: [number, number, number] | undefined;
+                if (this._transformJSON.size) {
+                    const size = this._transformJSON.size;
+                    if (Array.isArray(size)) {
+                        treeSize = [
+                            size.length > 0 ? parseValue(size[0], 0) : 0,
+                            size.length > 1 ? parseValue(size[1], 0) : 0,
+                            size.length > 2 ? parseValue(size[2], 0) : 0,
+                        ];
+                    }
+                }
+
                 // Build tree
                 const options: Core.ITree3DOptions = {
                     rootId: hierarchy.rootIds[0],
@@ -128,6 +147,7 @@ export class Tree3D extends Transform {
                     positionsX: positionsX,
                     positionsY: positionsY,
                     positionsZ: positionsZ,
+                    size: treeSize,
                     edgeLengthScaling: edgeLengthScaling,
                     branchAngle: branchAngle,
                     twistAngle: twistAngle,

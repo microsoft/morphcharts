@@ -123,7 +123,16 @@ class TestRunner {
             .split('\n')
             .map(s => s.trim())
             .filter(s => s.length > 0 && !s.startsWith('#'))
-            .map(s => s.endsWith('.json') ? s : `${s}.json`);
+            .map(s => {
+                // Append .json if needed
+                if (!s.endsWith('.json')) { s = `${s}.json`; }
+                // Inject /specs/ path: gallery/ustornados1.json → gallery/specs/ustornados1.json
+                if (s.includes('/') && !s.includes('/specs/')) {
+                    const i = s.lastIndexOf('/');
+                    s = `${s.substring(0, i)}/specs/${s.substring(i + 1)}`;
+                }
+                return s;
+            });
     }
 
     private _log(text: string): void {
@@ -171,7 +180,7 @@ class TestRunner {
             this._log(`${name}...`);
 
             try {
-                const specText = await fetch(`samples/${spec}`).then(r => r.text());
+                const specText = await fetch(spec).then(r => r.text());
                 const plotJSON = JSON.parse(specText);
 
                 // Setup

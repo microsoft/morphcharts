@@ -14,6 +14,7 @@ export default defineConfig({
         rollupOptions: {
             input: {
                 client: './client/wwwroot/client.html',
+                samples: './client/wwwroot/samples.html',
                 gallery: './client/wwwroot/gallery.html',
                 test: './client/wwwroot/test.html'
             }

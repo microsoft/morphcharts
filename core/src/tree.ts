@@ -17,6 +17,9 @@ export interface ITree3DOptions {
     positionsY: Float32Array;
     positionsZ: Float32Array;
 
+    // Output size (normalise to fit within these dimensions)
+    size?: [number, number, number]; // [width, height, depth]
+
     // Optional parameters
     edgeLengthScaling?: number;
     branchAngle?: number; // [-π/2, π/2] radians
@@ -144,7 +147,7 @@ export class Tree3D {
                 angle += (Math.random() * 2 - 1) * randomBranchAngle;
                 // Clamp angle to [-π/2, π/2] radians
                 angle = Math.max(Math.min(angle, Constants.PI_OVER_TWO), -Constants.PI_OVER_TWO);
-                quaternion.setAxisAngle(Constants.VECTOR3_UNITX, angle, rotation2);
+                quaternion.setAxisAngle(Constants.VECTOR3_UNITZ, angle, rotation2);
                 quaternion.normalize(rotation2, rotation2);
                 quaternion.multiply(rotation1, rotation2, rotation1);
                 rotations[childIndex * 4] = rotation1[0];
@@ -184,13 +187,33 @@ export class Tree3D {
         rotations[index * 4 + 2] = 0;
         rotations[index * 4 + 3] = 1;
         lengths[index] = edgeLengths ? edgeLengths[index] : 1;
-        let minLayoutBoundsX = Number.MAX_VALUE;
-        let minLayoutBoundsY = Number.MAX_VALUE;
-        let minLayoutBoundsZ = Number.MAX_VALUE;
-        let maxLayoutBoundsX = -Number.MAX_VALUE;
-        let maxLayoutBoundsY = -Number.MAX_VALUE;
-        let maxLayoutBoundsZ = -Number.MAX_VALUE;
+        let minLayoutBoundsX = 0;
+        let minLayoutBoundsY = 0;
+        let minLayoutBoundsZ = 0;
+        let maxLayoutBoundsX = 0;
+        let maxLayoutBoundsY = 0;
+        let maxLayoutBoundsZ = 0;
         branch(rootId, indices, children);
+
+        // Normalise to fit within output size
+        if (options.size) {
+            const extentX = maxLayoutBoundsX - minLayoutBoundsX;
+            const extentY = maxLayoutBoundsY - minLayoutBoundsY;
+            const extentZ = maxLayoutBoundsZ - minLayoutBoundsZ;
+            const maxExtent = Math.max(extentX, extentY, extentZ) || 1;
+            const [sizeX, sizeY, sizeZ] = options.size;
+            const minSize = Math.min(sizeX || maxExtent, sizeY || maxExtent, sizeZ || maxExtent);
+            const scale = minSize / maxExtent;
+            const offsetX = sizeX ? (sizeX - extentX * scale) / 2 : 0;
+            const offsetY = sizeY ? (sizeY - extentY * scale) / 2 : 0;
+            const offsetZ = sizeZ ? (sizeZ - extentZ * scale) / 2 : 0;
+            for (let i = 0; i < ids.length; i++) {
+                positionsX[i] = (positionsX[i] - minLayoutBoundsX) * scale + offsetX;
+                positionsY[i] = (positionsY[i] - minLayoutBoundsY) * scale + offsetY;
+                positionsZ[i] = (positionsZ[i] - minLayoutBoundsZ) * scale + offsetZ;
+            }
+        }
+
         console.log(`tree ${childIds.length} ${Time.formatDuration(performance.now() - start)}`);
     }
 }

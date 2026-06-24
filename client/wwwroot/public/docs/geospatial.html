@@ -12,6 +12,7 @@
   <header>
     <a href="../index.html">Home</a>
     <a href="../client.html">Try Online</a>
+    <a href="../samples.html">Samples</a>
     <a href="../gallery.html">Gallery</a>
     <a href="./index.html">Docs</a>
     <a href="https://github.com/microsoft/morphcharts">GitHub</a>
@@ -21,7 +22,7 @@
 
   <nav class="page-nav">
     <a href="./materials.html">Previous</a>
-    <a href="./prerequisites.html">Next</a>
+    <a href="./textures.html">Next</a>
   </nav>
 
   <p>
@@ -44,7 +45,7 @@
   </p>
 
   <figure>
-    <img src="../gallery/ustornados1_raytrace_1920x1080.jpg" alt="US Tornados Mercator hex bin example">
+    <img src="../gallery/images/ustornados1_raytrace_1920x1080.jpg" alt="US Tornados Mercator hex bin example">
     <figcaption>Figure 1. US Tornados Mercator hex bin example.</figcaption>
   </figure>
 
@@ -58,7 +59,7 @@
   <pre><code id="hexBinSpec"></code></pre>
   <div class="listing-caption">Listing 1. US Tornados Mercator hex bin example</div>
 
-  <p><a href="../client.html?plot=ustornados1">View in Online Editor</a></p>
+  <p><a href="../client.html?plot=gallery/ustornados1">View in Online Editor</a></p>
 
   <h3 id="projection">Projection</h3>
 
@@ -267,7 +268,7 @@
   </p>
 
   <figure>
-    <img src="../gallery/earthquakes1_raytrace_1920x1080.jpg" alt="Earthquakes globe example">
+    <img src="../gallery/images/earthquakes1_raytrace_1920x1080.jpg" alt="Earthquakes globe example">
     <figcaption>Figure 2. Earthquakes globe example.</figcaption>
   </figure>
 
@@ -280,7 +281,7 @@
   <pre><code id="globeSpec"></code></pre>
   <div class="listing-caption">Listing 2. Earthquakes globe example</div>
 
-  <p><a href="../client.html?plot=earthquakes1">View in Online Editor</a></p>
+  <p><a href="../client.html?plot=gallery/earthquakes1">View in Online Editor</a></p>
 
   <h3 id="globe-data">Data</h3>
 
@@ -343,7 +344,7 @@
 
   <nav class="page-nav">
     <a href="./materials.html">Previous</a>
-    <a href="./prerequisites.html">Next</a>
+    <a href="./textures.html">Next</a>
   </nav>
 
   <footer>
@@ -356,10 +357,10 @@
 
   <script src="../js/copy.js"></script>
   <script>
-    fetch('../samples/ustornados1.json')
+    fetch('../gallery/specs/ustornados1.json')
       .then(r => r.text())
       .then(text => { document.getElementById('hexBinSpec').textContent = text; });
-    fetch('../samples/earthquakes1.json')
+    fetch('../gallery/specs/earthquakes1.json')
       .then(r => r.text())
       .then(text => { document.getElementById('globeSpec').textContent = text; });
   </script>
