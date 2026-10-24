@@ -18,6 +18,16 @@ export interface ISampleCategory {
 
 export class Common {
     static initialSamplePath(sample: string): string {
+        if (/^(?:https?:)?\/\//i.test(sample)) {
+            const protocolRelative = sample.startsWith("//");
+            const url = new URL(protocolRelative ? `https:${sample}` : sample);
+            const slash = url.pathname.lastIndexOf("/");
+            let filename = url.pathname.slice(slash + 1);
+            if (!filename) { throw new Error("invalid sample URL"); }
+            if (!filename.toLowerCase().endsWith(".json")) { filename += ".json"; }
+            url.pathname = `${url.pathname.slice(0, slash)}/specs/${filename}`;
+            return protocolRelative ? url.href.slice(url.protocol.length) : url.href;
+        }
         const name = sample.toLowerCase().endsWith(".json") ? sample.slice(0, -5) : sample;
         const match = /^(?:(samples|gallery|docs)\/)?([a-zA-Z0-9_-]+)$/.exec(name);
         if (!match || match[0] != name) { throw new Error("invalid sample identifier"); }

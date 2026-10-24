@@ -6,11 +6,10 @@ import { test } from "node:test";
 import { Common } from "../wwwroot/js/common.js";
 
 const invalidSamples = [
-    "https://attacker.example/payload",
-    "http://attacker.example/payload",
-    "//attacker.example/payload",
     "javascript:alert(1)",
     "data:application/json,{}",
+    "file:///payload",
+    "ftp://example.com/payload",
     "../payload",
     "/payload",
     "samples/../payload",
@@ -34,7 +33,7 @@ const invalidSamples = [
     "payload\u0000",
 ];
 
-test("sample identifiers resolve only to bundled spec directories", () => {
+test("sample identifiers resolve to bundled spec directories", () => {
     for (const [sample, expected] of [
         ["bar1", "samples/specs/bar1.json"],
         ["bar1.json", "samples/specs/bar1.json"],
@@ -51,6 +50,19 @@ test("sample identifiers resolve only to bundled spec directories", () => {
     }
     for (const sample of invalidSamples) {
         assert.throws(() => Common.initialSamplePath(sample), /invalid sample identifier/, sample);
+    }
+});
+
+test("external HTTP(S) URLs retain the existing specs directory mapping", () => {
+    for (const [sample, expected] of [
+        ["https://example.com/payload", "https://example.com/specs/payload.json"],
+        ["http://example.com/payload.json", "http://example.com/specs/payload.json"],
+        ["//example.com/payload", "//example.com/specs/payload.json"],
+        ["https://example.com/charts/payload.json", "https://example.com/charts/specs/payload.json"],
+        ["https://example.com/payload.JSON", "https://example.com/specs/payload.JSON"],
+        ["https://example.com/payload.json?version=2", "https://example.com/specs/payload.json?version=2"],
+    ]) {
+        assert.equal(Common.initialSamplePath(sample), expected);
     }
 });
 
@@ -90,4 +102,22 @@ test("initial loading fetches a valid bundled spec and installs its text", async
     assert.equal(fetchMock.mock.calls[0].arguments[0], "gallery/specs/earthquakes1.json");
     assert.equal(fetchMock.mock.callCount(), 1);
     assert.equal(loaded, spec);
+});
+
+test("initial loading accepts external specs without bypassing expression validation", async t => {
+    const { Main } = await import("../wwwroot/js/client.js");
+    const { Signal } = await import("../../spec/dist/signal.js");
+    const spec = JSON.stringify({
+        signals: [{
+            name: "unsafe",
+            update: "('a')['constructor']['constructor']('alert(document.domain)')()",
+        }],
+    });
+    const fetchMock = t.mock.method(globalThis, "fetch", async () => ({ text: async () => spec }));
+    let loaded;
+    const client = { _sampleLoaded: text => { loaded = text; } };
+    await Main.prototype._loadInitialSampleAsync.call(client, "https://example.com/payload");
+    assert.equal(fetchMock.mock.calls[0].arguments[0], "https://example.com/specs/payload.json");
+    assert.equal(loaded, spec);
+    assert.throws(() => Signal.fromJSON(undefined, JSON.parse(loaded).signals[0]), /expression/);
 });
