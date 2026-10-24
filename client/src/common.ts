@@ -17,6 +17,13 @@ export interface ISampleCategory {
 }
 
 export class Common {
+    static initialSamplePath(sample: string): string {
+        const name = sample.toLowerCase().endsWith(".json") ? sample.slice(0, -5) : sample;
+        const match = /^(?:(samples|gallery|docs)\/)?([a-zA-Z0-9_-]+)$/.exec(name);
+        if (!match || match[0] != name) { throw new Error("invalid sample identifier"); }
+        return `${match[1] ?? "samples"}/specs/${match[2]}.json`;
+    }
+
     static async loadSampleIndex(path: string): Promise<ISampleCategory[]> {
         try {
             const response = await fetch(path);

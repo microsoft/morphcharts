@@ -2,6 +2,7 @@
   "author": "David Brown",
   "scripts": {
     "test-expression": "npm run dev-spec && node --test spec/test/expression.test.mjs",
+    "test-sample-url": "npm run dev-client && node --test client/test/sample-url.test.mjs",
     "dev-core": "tsc -p ./core/tsconfig.json",
     "dev-spec": "tsc -p ./core/tsconfig.json && tsc -p ./spec/tsconfig.json",
     "dev-webgpuraytrace": "tsc -p ./core/tsconfig.json && tsc -p ./renderers/webgpuraytrace/tsconfig.json",
