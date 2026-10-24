@@ -11,7 +11,127 @@ export class Expression {
         return this._buildExpression(this._parseExpression(expr, group, dataset), group, dataset);
     }
 
+    private _validateExpression(expr: string): Set<number> {
+        const indices = new Set<number>();
+        let position = 0;
+        let token = "";
+        let kind: "identifier" | "literal" | "operator" | "end";
+        const next = (): void => {
+            while (expr[position] == " ") { position++; }
+            if (position == expr.length) {
+                token = "";
+                kind = "end";
+                return;
+            }
+            const rest = expr.slice(position);
+            const identifier = /^[a-zA-Z_][a-zA-Z0-9_]*/.exec(rest);
+            const number = /^(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)/.exec(rest);
+            if (identifier) {
+                token = identifier[0];
+                kind = "identifier";
+            }
+            else if (number) {
+                token = number[0];
+                kind = "literal";
+            }
+            else if (rest[0] == "'") {
+                const end = expr.indexOf("'", position + 1);
+                if (end == -1) { throw new Error("expression string not closed"); }
+                token = expr.slice(position, end + 1);
+                kind = "literal";
+            }
+            else {
+                token = /^(?:>=|<=|==|!=|&&|\|\|)/.exec(rest)?.[0] ?? rest[0];
+                kind = "operator";
+            }
+            position += token.length;
+        };
+        const consume = (expected: string): void => {
+            if (token != expected) { throw new Error(`expression expected ${expected}`); }
+            next();
+        };
+        const argumentsOrArray = (closing: string): void => {
+            next();
+            if (token != closing) {
+                conditional();
+                while (token == ",") {
+                    next();
+                    if (token == closing) { break; }
+                    conditional();
+                }
+            }
+            consume(closing);
+        };
+        const primary = (): void => {
+            if (token == "+" || token == "-" || token == "!") {
+                next();
+                primary();
+                return;
+            }
+            if (kind == "literal") {
+                next();
+            }
+            else if (kind == "identifier") {
+                const name = token;
+                next();
+                if (name == "datum" && token == ".") {
+                    next();
+                    if (kind != "identifier") { throw new Error("expression invalid field name"); }
+                    next();
+                }
+                else if (token == "(") {
+                    argumentsOrArray(")");
+                }
+            }
+            else if (token == "(") {
+                next();
+                sequence();
+                consume(")");
+            }
+            else if (token == "[") {
+                argumentsOrArray("]");
+            }
+            else {
+                throw new Error("expression expected value");
+            }
+            while (token == "[") {
+                indices.add(position - 1);
+                next();
+                sequence();
+                consume("]");
+            }
+        };
+        const binary = (): void => {
+            primary();
+            while (["+", "-", "*", "/", "%", "^", ">", "<", ">=", "<=", "==", "!=", "&&", "||"].includes(token)) {
+                next();
+                primary();
+            }
+        };
+        const conditional = (): void => {
+            binary();
+            if (token == "?") {
+                next();
+                conditional();
+                consume(":");
+                conditional();
+            }
+        };
+        const sequence = (): void => {
+            conditional();
+            while (token == ",") {
+                next();
+                conditional();
+            }
+        };
+        next();
+        sequence();
+        if (kind != "end") { throw new Error(`expression unexpected token ${token}`); }
+        return indices;
+    }
+
     private _parseExpression(expr: string, group: Group, dataset: Dataset): string {
+        const indices = this._validateExpression(expr);
         let expression = "";
         let i = 0;
         while (i < expr.length) {
@@ -146,7 +266,27 @@ export class Expression {
                 continue;
             }
 
-            // Brackets
+            // Computed access is limited to numeric indices, never prototype properties.
+            if (indices.has(i)) {
+                const start = ++i;
+                let brackets = 1;
+                while (i < expr.length && brackets > 0) {
+                    if (expr[i] == "'") {
+                        i = expr.indexOf("'", i + 1);
+                        if (i == -1) { throw new Error("expression string not closed"); }
+                    }
+                    else if (expr[i] == "[") { brackets++; }
+                    else if (expr[i] == "]") { brackets--; }
+                    if (brackets > 0) { i++; }
+                }
+                if (brackets != 0) { throw new Error("expression index not closed"); }
+                const index = this._parseExpression(expr.slice(start, i), group, dataset);
+                expression += `[index((${index}))]`;
+                i++;
+                continue;
+            }
+
+            // Grouping and array literals
             if (expr[i] == "(" || expr[i] == ")" || expr[i] == "[" || expr[i] == "]") {
                 expression += expr[i];
                 i++;
@@ -511,7 +651,12 @@ export class Expression {
 
     private _buildExpression(expr: string, group: Group, dataset: Dataset): any {
         // Return evaluatable function
-        return new Function("group", "dataset", "i", `return ${expr}`) as (group: Group, dataset: Dataset, i: number) => any;
+        return new Function("index", "group", "dataset", "i", `return ${expr}`).bind(undefined, (index: unknown): number => {
+            if (typeof index != "number" || !Number.isInteger(index) || index < 0) {
+                throw new Error("expression index must be a non-negative integer");
+            }
+            return index;
+        }) as (group: Group, dataset: Dataset, i: number) => any;
     }
 
     private _finalClosingBracketIndex(expr: string, startIndex: number, openBrackets: number = 0): number {

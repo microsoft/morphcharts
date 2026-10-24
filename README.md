@@ -19,6 +19,8 @@ The JSON specification can define data sources and transformations, scales, axes
 
 The [Try Online](https://microsoft.github.io/morphcharts/client.html) page also supports using **local files**.
 
+Expressions in specifications support named built-in functions, dataset fields, and numeric array/string indexing. General JavaScript property access and calls on expression results are not supported; use `datum['field name']` for dataset columns and helpers such as `length(value)` for string or array lengths.
+
 ### Gallery
 
 Check out the [Gallery](https://microsoft.github.io/morphcharts/gallery.html) to see more examples.
@@ -66,3 +68,5 @@ The project can be installed and run locally using the following steps:
 2.  `npm install` to install any required dependencies
 3.  Build the project using `npm run dev-client`
 4.  Start the web site using `npm run start-client`, which also opens the `client.html` page in the default web browser
+
+Run the expression parser regression tests with `npm run test-expression`.
