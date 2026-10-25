@@ -19,10 +19,6 @@ The JSON specification can define data sources and transformations, scales, axes
 
 The [Try Online](https://microsoft.github.io/morphcharts/client.html) page also supports using **local files**.
 
-The client's `spec` and `plot` query parameters accept a bare sample name or a name prefixed with `samples/`, `gallery/`, or `docs/`, optionally ending in `.json`. External HTTP(S) and protocol-relative URLs are also supported: for example, `https://example.com/charts/demo` loads `https://example.com/charts/specs/demo.json`. External servers must permit cross-origin requests. Other protocols and local traversal paths are not accepted.
-
-Expressions in specifications support named built-in functions, dataset fields, and numeric array/string indexing. General JavaScript property access and calls on expression results are not supported; use `datum['field name']` for dataset columns and helpers such as `length(value)` for string or array lengths.
-
 ### Gallery
 
 Check out the [Gallery](https://microsoft.github.io/morphcharts/gallery.html) to see more examples.
