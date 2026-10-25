@@ -70,6 +70,3 @@ The project can be installed and run locally using the following steps:
 2.  `npm install` to install any required dependencies
 3.  Build the project using `npm run dev-client`
 4.  Start the web site using `npm run start-client`, which also opens the `client.html` page in the default web browser
-
-Run the expression parser regression tests with `npm run test-expression`.
-Run the initial sample URL regression tests with `npm run test-sample-url`.
