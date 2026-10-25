@@ -435,8 +435,9 @@ export class Main {
     private async _loadInitialSampleAsync(sample: string | null): Promise<void> {
         const emptySpec = "{}";
         if (sample) {
+            const value = sample.toLowerCase().endsWith(".json") ? sample : `${sample}.json`;
+            const path = value.includes("/") ? `${value.substring(0, value.lastIndexOf("/"))}/specs/${value.substring(value.lastIndexOf("/") + 1)}` : `samples/specs/${value}`;
             try {
-                const path = Common.initialSamplePath(sample);
                 const text = await fetch(path).then(response => response.text());
                 this._sampleLoaded(text);
             }
